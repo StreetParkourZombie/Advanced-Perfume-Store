@@ -1,0 +1,289 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Net.payOS;
+using Net.payOS.Types;
+using PerfumeStore.Models;
+using System.Text.Json;
+
+namespace PerfumeStore.Controllers
+{
+    public class PaymentController : Controller
+    {
+        private readonly PayOS _payOS;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly PerfumeStoreContext _context;
+        private readonly ILogger<PaymentController> _logger;
+
+        public PaymentController(
+            PayOS payOS, 
+            IHttpContextAccessor httpContextAccessor,
+            PerfumeStoreContext context,
+            ILogger<PaymentController> logger)
+        {
+            _payOS = payOS;
+            _httpContextAccessor = httpContextAccessor;
+            _context = context;
+            _logger = logger;
+        }
+
+        [HttpGet("/cancel-payment")]
+        public async Task<IActionResult> CancelPayment()
+        {
+            try
+            {
+                // Lấy thông tin đơn hàng từ session
+                var orderIdStr = HttpContext.Session.GetString("PENDING_ORDER_ID");
+                
+                if (!string.IsNullOrEmpty(orderIdStr) && int.TryParse(orderIdStr, out int orderId))
+                {
+                    // Cập nhật trạng thái đơn hàng thành "Đã hủy"
+                    var order = await _context.Orders.FindAsync(orderId);
+                    if (order != null)
+                    {
+                        order.Status = "Đã hủy";
+                        order.PaymentMethod = "Chuyển khoản ngân hàng (Đã hủy)";
+                        await _context.SaveChangesAsync();
+                        
+                        ViewBag.OrderId = orderId;
+                    }
+                    
+                    // Xóa session
+                    HttpContext.Session.Remove("PENDING_ORDER_ID");
+                    HttpContext.Session.Remove("PENDING_ORDER_AMOUNT");
+                }
+                
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CancelPayment");
+                return View();
+            }
+        }
+
+        [HttpGet("/payment-success")]
+        public async Task<IActionResult> PaymentSuccess()
+        {
+            try
+            {
+                // Lấy thông tin đơn hàng từ session hoặc query parameters từ PayOS
+                var orderIdStr = HttpContext.Session.GetString("PENDING_ORDER_ID");
+                
+                // Kiểm tra xem PayOS có gửi orderCode trong query string không (PayOS thường gửi về)
+                var payOSOrderCode = Request.Query["orderCode"].ToString();
+                if (!string.IsNullOrEmpty(payOSOrderCode) && int.TryParse(payOSOrderCode, out int payOSOrderId))
+                {
+                    // Ưu tiên sử dụng orderCode từ PayOS
+                    orderIdStr = payOSOrderId.ToString();
+                    _logger.LogInformation($"PaymentSuccess: Received orderCode from PayOS: {payOSOrderId}");
+                }
+                
+                if (string.IsNullOrEmpty(orderIdStr) || !int.TryParse(orderIdStr, out int orderId))
+                {
+                    _logger.LogWarning("PaymentSuccess: No valid order ID found in session or query parameters");
+                    TempData["Error"] = "Không tìm thấy thông tin đơn hàng";
+                    return RedirectToAction("Index", "Cart");
+                }
+                
+                _logger.LogInformation($"PaymentSuccess: Processing order ID: {orderId}");
+                
+                // Lấy đơn hàng từ database với tất cả thông tin cần thiết
+                var order = await _context.Orders
+                    .Include(o => o.Customer)
+                    .Include(o => o.Address)
+                    .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.Product)
+                            .ThenInclude(p => p.ProductImages)
+                    .FirstOrDefaultAsync(o => o.OrderId == orderId);
+                
+                if (order == null)
+                {
+                    _logger.LogWarning($"PaymentSuccess: Order {orderId} not found in database");
+                    TempData["Error"] = "Không tìm thấy đơn hàng trong hệ thống";
+                    return RedirectToAction("Index", "Cart");
+                }
+                
+                // Kiểm tra xem đơn hàng đã được thanh toán chưa (tránh cập nhật 2 lần)
+                if (order.Status == "Đã thanh toán")
+                {
+                    _logger.LogInformation($"PaymentSuccess: Order {orderId} already marked as paid");
+                }
+                else
+                {
+                    // Cập nhật trạng thái đơn hàng thành "Đã thanh toán"
+                    _logger.LogInformation($"PaymentSuccess: Updating order {orderId} status to 'Đã thanh toán'");
+                    order.Status = "Đã thanh toán";
+                    order.PaymentMethod = "Chuyển khoản ngân hàng";
+                    
+                    // Lưu đơn hàng vào database - ĐẢM BẢO LƯU THÀNH CÔNG TRƯỚC KHI TIẾP TỤC
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation($"PaymentSuccess: Successfully saved order {orderId} to database");
+                    }
+                    catch (Exception saveEx)
+                    {
+                        _logger.LogError(saveEx, $"PaymentSuccess: Failed to save order {orderId} to database");
+                        TempData["Error"] = "Có lỗi xảy ra khi lưu đơn hàng vào database. Vui lòng liên hệ hỗ trợ.";
+                        return RedirectToAction("Index", "Cart");
+                    }
+                }
+                
+                // Đảm bảo tất cả OrderDetails đã được lưu
+                if (order.OrderDetails == null || !order.OrderDetails.Any())
+                {
+                    _logger.LogWarning($"PaymentSuccess: Order {orderId} has no order details");
+                    TempData["Error"] = "Đơn hàng không có chi tiết sản phẩm";
+                    return RedirectToAction("Index", "Cart");
+                }
+                
+                // Kiểm tra lại từ database một lần nữa để đảm bảo dữ liệu đã được lưu
+                var verifiedOrder = await _context.Orders
+                    .Include(o => o.Customer)
+                    .Include(o => o.Address)
+                    .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.Product)
+                            .ThenInclude(p => p.ProductImages)
+                    .FirstOrDefaultAsync(o => o.OrderId == orderId);
+                
+                if (verifiedOrder == null || verifiedOrder.Status != "Đã thanh toán")
+                {
+                    _logger.LogError($"PaymentSuccess: Verification failed for order {orderId}");
+                    TempData["Error"] = "Xác thực đơn hàng không thành công";
+                    return RedirectToAction("Index", "Cart");
+                }
+                
+                _logger.LogInformation($"PaymentSuccess: Order {orderId} verified successfully in database");
+                
+                // Xóa giỏ hàng chỉ sau khi đã lưu đơn hàng thành công
+                HttpContext.Session.Remove("CART_SESSION");
+                HttpContext.Session.Remove("AppliedVoucher");
+                
+                // Tạo view model từ order đã được xác thực
+                var orderViewModel = new
+                {
+                    OrderId = verifiedOrder.OrderId.ToString(),
+                    OrderDate = verifiedOrder.OrderDate,
+                    TotalAmount = verifiedOrder.TotalAmount,
+                    Status = verifiedOrder.Status,
+                    PaymentMethod = verifiedOrder.PaymentMethod,
+                    Customer = new
+                    {
+                        Name = verifiedOrder.Customer.Name,
+                        Email = verifiedOrder.Customer.Email,
+                        Phone = verifiedOrder.Customer.Phone
+                    },
+                    Address = new
+                    {
+                        RecipientName = verifiedOrder.Address.RecipientName,
+                        Phone = verifiedOrder.Address.Phone,
+                        Province = verifiedOrder.Address.Province,
+                        District = verifiedOrder.Address.District,
+                        Ward = verifiedOrder.Address.Ward,
+                        AddressLine = verifiedOrder.Address.AddressLine
+                    },
+                    OrderDetails = verifiedOrder.OrderDetails.Select(od => new
+                    {
+                        ProductName = od.Product.ProductName,
+                        Quantity = od.Quantity,
+                        UnitPrice = od.UnitPrice,
+                        TotalPrice = od.TotalPrice,
+                        ImageUrl = od.Product.ProductImages?.FirstOrDefault()?.ImageData != null 
+                            ? $"data:{od.Product.ProductImages.First().ImageMimeType};base64,{Convert.ToBase64String(od.Product.ProductImages.First().ImageData)}"
+                            : "/images/ProductSummary/chanel-bleu-de-chanel-edp-100-ml.webp"
+                    }).ToList()
+                };
+                
+                // Xóa session chỉ sau khi đã xác thực và lưu thành công
+                HttpContext.Session.Remove("PENDING_ORDER_ID");
+                HttpContext.Session.Remove("PENDING_ORDER_AMOUNT");
+                
+                _logger.LogInformation($"PaymentSuccess: Returning success page for order {orderId}");
+                
+                return View(orderViewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "PaymentSuccess: Unexpected error occurred");
+                TempData["Error"] = "Có lỗi xảy ra khi xử lý thanh toán. Vui lòng liên hệ hỗ trợ.";
+                return RedirectToAction("Index", "Cart");
+            }
+        }
+
+        [HttpGet("/create-payment-progress")]
+        public async Task<IActionResult> CreatePaymentProgress()
+        {
+            try
+            {
+                // Lấy thông tin đơn hàng từ session
+                var orderIdStr = HttpContext.Session.GetString("PENDING_ORDER_ID");
+                var amountStr = HttpContext.Session.GetString("PENDING_ORDER_AMOUNT");
+                
+                if (string.IsNullOrEmpty(orderIdStr) || string.IsNullOrEmpty(amountStr))
+                {
+                    TempData["Error"] = "Không tìm thấy thông tin đơn hàng";
+                    return RedirectToAction("Index", "Cart");
+                }
+                
+                if (!int.TryParse(orderIdStr, out int orderId) || !decimal.TryParse(amountStr, out decimal amount))
+                {
+                    TempData["Error"] = "Thông tin đơn hàng không hợp lệ";
+                    return RedirectToAction("Index", "Cart");
+                }
+                
+                // Lấy chi tiết đơn hàng từ database
+                var order = await _context.Orders
+                    .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.Product)
+                    .FirstOrDefaultAsync(o => o.OrderId == orderId);
+                
+                if (order == null)
+                {
+                    TempData["Error"] = "Không tìm thấy đơn hàng";
+                    return RedirectToAction("Index", "Cart");
+                }
+                
+                // Tạo danh sách items cho PayOS
+                List<ItemData> items = new List<ItemData>();
+                foreach (var detail in order.OrderDetails)
+                {
+                    items.Add(new ItemData(
+                        detail.Product.ProductName,
+                        detail.Quantity ?? 1,
+                        (int)detail.UnitPrice
+                    ));
+                }
+                
+                // Nếu không có items, thêm item mặc định
+                if (items.Count == 0)
+                {
+                    items.Add(new ItemData("Đơn hàng #" + orderId, 1, (int)amount));
+                }
+
+                // Get the current request's base URL
+                var request = _httpContextAccessor.HttpContext.Request;
+                var baseUrl = $"{request.Scheme}://{request.Host}";
+
+                // Tạo payment data
+                PaymentData paymentData = new PaymentData(
+                    orderId,
+                    (int)amount,
+                    $"Thanh toan don hang #{orderId}",
+                    items,
+                    $"{baseUrl}/cancel-payment",
+                    $"{baseUrl}/payment-success"
+                );
+
+                CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
+
+                return Redirect(createPayment.checkoutUrl);
+            }
+            catch (System.Exception exception)
+            {
+                _logger.LogError(exception, "Error creating payment link");
+                TempData["Error"] = "Có lỗi xảy ra khi tạo link thanh toán: " + exception.Message;
+                return RedirectToAction("Index", "Cart");
+            }
+        }
+    }
+}

@@ -1,0 +1,15 @@
+﻿@model List<PerfumeStore.Models.LoaiThuocTinh>
+<link rel="stylesheet" href="~/css/Category/category_choice.css" asp-append-version="true" />
+
+<div class="list-ltt">
+	<div class="loaithuoctinh-list">
+		@foreach (var ltt in Model)
+		{
+			<div class="loaithuoctinh-card">
+				<div class="loaithuoctinh-info">
+					<div class="name-ltt">@ltt.TenLoaiThuocTinh</div>
+				</div>
+			</div>
+		}
+	</div>
+</div>

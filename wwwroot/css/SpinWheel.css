@@ -1,0 +1,1218 @@
+﻿/* SpinWheel CSS - Thiết kế hình tròn với tông màu website */
+
+/* Root Variables */
+:root {
+    --primary-color: #d9534f;
+    --secondary-color: #6c757d;
+    --background-color: #fff;
+    --info-color: #e3f2fd;
+    --info-text: #1976d2;
+    --border-radius: 15px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Page Layout */
+.spinwheel-page {
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: visible; /* Đảm bảo nút giữa không bị cắt theo chiều dọc */
+    padding: 2rem 0;
+}
+
+.spinwheel-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.floating-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(circle at 20% 20%, rgba(217, 83, 79, 0.1) 1px, transparent 1px), radial-gradient(circle at 80% 80%, rgba(217, 83, 79, 0.08) 2px, transparent 2px), radial-gradient(circle at 40% 60%, rgba(217, 83, 79, 0.06) 1px, transparent 1px);
+    background-size: 100px 100px, 150px 150px, 200px 200px;
+    animation: float 20s ease-in-out infinite;
+}
+
+.gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(217, 83, 79, 0.05) 0%, rgba(108, 117, 125, 0.05) 100%);
+}
+
+.spinwheel-container {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 0;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    margin: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    overflow: visible; /* Đảm bảo nút giữa không bị cắt */
+}
+
+/* Header Section */
+.spinwheel-header {
+    margin-bottom: 3rem;
+}
+
+.header-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.spinwheel-title {
+    margin-bottom: 2rem;
+}
+
+.title-main {
+    display: block;
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    text-shadow: 0 2px 10px rgba(217, 83, 79, 0.3);
+    margin-bottom: 0.5rem;
+    animation: slideInDown 1s ease-out;
+}
+
+.title-sub {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    font-weight: 300;
+    animation: slideInUp 1s ease-out 0.3s both;
+}
+
+.header-info {
+    margin-bottom: 2rem;
+}
+
+.info-box {
+    background: var(--info-color);
+    border-radius: var(--border-radius);
+    padding: 1rem 2rem;
+    border: 1px solid #bbdefb;
+    color: var(--info-text);
+    font-size: 0.9rem;
+    display: inline-block;
+    animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+.header-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-top: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: 1.5rem 2rem;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-shadow: 0 2px 10px rgba(217, 83, 79, 0.2);
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    margin-top: 0.5rem;
+}
+
+/* Wheel Section */
+.wheel-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 3rem;
+    perspective: 1000px;
+}
+
+.wheel-container {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    margin-bottom: 3rem;
+    transform-style: preserve-3d;
+    animation: wheelContainerFloat 4s ease-in-out infinite;
+    aspect-ratio: 1; /* Đảm bảo tỷ lệ width = height */
+    overflow: visible; /* Đảm bảo nút giữa không bị cắt */
+}
+
+/* Wheel Background */
+.wheel-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.wheel-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(217, 83, 79, 0.2);
+}
+
+.outer-ring {
+    top: -10px;
+    left: -10px;
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+}
+
+.middle-ring {
+    top: -5px;
+    left: -5px;
+    width: calc(100% + 10px);
+    height: calc(100% + 10px);
+}
+
+.inner-ring {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Spin Wheel */
+.spin-wheel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.9), 0 0 0 12px rgba(217, 83, 79, 0.3), 0 25px 50px rgba(0, 0, 0, 0.2), 0 0 100px rgba(217, 83, 79, 0.1), inset 0 0 30px rgba(0, 0, 0, 0.1);
+    transition: transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border: 4px solid #fff;
+    z-index: 2;
+    /* Bỏ transform 3D để tránh xung đột với animation quay */
+    animation: wheelFloat 3s ease-in-out infinite;
+    overflow: hidden; /* Đảm bảo hình tròn hoàn hảo */
+    /* Đảm bảo wheel không can thiệp vào click events của nút giữa */
+    pointer-events: none;
+}
+
+.wheel-sector {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    transform-origin: 100% 100%; /* Đặt transform-origin ở góc dưới phải */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+    font-size: 12px;
+    text-align: center;
+    padding: 15px 8px;
+    transition: var(--transition);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(1px);
+    clip-path: polygon(0 0, 100% 0, 50% 100%); /* Tạo hình tam giác từ góc trên */
+    left: 0;
+    top: 0;
+    /* Đảm bảo không bị đè lên nhau ở giữa */
+    z-index: 1;
+    /* Tạo hình tròn hoàn chỉnh */
+    border-radius: 0 0 100% 0;
+    /* Đảm bảo sector không bị cắt */
+    box-sizing: border-box;
+    /* Đảm bảo sector không can thiệp vào click events */
+    pointer-events: none;
+}
+
+    .wheel-sector::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: inherit;
+        z-index: -1;
+        clip-path: polygon(0 0, 100% 0, 50% 100%); /* Tạo hình tam giác từ góc trên */
+        border-radius: 0 0 100% 0; /* Tạo góc tròn cho pseudo-element */
+        box-sizing: border-box;
+    }
+
+    .wheel-sector:hover {
+        filter: brightness(1.2) saturate(1.1);
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+
+.sector-text {
+    transform: rotate(22.5deg); /* Xoay text để đọc được */
+    font-size: 11px;
+    line-height: 1.3;
+    max-width: 75px;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 10;
+    pointer-events: none; /* Tránh can thiệp vào click events */
+}
+
+/* Center Circle */
+.wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    box-shadow: none; /* Loại bỏ tất cả shadow */
+    z-index: 200; /* Tăng z-index để đảm bảo nút giữa luôn ở trên cùng */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #fff;
+    cursor: pointer;
+    transition: none; /* Loại bỏ transition */
+    animation: none; /* Loại bỏ animation */
+    /* Đảm bảo nút có thể click được */
+    pointer-events: auto;
+    user-select: none;
+}
+
+/* Loại bỏ hiệu ứng hover */
+
+.center-logo {
+    font-size: 1.8rem;
+    color: #fff;
+    text-shadow: none; /* Loại bỏ text-shadow */
+    margin-bottom: 2px;
+}
+
+.center-text {
+    font-size: 8px;
+    color: #fff;
+    font-weight: 700;
+    text-shadow: none; /* Loại bỏ text-shadow */
+    letter-spacing: 0.5px;
+}
+
+/* Pointer */
+.wheel-pointer {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    animation: pointerBounce 2s ease-in-out infinite;
+    /* Đảm bảo pointer không can thiệp vào click events */
+    pointer-events: none;
+}
+
+.pointer-triangle {
+    width: 0;
+    height: 0;
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
+    border-top: 35px solid #667eea;
+    filter: drop-shadow(0 6px 12px rgba(102, 126, 234, 0.6));
+    position: relative;
+}
+
+    .pointer-triangle::before {
+        content: '';
+        position: absolute;
+        top: -35px;
+        left: -18px;
+        width: 0;
+        height: 0;
+        border-left: 18px solid transparent;
+        border-right: 18px solid transparent;
+        border-top: 35px solid rgba(255, 255, 255, 0.3);
+        z-index: -1;
+    }
+
+.pointer-shadow {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 25px;
+    height: 8px;
+    background: rgba(217, 83, 79, 0.3);
+    border-radius: 50%;
+    filter: blur(5px);
+}
+
+/* Sparkle Effects */
+.sparkles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.sparkle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    animation: sparkle 2s ease-in-out infinite;
+}
+
+.sparkle-1 {
+    top: 20%;
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.sparkle-2 {
+    top: 30%;
+    right: 20%;
+    animation-delay: 0.5s;
+}
+
+.sparkle-3 {
+    bottom: 30%;
+    left: 30%;
+    animation-delay: 1s;
+}
+
+.sparkle-4 {
+    bottom: 20%;
+    right: 30%;
+    animation-delay: 1.5s;
+}
+
+/* Result Modal */
+.result-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+.modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: none;
+    pointer-events: none;
+    z-index: 9998;
+}
+
+.modal-content {
+    position: relative;
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    max-width: 500px;
+    width: 90%;
+    animation: modalSlideIn 0.3s ease-out;
+    z-index: 10000;
+    border: 2px solid #fff;
+    pointer-events: auto;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #d9534f;
+    color: #fff;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.modal-title {
+    margin: 0;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+    .btn-close:hover {
+        opacity: 1;
+    }
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    background: #f8f9fa;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    flex-wrap: nowrap;
+}
+
+    .modal-footer .btn {
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        width: 150px;
+        height: 45px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-footer .btn-secondary {
+        background: #6c757d;
+        color: #fff;
+        border-color: #6c757d;
+    }
+
+        .modal-footer .btn-secondary:hover {
+            background: #5a6268;
+            border-color: #5a6268;
+        }
+
+    .modal-footer .btn-success {
+        background: #28a745;
+        color: #fff;
+        border-color: #28a745;
+    }
+
+        .modal-footer .btn-success:hover {
+            background: #218838;
+            border-color: #218838;
+        }
+
+    .modal-footer .btn-info {
+        background: #17a2b8;
+        color: #fff;
+        border-color: #17a2b8;
+    }
+
+        .modal-footer .btn-info:hover {
+            background: #138496;
+            border-color: #138496;
+        }
+
+    /* Ensure buttons are clickable */
+    .modal-footer .btn,
+    .modal-header .btn-close {
+        pointer-events: auto;
+        cursor: pointer;
+        position: relative;
+        z-index: 10001;
+    }
+
+/* Responsive design for modal footer */
+@media (max-width: 768px) {
+    .modal-footer {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .modal-footer .btn {
+            width: 100%;
+            height: 45px;
+            flex: none;
+        }
+}
+
+/* Instructions Section */
+.instructions-section {
+    margin-top: 3rem;
+}
+
+.instructions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.instruction-card {
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    transition: var(--transition);
+}
+
+    .instruction-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+.card-icon {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.card-text {
+    color: var(--secondary-color);
+    line-height: 1.6;
+}
+
+/* Voucher List Section */
+.voucher-list-section {
+    margin-top: 3rem;
+}
+
+.voucher-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+    align-items: start;
+    grid-auto-rows: 1fr;
+}
+
+.voucher-card {
+    background: #fff;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: left;
+    border: 2px solid #dee2e6;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    min-height: 180px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+    /* Màu riêng cho từng voucher */
+    .voucher-card:nth-child(1) {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    }
+
+    .voucher-card:nth-child(2) {
+        border-color: #f093fb;
+        background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+    }
+
+    .voucher-card:nth-child(3) {
+        border-color: #4facfe;
+        background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
+    }
+
+    .voucher-card:nth-child(4) {
+        border-color: #43e97b;
+        background: linear-gradient(135deg, rgba(67, 233, 123, 0.1) 0%, rgba(56, 249, 215, 0.1) 100%);
+    }
+
+    .voucher-card:nth-child(5) {
+        border-color: #fa709a;
+        background: linear-gradient(135deg, rgba(250, 112, 154, 0.1) 0%, rgba(254, 225, 64, 0.1) 100%);
+    }
+
+    .voucher-card:nth-child(6) {
+        border-color: #a8edea;
+        background: linear-gradient(135deg, rgba(168, 237, 234, 0.1) 0%, rgba(254, 214, 227, 0.1) 100%);
+    }
+
+    .voucher-card:nth-child(7) {
+        border-color: #ff9a9e;
+        background: linear-gradient(135deg, rgba(255, 154, 158, 0.1) 0%, rgba(254, 207, 239, 0.1) 100%);
+    }
+
+    .voucher-card:nth-child(8) {
+        border-color: #ffecd2;
+        background: linear-gradient(135deg, rgba(255, 236, 210, 0.1) 0%, rgba(252, 182, 159, 0.1) 100%);
+    }
+
+    .voucher-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--primary-color);
+    }
+
+    /* Màu thanh trên cho từng voucher */
+    .voucher-card:nth-child(1)::before {
+        background: #667eea;
+    }
+
+    .voucher-card:nth-child(2)::before {
+        background: #f093fb;
+    }
+
+    .voucher-card:nth-child(3)::before {
+        background: #4facfe;
+    }
+
+    .voucher-card:nth-child(4)::before {
+        background: #43e97b;
+    }
+
+    .voucher-card:nth-child(5)::before {
+        background: #fa709a;
+    }
+
+    .voucher-card:nth-child(6)::before {
+        background: #a8edea;
+    }
+
+    .voucher-card:nth-child(7)::before {
+        background: #ff9a9e;
+    }
+
+    .voucher-card:nth-child(8)::before {
+        background: #ffecd2;
+    }
+
+    .voucher-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border-color: var(--primary-color);
+    }
+
+.voucher-header {
+    margin-bottom: 1rem;
+}
+
+.voucher-name {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+/* Màu tiêu đề cho từng voucher */
+.voucher-card:nth-child(1) .voucher-name {
+    color: #667eea;
+}
+
+.voucher-card:nth-child(2) .voucher-name {
+    color: #f093fb;
+}
+
+.voucher-card:nth-child(3) .voucher-name {
+    color: #4facfe;
+}
+
+.voucher-card:nth-child(4) .voucher-name {
+    color: #43e97b;
+}
+
+.voucher-card:nth-child(5) .voucher-name {
+    color: #fa709a;
+}
+
+.voucher-card:nth-child(6) .voucher-name {
+    color: #a8edea;
+}
+
+.voucher-card:nth-child(7) .voucher-name {
+    color: #ff9a9e;
+}
+
+.voucher-card:nth-child(8) .voucher-name {
+    color: #ffecd2;
+}
+
+.voucher-description {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    line-height: 1.4;
+}
+
+.voucher-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.voucher-condition {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes sparkle {
+    0%, 100% {
+        opacity: 0;
+        transform: scale(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Result Animation Styles */
+.result-animation {
+    text-align: center;
+    padding: 1rem;
+    background: #fff;
+    border-radius: var(--border-radius);
+}
+
+.result-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: bounce 1s ease-in-out;
+    color: #d9534f;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.result-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #d9534f;
+    margin-bottom: 1rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.result-message {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.result-voucher {
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-top: 1rem;
+    border: 2px solid #d9534f;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Animation Types */
+.result-animation.bounce .result-icon {
+    animation: bounce 1s ease-in-out infinite;
+}
+
+.result-animation.pulse .result-icon {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.result-animation.glow .result-icon {
+    animation: glow 2s ease-in-out infinite;
+}
+
+.result-animation.shake .result-icon {
+    animation: shake 0.5s ease-in-out infinite;
+}
+
+.result-animation.confetti .result-icon {
+    animation: confetti 1s ease-in-out;
+}
+
+.result-animation.fadeIn .result-icon {
+    animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-10px);
+    }
+
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        text-shadow: 0 0 5px rgba(217, 83, 79, 0.5);
+    }
+
+    50% {
+        text-shadow: 0 0 20px rgba(217, 83, 79, 0.8);
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes confetti {
+    0% {
+        transform: scale(0) rotate(0deg);
+    }
+
+    50% {
+        transform: scale(1.2) rotate(180deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .spinwheel-page {
+        background-attachment: scroll;
+    }
+
+    .spinwheel-container {
+        margin: 1rem;
+        padding: 1.5rem 0;
+    }
+
+    .title-main {
+        font-size: 2.2rem;
+    }
+
+    .title-sub {
+        font-size: 1rem;
+    }
+
+    .info-box {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.8rem;
+    }
+
+    .header-stats {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .stat-item {
+        width: 200px;
+    }
+
+    .wheel-container {
+        width: 350px;
+        height: 350px;
+    }
+
+    .wheel-sector {
+        font-size: 10px;
+        padding: 12px 6px;
+    }
+
+    .sector-text {
+        font-size: 8px;
+        max-width: 60px;
+    }
+
+    .center-logo {
+        font-size: 1.5rem;
+    }
+
+    .center-text {
+        font-size: 7px;
+    }
+
+    .wheel-center {
+        width: 80px;
+        height: 80px;
+    }
+
+    .instructions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .voucher-list {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        align-items: start;
+    }
+
+    .voucher-card {
+        min-height: 160px;
+    }
+
+    .modal-content {
+        margin: 1rem;
+        max-width: 90%;
+        width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .spinwheel-container {
+        margin: 0.5rem;
+        padding: 1rem 0;
+    }
+
+    .modal-content {
+        margin: 0.5rem;
+        max-width: 95%;
+        width: 95%;
+    }
+
+    .title-main {
+        font-size: 1.8rem;
+    }
+
+    .title-sub {
+        font-size: 0.9rem;
+    }
+
+    .info-box {
+        padding: 0.6rem 1rem;
+        font-size: 0.75rem;
+    }
+
+    .wheel-container {
+        width: 300px;
+        height: 300px;
+    }
+
+    .wheel-sector {
+        font-size: 8px;
+        padding: 8px 4px;
+    }
+
+    .sector-text {
+        font-size: 6px;
+        max-width: 50px;
+    }
+
+    .center-logo {
+        font-size: 1.2rem;
+    }
+
+    .center-text {
+        font-size: 6px;
+    }
+
+    .wheel-center {
+        width: 70px;
+        height: 70px;
+    }
+
+    .voucher-list {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .voucher-card {
+        min-height: 140px;
+    }
+}
+
+/* New Animations */
+@keyframes wheelContainerFloat {
+    0%, 100% {
+        transform: translateY(0px) rotateX(0deg);
+    }
+
+    50% {
+        transform: translateY(-10px) rotateX(5deg);
+    }
+}
+
+@keyframes wheelFloat {
+    0%, 100% {
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.9), 0 0 0 12px rgba(217, 83, 79, 0.3), 0 25px 50px rgba(0, 0, 0, 0.2), 0 0 100px rgba(217, 83, 79, 0.1), inset 0 0 30px rgba(0, 0, 0, 0.1);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.9), 0 0 0 12px rgba(217, 83, 79, 0.4), 0 30px 60px rgba(0, 0, 0, 0.3), 0 0 120px rgba(217, 83, 79, 0.15), inset 0 0 35px rgba(0, 0, 0, 0.15);
+    }
+}
+
+/* Đã xóa animation centerPulse */
+
+/* Đã xóa animation centerPulseHover */
+
+@keyframes pointerBounce {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0px);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}

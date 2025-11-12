@@ -1,0 +1,583 @@
+﻿@model PerfumeStore.Models.Product
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="container my-4">
+    <div class="row">
+        <!-- Cột trái: Hình ảnh -->
+        <div class="col-12 col-md-6">
+            @{
+                var mainImage = Model?.ProductImages?.FirstOrDefault();
+                var productImages = Model?.ProductImages?.ToList() ?? new List<PerfumeStore.Models.ProductImage>();
+            }
+            
+            @if (mainImage != null && mainImage.ImageData != null)
+            {
+                <img id="mainProductImage" 
+                     src="@Url.Action("GetImageById", "Product", new { imageId = mainImage.ImageId })" 
+                     class="img-fluid border mb-3" 
+                     alt="@(Model?.ProductName ?? "Sản phẩm")"
+                     style="cursor: pointer;">
+            }
+            else
+            {
+                <img id="mainProductImage" 
+                     src="~/images/ProductDetail/anh-1.webp" 
+                     class="img-fluid border mb-3" 
+                     alt="@(Model?.ProductName ?? "Sản phẩm")"
+                     style="cursor: pointer;">
+            }
+
+            <div class="row g-2 mb-3" id="thumbnailContainer">
+                @if (productImages.Any())
+                {
+                    @foreach (var image in productImages)
+                    {
+                        <div class="col-3">
+                            <img src="@Url.Action("GetImageById", "Product", new { imageId = image.ImageId })"
+                                 class="img-thumbnail w-100 thumbnail-img @(image == mainImage ? "active" : "")"
+                                 alt="thumb"
+                                 data-image-id="@image.ImageId"
+                                 style="cursor: pointer; @(image == mainImage ? "border: 2px solid #dc3545;" : "")">
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-3">
+                        <img src="~/images/ProductDetail/anh-1.webp"
+                             class="img-thumbnail w-100 thumbnail-img active"
+                             alt="thumb1"
+                             style="cursor: pointer; border: 2px solid #dc3545;">
+                    </div>
+                    <div class="col-3">
+                        <img src="~/images/ProductDetail/anh-2.jpg"
+                             class="img-thumbnail w-100 thumbnail-img"
+                             alt="thumb2"
+                             style="cursor: pointer;">
+                    </div>
+                    <div class="col-3">
+                        <img src="~/images/ProductDetail/anh-3.jpg"
+                             class="img-thumbnail w-100 thumbnail-img"
+                             alt="thumb3"
+                             style="cursor: pointer;">
+                    </div>
+                    <div class="col-3">
+                        <img src="~/images/ProductDetail/anh-4.jpg"
+                             class="img-thumbnail w-100 thumbnail-img"
+                             alt="thumb4"
+                             style="cursor: pointer;">
+                    </div>
+                }
+            </div>
+
+            <div class="alert alert-info">
+                Giảm đến <strong>100K</strong> khi thanh toán qua Fundiin <a href="#">(xem thêm)</a>
+            </div>
+        </div>
+
+        <!-- Cột phải: Thông tin -->
+        <div class="col-md-6">
+            <h3>@(Model?.ProductName ?? "Sản phẩm")</h3>
+            <div class="rating d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-danger text-white ">4.8</span>
+
+                <!-- Sao đánh giá -->
+                <span class="rating-stars">
+                    ★★★★★
+                </span>
+                <a>(30 đánh giá)</a> | Đã bán 2.4k
+            </div>
+            
+            <!-- Giá sản phẩm -->
+            @{
+                // Tìm Liter có LiterPrice trùng với DiscountPrice, nếu không có thì chọn Liter đầu tiên
+                var firstLiter = Model?.Liters?.FirstOrDefault(l => Model.DiscountPrice.HasValue && l.LiterPrice == Model.DiscountPrice.Value)
+                    ?? Model?.Liters?.OrderBy(l => l.LiterNumber).FirstOrDefault();
+                var displayPrice = firstLiter?.LiterPrice ?? (Model?.DiscountPrice ?? Model?.Price ?? 0);
+                var originalPrice = Model?.Price ?? 0;
+            }
+            <div class="product-price mb-3">
+                @if (firstLiter != null && firstLiter.LiterPrice < originalPrice)
+                {
+                    <div class="d-flex align-items-baseline gap-2">
+                        <h4 class="text-danger mb-0 fw-bold" id="productPriceDisplay">@firstLiter.LiterPrice.ToString("N0") ₫</h4>
+                        <span class="text-muted text-decoration-line-through" id="originalPriceDisplay">@originalPrice.ToString("N0") ₫</span>
+                    </div>
+                }
+                else if (Model?.DiscountPrice.HasValue == true)
+                {
+                    <div class="d-flex align-items-baseline gap-2">
+                        <h4 class="text-danger mb-0 fw-bold" id="productPriceDisplay">@Model.DiscountPrice.Value.ToString("N0") ₫</h4>
+                        <span class="text-muted text-decoration-line-through" id="originalPriceDisplay">@Model.Price.ToString("N0") ₫</span>
+                    </div>
+                }
+                else
+                {
+                    <h4 class="text-danger mb-0 fw-bold" id="productPriceDisplay">@displayPrice.ToString("N0") ₫</h4>
+                }
+            </div>
+            
+            <p>Hương thơm nam tính và tinh tế, lý tưởng cho mọi dịp từ công sở đến tiệc tối.</p>
+
+            <ul class="list-unstyled">
+                <li><strong>Thương hiệu:</strong> <a href="#" class="text-primary text-decoration-none">@(Model?.Brand?.BrandName ?? "-")</a></li>
+                <li><strong>Loại sản phẩm:</strong> <a href="#" class="text-primary text-decoration-none">Nước Hoa Nam</a></li>
+                <li><strong>Tình trạng:</strong> <span class="text-success">Còn hàng</span></li>
+            </ul>
+
+            <div class="product-options my-3">
+                @{
+                    var viewingType = ViewBag.ViewingType as string ?? "EDP";
+                    var relatedProducts = ViewBag.RelatedProducts as List<PerfumeStore.Models.Product> ?? new List<PerfumeStore.Models.Product>();
+                }
+                
+                <!-- Chỉ hiển thị "Bạn đang xem" và sản phẩm liên quan nếu có sản phẩm liên quan -->
+                @if (relatedProducts.Any())
+                {
+                    <p><strong>Bạn đang xem <span class="text-uppercase">@viewingType</span></strong></p>
+
+                    <!-- Loại sản phẩm -->
+                    <div class="d-flex gap-2 mb-3">
+                        @foreach (var relatedProduct in relatedProducts)
+                        {
+                            var relatedImage = relatedProduct.ProductImages?.FirstOrDefault();
+                            var relatedImageUrl = relatedImage != null 
+                                ? Url.Action("GetImageById", "Product", new { imageId = relatedImage.ImageId })
+                                : "/images/ProductDetail/anh-1.webp";
+                            
+                            // Tính tên hiển thị: ProductName - SuggestionName
+                            var displayName = relatedProduct.ProductName;
+                            if (!string.IsNullOrEmpty(Model.SuggestionName) && relatedProduct.ProductName.Contains(Model.SuggestionName))
+                            {
+                                displayName = relatedProduct.ProductName.Replace(Model.SuggestionName, "").Trim();
+                                // Xóa các ký tự đặc biệt ở đầu/cuối
+                                displayName = displayName.TrimStart(' ', '-', '–', '—').TrimEnd(' ', '-', '–', '—');
+                            }
+                            // Nếu displayName rỗng, dùng Concentration hoặc ProductName
+                            if (string.IsNullOrWhiteSpace(displayName))
+                            {
+                                displayName = relatedProduct.Concentration ?? relatedProduct.ProductName;
+                            }
+                            
+                            <a href="@Url.Action("Index", "Product", new { id = relatedProduct.ProductId })" 
+                               class="option-btn text-decoration-none">
+                                <img src="@relatedImageUrl" alt="@relatedProduct.ProductName">
+                                <div>@displayName</div>
+                            </a>
+                        }
+                    </div>
+                }
+
+                <!-- Dung tích -->
+                @if (Model?.Liters != null && Model.Liters.Any())
+                {
+                    // Tìm Liter có LiterPrice trùng với DiscountPrice, nếu không có thì chọn Liter đầu tiên
+                    var selectedLiter = Model.Liters.FirstOrDefault(l => Model.DiscountPrice.HasValue && l.LiterPrice == Model.DiscountPrice.Value)
+                        ?? Model.Liters.OrderBy(l => l.LiterNumber).FirstOrDefault();
+                    var basePrice = Model.DiscountPrice ?? Model.Price;
+                    
+                    <p>
+                        <strong>Lựa chọn :</strong>
+                        <span class="text-danger" id="selectedLiterDisplay">@(selectedLiter?.LiterNumber ?? 0) ml</span>
+                        @if (selectedLiter != null && selectedLiter.LiterNumber > 0)
+                        {
+                            var pricePerMl = selectedLiter.LiterPrice / selectedLiter.LiterNumber;
+                            <small>(@pricePerMl.ToString("N0") đ/ml, ~ @(selectedLiter.LiterNumber * 10) lần xịt trong 12 tháng)</small>
+                        }
+                    </p>
+
+                    <div class="d-flex gap-3" id="literButtons">
+                        @foreach (var liter in Model.Liters.OrderBy(l => l.LiterNumber))
+                        {
+                            var isSelected = liter == selectedLiter;
+                            <button type="button" 
+                                    class="size-btn @(isSelected ? "active" : "")" 
+                                    data-liter-id="@liter.LiterId"
+                                    data-liter-number="@liter.LiterNumber"
+                                    data-liter-price="@liter.LiterPrice"
+                                    data-base-price="@basePrice">
+                                @liter.LiterNumber ML <br>
+                                <small>@liter.LiterPrice.ToString("N0") ₫</small>
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p>
+                        <strong>Lựa chọn :</strong>
+                        <span class="text-danger">Chưa có dung tích</span>
+                    </p>
+                }
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                @{
+                    var initialLiterPrice = Model?.Liters?.OrderBy(l => l.LiterNumber).FirstOrDefault()?.LiterPrice ?? (Model?.DiscountPrice ?? Model?.Price ?? 0);
+                    var firstProductImage = Model?.ProductImages?.FirstOrDefault();
+                    var imageUrl = firstProductImage != null 
+                        ? Url.Action("GetImageById", "Product", new { imageId = firstProductImage.ImageId })
+                        : "/images/ProductDetail/anh-1.webp";
+                }
+                <button id="addToCartBtn" 
+                        class="btn btn-outline-secondary w-50"
+                        data-product-name="@(Model?.ProductName ?? "Sản phẩm")"
+                        data-product-price="@initialLiterPrice"
+                        data-image-url="@imageUrl">
+                    <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ hàng
+                </button>
+                <button class="btn btn-danger w-50">Mua ngay</button>
+            </div>
+
+        </div>
+        <hr class="divider" />
+
+        <div class="row my-4 justify-content-center">
+            <!-- 🔹 Thông tin chi tiết -->
+            <div class="row my-4 justify-content-center">
+                <div class="col-12 col-md-7">
+                    <h4 class="fw-bold mb-3">Chi tiết về sản phẩm</h4>
+
+                    <table class="table table-borderless product-detail">
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">Phân loại:</td>
+                                <td>@Model.Categories?.FirstOrDefault()?.CategoryName</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Xuất xứ:</td>
+                                <td>@Model.Origin</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Năm phát hành:</td>
+                                <td>@Model.ReleaseYear</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Nồng độ:</td>
+                                <td>@Model.Concentration</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Nhóm hương:</td>
+                                <td>@Model.Scent</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Nhà chế tác:</td>
+                                <td>@Model.Craftsman</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Phong cách:</td>
+                                <td>@Model.Style</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Dịp sử dụng:</td>
+                                <td>@Model.UsingOccasion</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <section class="fragrance-info mt-5 pt-4 border-top">
+                        <h4 class="fw-bold text-center text-uppercase mb-4">✨ Hương thơm và cảm nhận</h4>
+
+                        <div class="row g-4 text-center fragrance-notes">
+                            <div class="col-md-4">
+                                <h6 class="fw-bold text-secondary">🌸 Hương đầu</h6>
+                                <p class="text-dark">@Model.TopNote</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="fw-bold text-secondary">🌿 Hương giữa</h6>
+                                <p class="text-dark">@Model.HeartNote</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="fw-bold text-secondary">🌲 Hương cuối</h6>
+                                <p class="text-dark">@Model.BaseNote</p>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.DescriptionNo2))
+                        {
+                            <div class="description-extended mt-4 p-4 bg-white border rounded shadow-sm">
+                                <h5 class="fw-bold text-primary mb-3">📝 Mô tả chi tiết</h5>
+                                <p class="text-muted">@Html.Raw(Model.DescriptionNo2)</p>
+                            </div>
+                        }
+                    </section>
+                </div>
+
+                <div class="col-12 col-md-3 text-end">
+                    <ul class="list-unstyled guarantee-list">
+                        <li class="d-flex align-items-start py-2 border-bottom">
+                            <img src="~/images/ProductDetail/anh-3.jpg" alt="cam kết" class="icon-img me-2">
+                            <i class="bi bi-shield-check fs-4 text-secondary me-2"></i>
+                            <div>
+                                <strong>Cam kết chính hãng 100%</strong><br>
+                                Tất cả nước hoa & mỹ phẩm
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start py-2 border-bottom">
+                            <img src="~/images/ProductDetail/anh-3.jpg" alt="cam kết" class="icon-img me-2">
+                            <i class="bi bi-arrow-repeat fs-4 text-secondary me-2"></i>
+                            <div>
+                                <strong>Bảo hành đến giọt cuối cùng</strong><br>
+                                Miễn phí đổi trả trong 7 ngày.
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start py-2 border-bottom">
+                            <img src="~/images/ProductDetail/anh-3.jpg" alt="cam kết" class="icon-img me-2">
+                            <i class="bi bi-truck fs-4 text-secondary me-2"></i>
+                            <div>
+                                <strong>Giao hàng miễn phí toàn quốc</strong><br>
+                                Miễn phí thiệp & gói quà.
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start py-2 border-bottom">
+                            <img src="~/images/ProductDetail/anh-3.jpg" alt="cam kết" class="icon-img me-2">
+                            <i class="bi bi-credit-card fs-4 text-secondary me-2"></i>
+                            <div>
+                                <strong>Thanh toán online an toàn</strong><br>
+                                Trả góp 0% qua Fundiin
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Section -->
+    @await Component.InvokeAsync("Comment", new { productId = Model.ProductId })
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Xử lý thay đổi ảnh chính khi click vào thumbnail
+        const thumbnailImages = document.querySelectorAll('.thumbnail-img');
+        const mainProductImage = document.getElementById('mainProductImage');
+        const getImageByIdUrl = '@Url.Action("GetImageById", "Product")';
+        
+        thumbnailImages.forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                // Xóa class active và border từ tất cả thumbnails
+                thumbnailImages.forEach(t => {
+                    t.classList.remove('active');
+                    t.style.border = '';
+                });
+                
+                // Thêm class active và border cho thumbnail được chọn
+                this.classList.add('active');
+                this.style.border = '2px solid #dc3545';
+                
+                // Cập nhật ảnh chính
+                if (mainProductImage) {
+                    const imageId = this.dataset.imageId;
+                    if (imageId) {
+                        // Nếu có data-image-id, sử dụng action GetImageById
+                        mainProductImage.src = getImageByIdUrl + '?imageId=' + imageId;
+                    } else {
+                        // Nếu không có, sử dụng src của thumbnail
+                        mainProductImage.src = this.src;
+                    }
+                }
+            });
+        });
+        
+        // Xử lý chọn dung tích (Liter)
+        const literButtons = document.querySelectorAll('.size-btn[data-liter-id]');
+        const selectedLiterDisplay = document.getElementById('selectedLiterDisplay');
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        const productPriceDisplay = document.querySelector('.product-price');
+        
+        let selectedLiter = null;
+        
+        // Lấy Liter được chọn đầu tiên (có class active)
+        const initialSelectedBtn = document.querySelector('.size-btn.active[data-liter-id]');
+        if (initialSelectedBtn) {
+            selectedLiter = {
+                id: initialSelectedBtn.dataset.literId,
+                number: parseInt(initialSelectedBtn.dataset.literNumber),
+                price: parseFloat(initialSelectedBtn.dataset.literPrice)
+            };
+        }
+        
+        // Xử lý click vào button dung tích
+        literButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Xóa class active từ tất cả buttons
+                literButtons.forEach(b => b.classList.remove('active'));
+                
+                // Thêm class active cho button được chọn
+                this.classList.add('active');
+                
+                // Cập nhật selectedLiter
+                selectedLiter = {
+                    id: this.dataset.literId,
+                    number: parseInt(this.dataset.literNumber),
+                    price: parseFloat(this.dataset.literPrice)
+                };
+                
+                // Cập nhật hiển thị "Lựa chọn"
+                if (selectedLiterDisplay) {
+                    selectedLiterDisplay.textContent = selectedLiter.number + ' ml';
+                }
+                
+                // Cập nhật giá trong phần giá sản phẩm
+                const priceDisplayElement = document.getElementById('productPriceDisplay');
+                const originalPriceDisplayElement = document.getElementById('originalPriceDisplay');
+                
+                if (priceDisplayElement) {
+                    priceDisplayElement.textContent = selectedLiter.price.toLocaleString('vi-VN') + ' ₫';
+                }
+                
+                // Nếu có giá gốc và giá Liter nhỏ hơn, hiển thị giá gốc gạch ngang
+                const basePrice = parseFloat(this.dataset.basePrice) || 0;
+                if (originalPriceDisplayElement) {
+                    if (selectedLiter.price < basePrice) {
+                        originalPriceDisplayElement.textContent = basePrice.toLocaleString('vi-VN') + ' ₫';
+                        originalPriceDisplayElement.style.display = 'inline';
+                    } else {
+                        originalPriceDisplayElement.style.display = 'none';
+                    }
+                } else if (selectedLiter.price < basePrice && productPriceDisplay) {
+                    // Nếu chưa có element giá gốc, tạo mới
+                    const priceContainer = productPriceDisplay.querySelector('.d-flex') || productPriceDisplay;
+                    if (!priceContainer.querySelector('.text-decoration-line-through')) {
+                        const originalPriceSpan = document.createElement('span');
+                        originalPriceSpan.className = 'text-muted text-decoration-line-through';
+                        originalPriceSpan.id = 'originalPriceDisplay';
+                        originalPriceSpan.textContent = basePrice.toLocaleString('vi-VN') + ' ₫';
+                        if (priceContainer.classList.contains('d-flex')) {
+                            priceContainer.appendChild(originalPriceSpan);
+                        } else {
+                            priceContainer.innerHTML = `<div class="d-flex align-items-baseline gap-2">${priceContainer.innerHTML}<span class="text-muted text-decoration-line-through" id="originalPriceDisplay">${basePrice.toLocaleString('vi-VN')} ₫</span></div>`;
+                        }
+                    }
+                }
+                
+                // Cập nhật giá trong button "Thêm vào giỏ hàng"
+                if (addToCartBtn) {
+                    addToCartBtn.dataset.productPrice = selectedLiter.price;
+                }
+                
+                // Cập nhật phần mô tả giá/ml
+                const priceInfo = this.closest('.product-options')?.querySelector('p strong');
+                if (priceInfo && selectedLiter.number > 0) {
+                    const pricePerMl = selectedLiter.price / selectedLiter.number;
+                    const smallElement = priceInfo.parentElement.querySelector('small');
+                    if (smallElement) {
+                        smallElement.textContent = `(${pricePerMl.toLocaleString('vi-VN')} đ/ml, ~ ${selectedLiter.number * 10} lần xịt trong 12 tháng)`;
+                    }
+                }
+            });
+        });
+        
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const productName = this.dataset.productName || 'Sản phẩm';
+                const price = parseFloat(this.dataset.productPrice) || 0;
+                const imageUrl = this.dataset.imageUrl || '/images/placeholder.jpg';
+                
+                // Disable button temporarily
+                this.disabled = true;
+                this.classList.add('disabled');
+                const originalContent = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Đang thêm...';
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('imageUrl', imageUrl);
+                formData.append('name', productName);
+                formData.append('price', price);
+                
+                // Get anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                if (token) {
+                    formData.append('__RequestVerificationToken', token);
+                }
+                
+                // Send AJAX request
+                fetch('/Cart/AddToCart', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        this.innerHTML = '<i class="bi bi-check-circle me-2"></i>Đã thêm!';
+                        this.classList.remove('btn-outline-secondary');
+                        this.classList.add('btn-success');
+                        
+                        // Update cart count if available
+                        if (typeof updateCartCount === 'function') {
+                            updateCartCount(data.cartCount);
+                        }
+                        
+                        // Show toast notification
+                        showToast(data.message || 'Đã thêm sản phẩm vào giỏ hàng!', 'success');
+                    } else {
+                        throw new Error(data.message || 'Có lỗi xảy ra');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding to cart:', error);
+                    this.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>Lỗi!';
+                    this.classList.remove('btn-outline-secondary');
+                    this.classList.add('btn-warning');
+                    showToast('Có lỗi xảy ra khi thêm sản phẩm!', 'error');
+                })
+                .finally(() => {
+                    // Re-enable button after delay
+                    setTimeout(() => {
+                        this.disabled = false;
+                        this.classList.remove('disabled', 'btn-success', 'btn-warning');
+                        this.classList.add('btn-outline-secondary');
+                        this.innerHTML = originalContent;
+                    }, 2000);
+                });
+            });
+        }
+    });
+    
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        // Remove existing toasts
+        const existingToasts = document.querySelectorAll('.toast-notification');
+        existingToasts.forEach(toast => toast.remove());
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast-notification alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        
+        toast.innerHTML = `
+            <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+</script>

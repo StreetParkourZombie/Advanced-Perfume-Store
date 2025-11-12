@@ -1,0 +1,44 @@
+﻿@model PerfumeStore.Areas.Admin.Models.Liter
+
+@{
+    ViewData["Title"] = "Xóa dung tích";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow border-0">
+            <div class="card-header bg-danger text-white text-center py-2">
+                <h5 class="mb-0">Xác nhận xóa dung tích</h5>
+            </div>
+            <div class="card-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        @TempData["Error"]
+                    </div>
+                }
+                <h5>Bạn có chắc chắn muốn xóa dung tích này?</h5>
+
+                <dl class="row mt-3">
+                    <dt class="col-sm-4 fw-semibold">Dung tích (ml):</dt>
+                    <dd class="col-sm-8">@Model.LiterNumber</dd>
+
+                    <dt class="col-sm-4 fw-semibold">Mô tả:</dt>
+                    <dd class="col-sm-8">@Model.LiterDescription</dd>
+
+                    <dt class="col-sm-4 fw-semibold">Giá:</dt>
+                    <dd class="col-sm-8">@String.Format("{0:N0} đ", Model.LiterPrice)</dd>
+                </dl>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="LiterId" />
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-danger px-4 me-2">🗑️ Xóa</button>
+                        <a asp-action="Index" class="btn btn-secondary px-4">⬅ Quay lại</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

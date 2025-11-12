@@ -1,0 +1,207 @@
+@model PerfumeStore.Areas.Admin.Models.Customer
+
+@{
+    ViewData["Title"] = "Chi tiết khách hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">Chi tiết khách hàng</h1>
+                <a href="@Url.Action("Index")" class="btn btn-secondary">Quay lại</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Customer Info -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin khách hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>ID:</strong> @Model.CustomerId</p>
+                            <p><strong>Họ và tên:</strong> @Model.Name</p>
+                            <p><strong>Email:</strong> @Model.Email</p>
+                            <p><strong>Điện thoại:</strong> @Model.Phone</p>
+                            <p><strong>Năm sinh:</strong> @Model.BirthYear</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Loại thành viên:</strong> @Model.Membership?.Name</p>
+                            <p><strong>Ngày tạo:</strong> @Model.CreatedDate?.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p><strong>Số lượt quay:</strong> @Model.SpinNumber</p>
+                            <p><strong>Tổng đơn hàng:</strong> @ViewBag.TotalOrders</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Tổng chi tiêu</h6>
+                            <h4 class="mb-0">@string.Format("{0:N0}", ViewBag.TotalSpent) VNĐ</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-success">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Số đơn hàng</h6>
+                            <h4 class="mb-0">@ViewBag.TotalOrders</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-info">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Giá trị TB/đơn</h6>
+                            <h4 class="mb-0">@string.Format("{0:N0}", ViewBag.AverageOrderValue) VNĐ</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Lịch sử đơn hàng (@Model.Orders.Count đơn)</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Orders.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Ngày đặt</th>
+                                        <th>Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate))
+                                    {
+                                        <tr>
+                                            <td>#@order.OrderId</td>
+                                            <td>@order.OrderDate?.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@string.Format("{0:N0}", order.TotalAmount) VNĐ</td>
+                                            <td>
+                                                <span class="badge 
+                                                    @(order.Status == "Đã giao hàng" ? "bg-success" : 
+                                                      order.Status == "Đã hủy" ? "bg-danger" : 
+                                                      order.Status == "Chờ xác nhận" ? "bg-warning" : "bg-info")">
+                                                    @order.Status
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("Details", "Orders", new { id = order.OrderId })" class="btn btn-sm btn-info">Xem</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Khách hàng chưa có đơn hàng nào</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Comments -->
+            @if (Model.Comments.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Đánh giá và bình luận (@Model.Comments.Count)</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var comment in Model.Comments.OrderByDescending(c => c.CommentDate))
+                        {
+                            <div class="mb-3 pb-3 border-bottom">
+                                <div class="d-flex justify-content-between">
+                                    <strong>@comment.Product?.ProductName</strong>
+                                    <span class="badge bg-info">@comment.Rating <i class="fas fa-star"></i></span>
+                                </div>
+                                <p class="mb-1">@comment.Content</p>
+                                <small class="text-muted">@comment.CommentDate.ToString("dd/MM/yyyy HH:mm")</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Actions -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Thao tác</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("Edit", new { id = Model.CustomerId })" class="btn btn-warning">Sửa thông tin</a>
+                        <button type="button" class="btn btn-danger" onclick="blockCustomer()">Khóa tài khoản</button>
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">Quay lại</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Addresses -->
+            @if (Model.ShippingAddresses.Any())
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Địa chỉ giao hàng</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var address in Model.ShippingAddresses)
+                        {
+                            <div class="mb-3">
+                                <strong>@address.RecipientName</strong>
+                                @if (address.IsDefault)
+                                {
+                                    <span class="badge bg-primary">Mặc định</span>
+                                }
+                                <p class="mb-1">@address.Phone</p>
+                                <p class="mb-0 small">@address.AddressLine, @address.Ward, @address.District, @address.Province</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+function blockCustomer() {
+    if (confirm('Bạn có chắc chắn muốn khóa tài khoản khách hàng này?')) {
+        fetch('@Url.Action("BlockCustomer", new { id = Model.CustomerId })', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+}
+</script>

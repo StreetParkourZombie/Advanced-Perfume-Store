@@ -1,0 +1,43 @@
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Test Warranty Controller";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Test Warranty Controller
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-thumbs-up me-2"></i>Kết quả test:</h6>
+                        <p class="mb-2"><strong>Message:</strong> @ViewBag.Message</p>
+                        <p class="mb-0"><strong>Thời gian:</strong> @ViewBag.DateTime</p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6>Các bước tiếp theo:</h6>
+                        <ol>
+                            <li>Nếu thấy trang này → Controller hoạt động OK</li>
+                            <li>Vấn đề có thể ở database connection hoặc permissions</li>
+                            <li>Hãy thử truy cập: <code>/Admin/Warranty</code></li>
+                        </ol>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="/Admin/Warranty" class="btn btn-primary me-2">
+                            <i class="fas fa-arrow-right me-1"></i>Thử Warranty Index
+                        </a>
+                        <a href="/Admin/Dashboard" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-1"></i>Về Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,144 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - PerfumeStore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .portal-container {
+            text-align: center;
+            color: white;
+        }
+        .portal-logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @@keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .portal-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .portal-subtitle {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        .portal-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .portal-btn {
+            background: white;
+            color: #667eea;
+            padding: 20px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .portal-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            color: #764ba2;
+        }
+        .portal-btn i {
+            font-size: 24px;
+        }
+        .info-cards {
+            margin-top: 60px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .info-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .info-card i {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        .info-card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .info-card p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="portal-container">
+        <div class="portal-logo">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <h1 class="portal-title">Admin Portal</h1>
+        <p class="portal-subtitle">PerfumeStore Management System</p>
+        
+        <div class="portal-buttons">
+            <a href="/admin" class="portal-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                Đăng nhập
+            </a>
+            <a href="/admin/register" class="portal-btn">
+                <i class="fas fa-user-plus"></i>
+                Đăng ký
+            </a>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card">
+                <i class="fas fa-lock"></i>
+                <h3>Bảo mật</h3>
+                <p>Hệ thống xác thực với BCrypt và phân quyền chi tiết</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-users-cog"></i>
+                <h3>Quản lý</h3>
+                <p>Quản lý sản phẩm, đơn hàng, khách hàng và admin</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Thống kê</h3>
+                <p>Dashboard với báo cáo doanh thu chi tiết</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

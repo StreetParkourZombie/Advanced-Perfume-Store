@@ -1,0 +1,94 @@
+@model PerfumeStore.ViewComponents.CommentViewModel
+
+<div class="comment-section">
+    <div class="comment-header">
+        <h4 class="comment-title">Đánh giá & Hỏi đáp về sản phẩm</h4>
+        <p class="comment-subtitle">@Model.TotalComments đánh giá cho sản phẩm này</p>
+    </div>
+
+    <div class="row">
+        <!-- Cột trái: Tổng hợp đánh giá -->
+        <div class="col-md-4">
+            <div class="rating-summary">
+                <div class="average-rating">
+                    <span class="rating-number">@Model.AverageRating.ToString("F1")</span>
+                    <div class="rating-stars">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <span class="star @(i <= Model.AverageRating ? "filled" : "")">★</span>
+                        }
+                    </div>
+                    <p class="rating-label">ĐÁNH GIÁ TRUNG BÌNH</p>
+                </div>
+
+                <div class="rating-breakdown">
+                    @for (int star = 5; star >= 1; star--)
+                    {
+                        var count = Model.RatingDistribution.ContainsKey(star) ? Model.RatingDistribution[star] : 0;
+                        var percentage = Model.TotalComments > 0 ? (count * 100.0 / Model.TotalComments) : 0;
+                        
+                        <div class="rating-bar-item">
+                            <span class="star-label">@star sao</span>
+                            <div class="rating-bar">
+                                <div class="rating-bar-fill" style="width: @percentage.ToString("F0")%"></div>
+                            </div>
+                            <span class="rating-count">@percentage.ToString("F0")% | @count đánh giá</span>
+                        </div>
+                    }
+                </div>
+
+                <button class="btn-rate-now">ĐÁNH GIÁ NGAY</button>
+                <div class="text-muted mt-2" style="font-size: 0.9rem;">
+                    Bình luận sẽ hiển thị sau khi được phê duyệt.
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Danh sách đánh giá -->
+        <div class="col-md-8">
+            <div class="comments-list">
+                @if (Model.Comments != null && Model.Comments.Any())
+                {
+                    @foreach (var comment in Model.Comments)
+                    {
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <div class="commenter-info">
+                                    <span class="commenter-name">@(comment.Customer?.Name ?? "Khách hàng")</span>
+                                    <span class="commenter-source">Khách hàng của PerfumeStore</span>
+                                </div>
+                                <div class="comment-rating">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="star @(i <= comment.Rating ? "filled" : "")">★</span>
+                                    }
+                                </div>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(comment.Content))
+                            {
+                                <div class="comment-content">
+                                    @comment.Content
+                                </div>
+                            }
+                            
+                            <div class="comment-date">
+                                @comment.CommentDate.ToString("dd/MM/yyyy")
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-comments">
+                        <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                        <p>Hãy là người đầu tiên đánh giá sản phẩm!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Review Form -->
+@await Component.InvokeAsync("ReviewForm", new { productName = "Chanel Bleu De Chanel EDP", productId = Model.ProductId })

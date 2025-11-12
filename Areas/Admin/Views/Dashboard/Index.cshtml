@@ -1,0 +1,681 @@
+@model PerfumeStore.Areas.Admin.Models.DashboardViewModel
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Thống kê doanh thu";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Thống kê doanh thu</h4>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-success btn-sm" onclick="exportExcel()">
+            <i class="fas fa-file-excel me-1"></i>Xuất Excel
+        </button>
+        <button class="btn btn-outline-primary btn-sm" onclick="refreshDashboard()">
+            <i class="fas fa-sync-alt me-1"></i>Làm mới
+        </button>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0">
+        <h6 class="card-title mb-0">
+            <i class="fas fa-filter me-2 text-info"></i>Bộ lọc thống kê
+            @if (!string.IsNullOrEmpty(Model.FilterDescription))
+            {
+                <span class="badge bg-info ms-2">@Model.FilterDescription</span>
+            }
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3">
+            <!-- Time Type Selection -->
+            <div class="col-md-3">
+                <label class="form-label">Loại thời gian</label>
+                <select name="TimeType" class="form-select" id="timeTypeSelect" onchange="toggleDateInputs()">
+                    <option value="day" selected="@(Model.Filter.TimeType == "day")">Theo ngày</option>
+                    <option value="month" selected="@(Model.Filter.TimeType == "month")">Theo tháng</option>
+                    <option value="year" selected="@(Model.Filter.TimeType == "year")">Theo năm</option>
+                </select>
+            </div>
+
+            <!-- Date Range (for day filter) -->
+            <div class="col-md-2" id="fromDateDiv">
+                <label class="form-label">Từ ngày</label>
+                <input type="date" name="FromDate" class="form-control" value="@Model.Filter.FromDate?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-2" id="toDateDiv">
+                <label class="form-label">Đến ngày</label>
+                <input type="date" name="ToDate" class="form-control" value="@Model.Filter.ToDate?.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <!-- Month Selection (for month filter) -->
+            <div class="col-md-2" id="monthDiv" style="display: none;">
+                <label class="form-label">Tháng</label>
+                <select name="Month" class="form-select">
+                    @foreach (var month in Model.Filter.MonthOptions)
+                    {
+                        <option value="@month.Value" selected="@month.Selected">@month.Text</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Year Selection -->
+            <div class="col-md-2">
+                <label class="form-label">Năm</label>
+                <select name="Year" class="form-select">
+                    @foreach (var year in Model.Filter.YearOptions)
+                    {
+                        <option value="@year.Value" selected="@year.Selected">@year.Text</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Brand Selection -->
+            <div class="col-md-3">
+                <label class="form-label">Thương hiệu</label>
+                <select name="BrandId" class="form-select">
+                    @foreach (var brand in Model.Filter.BrandOptions)
+                    {
+                        <option value="@brand.Value" selected="@(brand.Value == Model.Filter.BrandId?.ToString())">@brand.Text</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="col-md-12">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>Lọc dữ liệu
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Xóa bộ lọc
+                    </a>
+                    
+                    <!-- Quick Filter Buttons -->
+                    <div class="ms-3">
+                        <small class="text-muted me-2">Lọc nhanh:</small>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="setQuickFilter('today')">
+                            Hôm nay
+                        </button>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="setQuickFilter('thisMonth')">
+                            Tháng này
+                        </button>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="setQuickFilter('thisYear')">
+                            Năm này
+                        </button>
+                    </div>
+                    
+                    @if (Model.TongDoanhThuLoc > 0)
+                    {
+                        <div class="ms-auto d-flex align-items-center gap-2">
+                            <span class="fw-bold text-success fs-5">
+                                <i class="fas fa-chart-line me-1"></i>
+                                Tổng: @Model.TongDoanhThuLoc.ToString("N0") VNĐ
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="dashboard-icon bg-primary bg-gradient">
+                            <i class="fas fa-calendar-day text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="dashboard-label">
+                            @if (!string.IsNullOrEmpty(Model.FilterDescription))
+                            {
+                                <span>Doanh thu (@Model.FilterDescription)</span>
+                            }
+                            else
+                            {
+                                <span>Doanh thu hôm nay</span>
+                            }
+                        </div>
+                        <div class="dashboard-value text-primary">
+                            @if (!string.IsNullOrEmpty(Model.FilterDescription))
+                            {
+                                @Model.TongDoanhThuLoc.ToString("N0")
+                            }
+                            else
+                            {
+                                @Model.TongDoanhThuHomNay.ToString("N0")
+                            }
+                            VNĐ
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="dashboard-icon bg-success bg-gradient">
+                            <i class="fas fa-shopping-cart text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="dashboard-label">
+                            @if (!string.IsNullOrEmpty(Model.FilterDescription))
+                            {
+                                <span>Số đơn hàng</span>
+                            }
+                            else
+                            {
+                                <span>Đơn hàng tháng này</span>
+                            }
+                        </div>
+                        <div class="dashboard-value text-success">@Model.TongSoDonHang</div>
+                        @if (string.IsNullOrEmpty(Model.FilterDescription) && Model.TangTruongThang != 0)
+                        {
+                            <small class="text-muted">
+                                <i class="fas fa-arrow-@(Model.TangTruongThang > 0 ? "up text-success" : "down text-danger")"></i>
+                                @Math.Abs(Model.TangTruongThang).ToString("F1")% so với tháng trước
+                            </small>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="dashboard-icon bg-info bg-gradient">
+                            <i class="fas fa-chart-bar text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="dashboard-label">Giá trị đơn hàng TB</div>
+                        <div class="dashboard-value text-info">@Model.GiaTriDonHangTrungBinh.ToString("N0") VNĐ</div>
+                        <small class="text-muted">Average Order Value (AOV)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="dashboard-icon bg-warning bg-gradient">
+                            <i class="fas fa-users text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="dashboard-label">
+                            @if (!string.IsNullOrEmpty(Model.FilterDescription))
+                            {
+                                <span>Khách hàng mới</span>
+                            }
+                            else
+                            {
+                                <span>Tổng khách hàng</span>
+                            }
+                        </div>
+                        <div class="dashboard-value text-warning">@Model.SoKhachHangMoi</div>
+                        <small class="text-muted">
+                            @if (!string.IsNullOrEmpty(Model.FilterDescription))
+                            {
+                                <span>Trong khoảng thời gian</span>
+                            }
+                            else
+                            {
+                                <span>Đã đăng ký</span>
+                            }
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Revenue Chart -->
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2 text-primary"></i>
+                    Biểu đồ doanh thu
+                    @if (!string.IsNullOrEmpty(Model.FilterDescription))
+                    {
+                        <small class="text-muted">(@Model.FilterDescription)</small>
+                    }
+                    else
+                    {
+                        <small class="text-muted">(30 ngày gần nhất)</small>
+                    }
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Brand Revenue Pie Chart -->
+    <div class="col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h6 class="card-title mb-0"><i class="fas fa-chart-pie me-2 text-success"></i>Doanh thu theo thương hiệu</h6>
+            </div>
+            <div class="card-body">
+                @if (Model.RevenueByBrands.Any())
+                {
+                    <canvas id="brandChart" height="300"></canvas>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-chart-pie fa-3x mb-3 d-block"></i>
+                        @if (!string.IsNullOrEmpty(Model.FilterDescription))
+                        {
+                            <p>Không có dữ liệu thương hiệu cho:<br><strong>@Model.FilterDescription</strong></p>
+                        }
+                        else
+                        {
+                            <p>Chưa có dữ liệu thương hiệu</p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Products Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0">
+                <h6 class="card-title mb-0"><i class="fas fa-trophy me-2 text-warning"></i>Top 5 sản phẩm bán chạy</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0">#</th>
+                                <th class="border-0">Tên sản phẩm</th>
+                                <th class="border-0 text-center">Số lượng bán</th>
+                                <th class="border-0 text-end">Doanh thu</th>
+                                <th class="border-0 text-center">Tỷ trọng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.TopProducts.Any())
+                            {
+                                var totalRevenue = Model.TopProducts.Sum(p => p.DoanhThu);
+                                @for (int i = 0; i < Model.TopProducts.Count; i++)
+                                {
+                                    var product = Model.TopProducts[i];
+                                    var percentage = totalRevenue > 0 ? (product.DoanhThu / totalRevenue) * 100 : 0;
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-@(i == 0 ? "warning" : i == 1 ? "secondary" : i == 2 ? "dark" : "light text-dark") rounded-pill">@(i + 1)</span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">@product.ProductName</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary rounded-pill">@product.SoLuongBan</span>
+                                        </td>
+                                        <td class="text-end fw-semibold text-success">
+                                            @product.DoanhThu.ToString("N0") VNĐ
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-success" style="width: @percentage.ToString("F1")%"></div>
+                                            </div>
+                                            <small class="text-muted">@percentage.ToString("F1")%</small>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                        @if (!string.IsNullOrEmpty(Model.FilterDescription))
+                                        {
+                                            <span>Không có dữ liệu sản phẩm cho bộ lọc: @Model.FilterDescription</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Chưa có dữ liệu sản phẩm</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Revenue Line Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const timeType = '@Model.Filter.TimeType';
+let dateFormat = 'dd/MM';
+
+// Determine date format based on filter type
+if (timeType === 'month') {
+    dateFormat = 'MM/yyyy';
+} else if (timeType === 'year') {
+    dateFormat = 'yyyy';
+}
+
+const revenueData = @Html.Raw(Json.Serialize(Model.RevenueByDates.Select(r => new { 
+    date = Model.Filter.TimeType == "month" && !Model.Filter.Month.HasValue ? r.Ngay.ToString("MM/yyyy") : 
+           Model.Filter.TimeType == "year" ? r.Ngay.ToString("yyyy") : 
+           Model.Filter.TimeType == "month" && Model.Filter.Month.HasValue ? r.Ngay.ToString("dd/MM") :
+           r.Ngay.ToString("dd/MM"), 
+    revenue = r.DoanhThu,
+    fullDate = r.Ngay.ToString("dd/MM/yyyy")
+})));
+
+new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: revenueData.map(d => d.date),
+        datasets: [{
+            label: 'Doanh thu (VNĐ)',
+            data: revenueData.map(d => d.revenue),
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#0d6efd',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    title: function(context) {
+                        const index = context[0].dataIndex;
+                        return revenueData[index].fullDate;
+                    },
+                    label: function(context) {
+                        return 'Doanh thu: ' + new Intl.NumberFormat('vi-VN').format(context.parsed.y) + ' VNĐ';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return new Intl.NumberFormat('vi-VN').format(value) + ' VNĐ';
+                    }
+                },
+                grid: {
+                    color: 'rgba(0,0,0,0.05)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        },
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        }
+    }
+});
+
+// Brand Pie Chart
+const brandChartElement = document.getElementById('brandChart');
+if (brandChartElement) {
+    const brandCtx = brandChartElement.getContext('2d');
+    const brandData = @Html.Raw(Json.Serialize(Model.RevenueByBrands.Take(6).Select(b => new { 
+        brand = b.BrandName, 
+        revenue = b.DoanhThu 
+    })));
+
+    const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14'];
+
+    new Chart(brandCtx, {
+        type: 'doughnut',
+        data: {
+            labels: brandData.map(d => d.brand),
+            datasets: [{
+                data: brandData.map(d => d.revenue),
+                backgroundColor: colors,
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Filter UI functions
+function toggleDateInputs() {
+    const timeType = document.getElementById('timeTypeSelect').value;
+    const fromDateDiv = document.getElementById('fromDateDiv');
+    const toDateDiv = document.getElementById('toDateDiv');
+    const monthDiv = document.getElementById('monthDiv');
+    
+    // Hide all first
+    fromDateDiv.style.display = 'none';
+    toDateDiv.style.display = 'none';
+    monthDiv.style.display = 'none';
+    
+    // Show relevant inputs
+    if (timeType === 'day') {
+        fromDateDiv.style.display = 'block';
+        toDateDiv.style.display = 'block';
+    } else if (timeType === 'month') {
+        monthDiv.style.display = 'block';
+    }
+}
+
+// Initialize filter UI on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleDateInputs();
+    
+    // Set default dates if not set
+    const timeType = document.getElementById('timeTypeSelect').value;
+    if (timeType === 'day') {
+        const fromDate = document.querySelector('input[name="FromDate"]');
+        const toDate = document.querySelector('input[name="ToDate"]');
+        
+        if (!fromDate.value) {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            fromDate.value = thirtyDaysAgo.toISOString().split('T')[0];
+        }
+        
+        if (!toDate.value) {
+            const today = new Date();
+            toDate.value = today.toISOString().split('T')[0];
+        }
+    }
+});
+
+// Utility functions
+function refreshDashboard() {
+    location.reload();
+}
+
+function exportExcel() {
+    const params = getCurrentFilterParams();
+    const url = '@Url.Action("ExportExcel", "Dashboard", new { Area = "Admin" })' + '?' + params;
+    window.open(url, '_blank');
+}
+
+function getCurrentFilterParams() {
+    const timeType = document.getElementById('timeTypeSelect').value;
+    const year = document.querySelector('select[name="Year"]').value;
+    const month = document.querySelector('select[name="Month"]').value;
+    const brandId = document.querySelector('select[name="BrandId"]').value;
+    const fromDate = document.querySelector('input[name="FromDate"]').value;
+    const toDate = document.querySelector('input[name="ToDate"]').value;
+    
+    let params = `timeType=${timeType}&year=${year}`;
+    
+    if (month) params += `&month=${month}`;
+    if (brandId) params += `&brandId=${brandId}`;
+    if (fromDate) params += `&fromDate=${fromDate}`;
+    if (toDate) params += `&toDate=${toDate}`;
+    
+    return params;
+}
+
+
+
+
+
+
+
+// Quick filter buttons
+function setQuickFilter(type) {
+    const timeTypeSelect = document.getElementById('timeTypeSelect');
+    const today = new Date();
+    
+    switch(type) {
+        case 'today':
+            timeTypeSelect.value = 'day';
+            document.querySelector('input[name="FromDate"]').value = today.toISOString().split('T')[0];
+            document.querySelector('input[name="ToDate"]').value = today.toISOString().split('T')[0];
+            break;
+        case 'thisMonth':
+            timeTypeSelect.value = 'month';
+            document.querySelector('select[name="Month"]').value = today.getMonth() + 1;
+            document.querySelector('select[name="Year"]').value = today.getFullYear();
+            break;
+        case 'thisYear':
+            timeTypeSelect.value = 'year';
+            document.querySelector('select[name="Year"]').value = today.getFullYear();
+            break;
+    }
+    
+    toggleDateInputs();
+    document.querySelector('form').submit();
+}
+</script>
+
+<style>
+.dashboard-card {
+    transition: transform 0.2s ease-in-out;
+    border-radius: 12px;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+}
+
+.dashboard-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.dashboard-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+@@media (max-width: 768px) {
+    .dashboard-value {
+        font-size: 1.25rem;
+    }
+    
+    .dashboard-icon {
+        width: 40px;
+        height: 40px;
+    }
+}
+</style>

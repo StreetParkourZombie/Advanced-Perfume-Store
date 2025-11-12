@@ -1,0 +1,206 @@
+@model PerfumeStore.Models.Warranty
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Chỉnh sửa bảo hành";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary me-3">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h4 class="mb-0">
+        <i class="fas fa-edit me-2 text-primary"></i>Chỉnh sửa bảo hành
+    </h4>
+</div>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@ViewBag.ErrorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model != null)
+{
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>Thông tin bảo hành
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none"></div>
+                        
+                        <input type="hidden" asp-for="WarrantyId" />
+                        <input type="hidden" asp-for="OrderDetailId" />
+                        <input type="hidden" asp-for="CustomerId" />
+                        <input type="hidden" asp-for="CreatedDate" />
+                        
+                        <!-- Current Info Display -->
+                        <div class="mb-4">
+                            <div class="bg-light rounded-3 p-3">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                            <i class="fas fa-shield-heart text-white fa-lg"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="fw-semibold">@Model.WarrantyCode</div>
+                                        <div class="text-muted">ID: @Model.WarrantyId</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <span class="badge bg-info">Đang chỉnh sửa</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="WarrantyCode" class="form-label fw-semibold">
+                                    <i class="fas fa-barcode me-1 text-primary"></i>Mã bảo hành
+                                </label>
+                                <input asp-for="WarrantyCode" class="form-control" readonly />
+                                <span asp-validation-for="WarrantyCode" class="text-danger small"></span>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="Status" class="form-label fw-semibold">
+                                    <i class="fas fa-flag me-1 text-success"></i>Trạng thái
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="Status" class="form-select">
+                                    <option value="Active">Đang bảo hành</option>
+                                    <option value="Expired">Hết hạn</option>
+                                    <option value="Claimed">Đã yêu cầu bảo hành</option>
+                                    <option value="Completed">Hoàn thành</option>
+                                    <option value="Cancelled">Đã hủy</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger small"></span>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="StartDate" class="form-label fw-semibold">
+                                    <i class="fas fa-calendar-alt me-1 text-info"></i>Ngày bắt đầu
+                                </label>
+                                <input asp-for="StartDate" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="StartDate" class="text-danger small"></span>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="EndDate" class="form-label fw-semibold">
+                                    <i class="fas fa-calendar-times me-1 text-warning"></i>Ngày kết thúc
+                                </label>
+                                <input asp-for="EndDate" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="EndDate" class="text-danger small"></span>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="WarrantyPeriodMonths" class="form-label fw-semibold">
+                                    <i class="fas fa-clock me-1 text-secondary"></i>Thời gian bảo hành (tháng)
+                                </label>
+                                <input asp-for="WarrantyPeriodMonths" type="number" class="form-control" min="1" max="60" />
+                                <span asp-validation-for="WarrantyPeriodMonths" class="text-danger small"></span>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label asp-for="Notes" class="form-label fw-semibold">
+                                    <i class="fas fa-sticky-note me-1 text-warning"></i>Ghi chú
+                                </label>
+                                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Nhập ghi chú về bảo hành..."></textarea>
+                                <span asp-validation-for="Notes" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Hủy
+                            </a>
+                            <a asp-action="Details" asp-route-id="@Model.WarrantyId" class="btn btn-outline-info">
+                                <i class="fas fa-eye me-1"></i>Xem chi tiết
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+            <h5>Không tìm thấy bảo hành</h5>
+            <p class="text-muted">Bảo hành không tồn tại hoặc đã bị xóa.</p>
+            <a asp-action="Index" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Auto-calculate end date when period changes
+        document.getElementById('WarrantyPeriodMonths').addEventListener('change', function() {
+            const startDate = new Date(document.getElementById('StartDate').value);
+            const months = parseInt(this.value);
+            
+            if (startDate && months > 0) {
+                const endDate = new Date(startDate);
+                endDate.setMonth(endDate.getMonth() + months);
+                
+                // Format for datetime-local input
+                const formattedEndDate = endDate.toISOString().slice(0, 16);
+                document.getElementById('EndDate').value = formattedEndDate;
+            }
+        });
+
+        // Auto-calculate period when dates change
+        function calculatePeriod() {
+            const startDate = new Date(document.getElementById('StartDate').value);
+            const endDate = new Date(document.getElementById('EndDate').value);
+            
+            if (startDate && endDate && endDate > startDate) {
+                const diffTime = Math.abs(endDate - startDate);
+                const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30));
+                document.getElementById('WarrantyPeriodMonths').value = diffMonths;
+            }
+        }
+
+        document.getElementById('StartDate').addEventListener('change', calculatePeriod);
+        document.getElementById('EndDate').addEventListener('change', calculatePeriod);
+    </script>
+}
+
+<style>
+.card {
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+@@media (max-width: 768px) {
+    .col-lg-8 {
+        padding: 0 15px;
+    }
+}
+</style>

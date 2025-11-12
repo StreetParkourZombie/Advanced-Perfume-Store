@@ -1,0 +1,544 @@
+﻿@model IEnumerable<PerfumeStore.Models.Product>
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+@Html.AntiForgeryToken()
+
+<!-- Hero Section -->
+<section class="hero-section mb-4 full-bleed">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="/images/orchard-summer-fresh-cover (1).jpg" class="d-block w-100 hero-img" alt="Banner 1">
+            </div>
+            <div class="carousel-item">
+                <img src="/images/chanel.jpg" class="d-block w-100 hero-img" alt="Banner 2">
+            </div>
+            <div class="carousel-item">
+                <img src="/images/chanel1.webp" class="d-block w-100 hero-img" alt="Banner 3">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Policy Section -->
+    <section class="policy-section mb-5">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="policy-icon mb-2"><i class="bi bi-truck"></i></div>
+                <h6 class="fw-bold">MIỄN PHÍ GIAO HÀNG</h6>
+                <p class="small text-muted">Cho đơn hàng từ 500k</p>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="policy-icon mb-2"><i class="bi bi-patch-check"></i></div>
+                <h6 class="fw-bold">HÀNG CHÍNH HÃNG</h6>
+                <p class="small text-muted">Nước hoa & Mỹ phẩm</p>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="policy-icon mb-2"><i class="bi bi-gift"></i></div>
+                <h6 class="fw-bold">GÓI QUÀ MIỄN PHÍ</h6>
+                <p class="small text-muted">Cho tất cả đơn hàng</p>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="policy-icon mb-2"><i class="bi bi-lightning-charge"></i></div>
+                <h6 class="fw-bold">GIAO HÀNG SIÊU TỐC</h6>
+                <p class="small text-muted">Trong 2H tại TP.HCM</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Brand & Category Section -->
+    <section class="mb-5">
+        <div class="container section-title-container" style="margin-bottom:0px;"><h2 class="section-title section-title-normal"><b aria-hidden="true"></b><span class="section-title-main">Thương hiệu và Danh mục</span><b aria-hidden="true"></b></h2></div>
+
+        <!-- Category tiles (Orchard style) -->
+        <div class="row g-4 row-cols-2 row-cols-md-3 row-cols-lg-5">
+            <div class="col">
+                <a class="category-tile d-block text-decoration-none" aria-label="Nước hoa Niche" href="https://orchard.vn/nuoc-hoa-niche/">
+                    <div class="tile-images">
+                        <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-niche-600x720.webp" alt="Nước hoa Niche" width="300" height="300" referrerpolicy="no-referrer">
+                    </div>
+                </a>
+            </div>
+            <div class="col">
+                <a class="category-tile d-block text-decoration-none" aria-label="Nước Hoa Nam" href="https://orchard.vn/nuoc-hoa-nam/">
+                    <div class="tile-images">
+                        <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-nam.webp" alt="Nước Hoa Nam" width="300" height="300" referrerpolicy="no-referrer">
+                    </div>
+                </a>
+            </div>
+            <div class="col">
+                <a class="category-tile d-block text-decoration-none" aria-label="Nước Hoa Nữ" href="https://orchard.vn/nuoc-hoa-nu/">
+                    <div class="tile-images">
+                        <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-nu-600x720.webp" alt="Nước Hoa Nữ" width="300" height="300" referrerpolicy="no-referrer">
+                    </div>
+                </a>
+            </div>
+            <div class="col">
+                <a class="category-tile d-block text-decoration-none" aria-label="Nước hoa Mini" href="https://orchard.vn/nuoc-hoa-mini/">
+                    <div class="tile-images">
+                        <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-mini-600x720.webp" alt="Nước hoa Mini" width="300" height="300" referrerpolicy="no-referrer">
+                    </div>
+                </a>
+            </div>
+            <div class="col">
+                <a class="category-tile d-block text-decoration-none" aria-label="Nước Hoa Unisex" href="https://orchard.vn/nuoc-hoa-unisex/">
+                    <div class="tile-images">
+                        <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-unisex-600x720.webp" alt="Nước Hoa Unisex" width="300" height="300" referrerpolicy="no-referrer">
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Brand logos grid -->
+        <div class="row g-3 row-cols-2 row-cols-md-4 row-cols-lg-6 mt-4 brand-logos">
+            <div class="col"><a href="https://orchard.vn/bvlgari-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-bvlgary.webp" alt="Bvlgari" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/calvin-klein-ck/"><img src="https://orchard.vn/wp-content/uploads/2024/04/logo-brand-calvin-klein.webp" alt="Calvin Klein" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/chanel-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-chanel.webp" alt="Chanel" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/dior-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-dior.webp" alt="Dior" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/giorgio-armani-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/04/logo-brand-giorgio-armani.webp" alt="Giorgio Armani" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/gucci-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-gucci.webp" alt="Gucci" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/jean-paul-gaultier-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-jean-paul-gaultier.webp" alt="Jean Paul Gaultier" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/jo-malone-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-jo-malone.webp" alt="Jo Malone" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/killian-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-kilian.webp" alt="Kilian" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/lancome-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-lancome.webp" alt="Lancôme" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/montblanc-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-montblanc.webp" alt="Montblanc" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/narciso-rodriguez-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/04/logo-brand-narciso-rodriguez.webp" alt="Narciso Rodriguez" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/parfums-de-marly-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-parfums-de-marly.webp" alt="Parfums De Marly" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/tom-ford-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-tom-ford.webp" alt="Tom Ford" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/versace-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-versace.webp" alt="Versace" referrerpolicy="no-referrer"></a></div>
+            <div class="col"><a href="https://orchard.vn/yves-saint-laurent-vn/"><img src="https://orchard.vn/wp-content/uploads/2024/06/fragnance-logo-text-ysl.webp" alt="Yves Saint Laurent" referrerpolicy="no-referrer"></a></div>
+        </div>
+    </section>
+
+    <!-- Women Featured Section -->
+    <section class="mb-5">
+        <div class="d-flex align-items-end justify-content-between mb-3">
+            <h2 class="h5 mb-0 fw-bold text-uppercase">Nước hoa Nữ nổi bật</h2>
+            <a href="#" class="text-decoration-none small fw-semibold text-primary">Xem thêm <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-5">
+            @foreach (var p in Model.Where(x => x.Categories.Any(c => c.CategoryName.Contains("Nữ"))).Take(5))
+            {
+                <div class="col">
+                    <div class="card product-card h-100">
+                        <a href="@Url.Action("Index", "Product", new { id = p.ProductId })">
+                            @if (p.ProductImages.Any())
+                            {
+                                var firstImage = p.ProductImages.First();
+                                <img src="data:@firstImage.ImageMimeType;base64,@Convert.ToBase64String(firstImage.ImageData)" class="card-img-top" alt="@p.ProductName">
+                            }
+                            else
+                            {
+                                <img src="/images/ProductDetail/anh-1.webp" class="card-img-top" alt="@p.ProductName">
+                            }
+                            <div class="card-body">
+                                <div class="product-title"><a href="#">@p.ProductName</a></div>
+                                <div class="price-row" style="min-height: 48px;">
+                                    @if (p.DiscountPrice.HasValue)
+                                    {
+                                        <p class="card-text text-danger mb-0">@p.DiscountPrice.Value.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted text-decoration-line-through mb-0">@p.Price.ToString("n0") ₫</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="card-text text-danger mb-0">@p.Price.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted mb-0" style="visibility: hidden; height: 20px;">&nbsp;</p>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Promo Banner
+    <section class="banner-section mb-5">
+        <a href="#" class="d-block">
+            <img src="https://orchard.vn/wp-content/uploads/2024/07/banner-nuoc-hoa-1200x400.webp" class="w-100 rounded" alt="Khuyến mãi" referrerpolicy="no-referrer">
+        </a>
+    </section> -->
+    <!-- Men Featured Section -->
+    <section class="mb-5">
+        <div class="d-flex align-items-end justify-content-between mb-3">
+            <h2 class="h5 mb-0 fw-bold text-uppercase">Nước hoa Nam nổi bật</h2>
+            <a href="#" class="text-decoration-none small fw-semibold text-primary">Xem thêm <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-5">
+            @foreach (var p in Model.Where(x => x.Categories.Any(c => c.CategoryName.Contains("Nam"))).Take(5))
+            {
+                <div class="col">
+                    <div class="card product-card h-100">
+                        <a href="@Url.Action("Index", "Product", new { id = p.ProductId })">
+                            @if (p.ProductImages.Any())
+                            {
+                                var firstImage = p.ProductImages.First();
+                                <img src="data:@firstImage.ImageMimeType;base64,@Convert.ToBase64String(firstImage.ImageData)" class="card-img-top" alt="@p.ProductName">
+                            }
+                            else
+                            {
+                                <img src="/images/chanel1.webp" class="card-img-top" alt="@p.ProductName">
+                            }
+                            <div class="card-body">
+                                <div class="product-title"><a href="#">@p.ProductName</a></div>
+                                <div class="price-row" style="min-height: 48px;">
+                                    @if (p.DiscountPrice.HasValue)
+                                    {
+                                        <p class="card-text text-danger mb-0">@p.DiscountPrice.Value.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted text-decoration-line-through mb-0">@p.Price.ToString("n0") ₫</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="card-text text-danger mb-0">@p.Price.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted mb-0" style="visibility: hidden; height: 20px;">&nbsp;</p>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Niche Featured Section -->
+    <section class="mb-5">
+        <div class="d-flex align-items-end justify-content-between mb-3">
+            <h2 class="h5 mb-0 fw-bold text-uppercase">Nước hoa Niche nổi bật</h2>
+            <a href="#" class="text-decoration-none small fw-semibold text-primary">Xem thêm <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-5">
+            @foreach (var p in Model.Where(x => x.Categories.Any(c => c.CategoryName.Contains("Niche"))).Take(5))
+            {
+                <div class="col">
+                    <div class="card product-card h-100">
+                        <a href="@Url.Action("Index", "Product", new { id = p.ProductId })">
+                            @if (p.ProductImages.Any())
+                            {
+                                var firstImage = p.ProductImages.First();
+                                <img src="data:@firstImage.ImageMimeType;base64,@Convert.ToBase64String(firstImage.ImageData)" class="card-img-top" alt="@p.ProductName">
+                            }
+                            else
+                            {
+                                <img src="https://picsum.photos/seed/niche1/600/600" class="card-img-top" alt="@p.ProductName">
+                            }
+                            <div class="card-body">
+                                <div class="product-title"><a href="#">@p.ProductName</a></div>
+                                <div class="price-row" style="min-height: 48px;">
+                                    @if (p.DiscountPrice.HasValue)
+                                    {
+                                        <p class="card-text text-danger mb-0">@p.DiscountPrice.Value.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted text-decoration-line-through mb-0">@p.Price.ToString("n0") ₫</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="card-text text-danger mb-0">@p.Price.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted mb-0" style="visibility: hidden; height: 20px;">&nbsp;</p>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Mini Featured Section -->
+    <section class="mb-5">
+        <div class="d-flex align-items-end justify-content-between mb-3">
+            <h2 class="h5 mb-0 fw-bold text-uppercase">Nước hoa Mini nổi bật</h2>
+            <a href="#" class="text-decoration-none small fw-semibold text-primary">Xem thêm <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-5">
+            @foreach (var p in Model.Where(x => x.Categories.Any(c => c.CategoryName.Contains("Mini"))).Take(5))
+            {
+                <div class="col">
+                    <div class="card product-card h-100">
+                        <a href="@Url.Action("Index", "Product", new { id = p.ProductId })">
+                            @if (p.ProductImages.Any())
+                            {
+                                var firstImage = p.ProductImages.First();
+                                <img src="data:@firstImage.ImageMimeType;base64,@Convert.ToBase64String(firstImage.ImageData)" class="card-img-top" alt="@p.ProductName">
+                            }
+                            else
+                            {
+                                <img src="https://picsum.photos/seed/mini1/600/600" class="card-img-top" alt="@p.ProductName">
+                            }
+                            <div class="card-body">
+                                <div class="product-title"><a href="#">@p.ProductName</a></div>
+                                <div class="price-row" style="min-height: 48px;">
+                                    @if (p.DiscountPrice.HasValue)
+                                    {
+                                        <p class="card-text text-danger mb-0">@p.DiscountPrice.Value.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted text-decoration-line-through mb-0">@p.Price.ToString("n0") ₫</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="card-text text-danger mb-0">@p.Price.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted mb-0" style="visibility: hidden; height: 20px;">&nbsp;</p>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- YouTube Section -->
+    <section class="mb-5">
+        <div class="container">
+            <div class="d-flex align-items-end justify-content-between mb-4">
+                <h2 class="h5 mb-0 fw-bold text-uppercase">Xem Youtube của ORCHARD</h2>
+                <a href="https://www.youtube.com/@@orchardvnofficial" target="_blank" class="text-decoration-none small fw-semibold text-primary">Xem thêm <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="row g-4">
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="video-card">
+                        <div class="video-thumbnail position-relative">
+                            <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" alt="Cách bảo quản và sử dụng nước hoa" class="img-fluid rounded">
+                            <div class="play-button position-absolute top-50 start-50 translate-middle">
+                                <i class="bi bi-play-circle-fill text-white" style="font-size: 3rem;"></i>
+                            </div>
+                            <div class="video-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-between p-3">
+                                <div class="text-white">
+                                    <span class="badge bg-danger">Hiểu nước hoa</span>
+                                </div>
+                                <div class="text-white text-center">
+                                    <div class="bg-white text-dark px-2 py-1 rounded d-inline-block mb-1">Xịt đâu</div>
+                                    <div class="bg-dark text-white px-2 py-1 rounded d-inline-block">thơm lâu ?</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-info mt-3">
+                            <h5 class="fw-bold mb-2">Cách bảo quản và sử dụng nước hoa "hiệu quả nhất"</h5>
+                            <p class="text-muted small">Để sử dụng và bảo quản một lọ nước hoa có giá trị một cách lâu dài (ít nhất 1 năm) là điều không phải ai cũng hiểu rõ...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="video-card">
+                        <div class="video-thumbnail position-relative">
+                            <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" alt="Những Chai Nước Hoa Nam Có Mùi Hương Giống Với Bleu De Chanel" class="img-fluid rounded">
+                            <div class="play-button position-absolute top-50 start-50 translate-middle">
+                                <i class="bi bi-play-circle-fill text-white" style="font-size: 3rem;"></i>
+                            </div>
+                            <div class="video-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-between p-3">
+                                <div class="text-white">
+                                    <span class="badge bg-primary">Beauty Cosmetics</span>
+                                </div>
+                                <div class="text-white text-center">
+                                    <div class="h4 mb-0">Bản dupe hoàn hảo nhất Chanel De Bleu?</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-info mt-3">
+                            <h5 class="fw-bold mb-2">Những Chai Nước Hoa Nam Có Mùi Hương Giống Với Bleu De Chanel</h5>
+                            <p class="text-muted small">Chúng ta đã quá quen với cái tên "Chanel Bleu" rồi phải không? Ai cũng biết đến đây là mùi được đánh giá rất cao...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="video-card">
+                        <div class="video-thumbnail position-relative">
+                            <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" alt="Những Chai Nước Hoa Omnia Hot Nhất Của Bvlgary" class="img-fluid rounded">
+                            <div class="play-button position-absolute top-50 start-50 translate-middle">
+                                <i class="bi bi-play-circle-fill text-white" style="font-size: 3rem;"></i>
+                            </div>
+                            <div class="video-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-between p-3">
+                                <div class="text-white">
+                                    <span class="badge bg-warning text-dark">Những chai nước hoa Omnia</span>
+                                </div>
+                                <div class="text-white text-center">
+                                    <div class="h5 mb-0 text-danger">Hot Nhất Của Bvlgary</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-info mt-3">
+                            <h5 class="fw-bold mb-2">Những Chai Nước Hoa Omnia Hot Nhất Của Bvlgary</h5>
+                            <p class="text-muted small">Bộ sưu tập nước hoa Bvlgari Omnia cũng lấy cảm hứng từ chính những viên đá đã làm nên danh tiếng của nhà hương này...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About/Store Section -->
+    <section class="mb-5">
+        <div class="container">
+            <div class="d-flex align-items-end justify-content-between mb-4">
+                <h2 class="h5 mb-0 fw-bold text-uppercase">Orchard's Store</h2>
+            </div>
+
+            <!-- Store Carousel -->
+            <div id="storeCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <!-- Slide 1 -->
+                    <div class="carousel-item active">
+                        <div class="row g-4">
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store1/400/300" alt="Showroom Nguyễn Văn Trỗi" class="img-fluid rounded">
+                                    <div class="images-caption">Showroom Nguyễn Văn Trỗi</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store2/400/300" alt="Khách hàng Orchard" class="img-fluid rounded">
+                                    <div class="images-caption">Khách hàng Orchard</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store3/400/300" alt="Khách hàng Orchard" class="img-fluid rounded">
+                                    <div class="images-caption">Khách hàng Orchard</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store4/400/300" alt="Khách hàng Orchard" class="img-fluid rounded">
+                                    <div class="images-caption">Khách hàng Orchard</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Slide 2 -->
+                    <div class="carousel-item">
+                        <div class="row g-4">
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store5/400/300" alt="Showroom Quận 1" class="img-fluid rounded">
+                                    <div class="images-caption">Showroom Quận 1</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store6/400/300" alt="Khách hàng Orchard" class="img-fluid rounded">
+                                    <div class="images-caption">Khách hàng Orchard</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store7/400/300" alt="Khách hàng Orchard" class="img-fluid rounded">
+                                    <div class="images-caption">Khách hàng Orchard</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store8/400/300" alt="Khách hàng Orchard" class="img-fluid rounded">
+                                    <div class="images-caption">Khách hàng Orchard</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Slide 3 -->
+                    <div class="carousel-item">
+                        <div class="row g-4">
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store9/400/300" alt="Showroom Quận 3" class="img-fluid rounded">
+                                    <div class="images-caption">Showroom Quận 3</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store10/400/300" alt="Khách hàng Orchard" class="img-fluid rounded">
+                                    <div class="images-caption">Khách hàng Orchard</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store11/400/300" alt="Khách hàng Orchard" class="img-fluid rounded">
+                                    <div class="images-caption">Khách hàng Orchard</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="store-images-card">
+                                    <img src="https://picsum.photos/seed/store12/400/300" alt="Khách hàng Orchard" class="img-fluid rounded">
+                                    <div class="images-caption">Khách hàng Orchard</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Carousel Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#storeCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#storeCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+                <!-- Dots Indicators -->
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#storeCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#storeCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#storeCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                </div>
+            </div>
+
+            <!-- About Text -->
+            <div class="about-content bg-light p-4 rounded">
+                <h3 class="fw-bold mb-3">20 năm – 6 chi nhánh – Phục vụ hơn 800.000 lượt khách hàng!</h3>
+                <div class="row">
+                    <div class="col-12 col-lg-6">
+                        <p class="mb-3">Chúng tôi tự hào về hành trình 20 năm hoạt động của mình. Với sứ mệnh mang đến niềm vui và hạnh phúc cho khách hàng thông qua những sản phẩm nước hoa và mỹ phẩm chất lượng cao, chúng tôi đã không ngừng nỗ lực để trở thành địa chỉ tin cậy của hàng triệu người tiêu dùng Việt Nam.</p>
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        <p class="mb-0">Trong bối cảnh đại dịch COVID-19, Orchard.vn đã chuyển mình sang mô hình kinh doanh trực tuyến từ năm 2023. Chúng tôi cam kết duy trì chất lượng dịch vụ và mang đến trải nghiệm mua sắm tuyệt vời nhất cho khách hàng. Chúng tôi rất vinh dự được đồng hành cùng bạn trong hành trình khám phá thế giới nước hoa.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter CTA -->
+
+    <section class="newsletter-cta full-bleed py-4">
+
+        <div class="container">
+
+            <div class="row align-items-center g-2">
+
+                <div class="col-md-6">
+
+                    <h3 class="h6 mb-1 text-uppercase fw-bold">Đăng ký nhận thông tin</h3>
+
+                    <p class="mb-0 small opacity-75">Nhận ngay Flash Sale mới nhất từ Orchard.vn</p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <form class="d-flex gap-2 justify-content-md-end">
+
+                        <input type="email" class="form-control form-control-sm" placeholder="Email của bạn">
+
+                        <button class="btn btn-danger btn-sm" type="button">Đăng ký</button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+</div>

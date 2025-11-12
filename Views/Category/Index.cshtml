@@ -1,0 +1,231 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = ViewBag.CurrentCategory ?? "Danh mục sản phẩm";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="container">
+    <div class="img-bg">
+        <img src="~/images/nuoc-hoa-nam-banner-900x324.jpg" alt="Banner" />
+    </div>
+
+    <div class="breadcrumb" style="width:86%; margin:0 auto;">
+        @await Html.PartialAsync("Breadcrumb", ViewData["Title"])
+    </div>
+
+    <input type="hidden" id="currentCategory" value="@ViewBag.CurrentCategory" />
+
+    <div class="filter-container">
+        <div class="submit-lh">
+            <div class="item--sb">
+                <button class="btn-loaihuong" onclick="toggleScentMenu()">Nhóm Hương</button>
+                <div class="loaihuong-mn" style="display:none;">
+                    @await Html.PartialAsync("ScentChoice", (List<string>)ViewBag.ScentChoices)
+                </div>
+            </div>
+        </div>
+
+        <div class="lietke-pr">
+            <button class="btn-lietke" data-price="under2">DƯỚI 2 TRIỆU</button>
+            <button class="btn-lietke" data-price="2to4">2 - 4 TRIỆU</button>
+            <button class="btn-lietke" data-price="above4">TRÊN 4 TRIỆU</button>
+        </div>
+    </div>
+
+    <div class="category-th">
+        @await Html.PartialAsync("BrandSlider", (List<PerfumeStore.Models.Brand>)ViewBag.Brands)
+    </div>
+
+    <div class="category" id="product-list" style="transition: opacity 0.3s ease;">
+        @await Html.PartialAsync("CategoryProductList")
+    </div>
+</div>
+
+<script>
+    let currentScent = "";
+    function toggleScentMenu() {
+        const menu = document.querySelector('.loaihuong-mn');
+        if (menu) menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    document.addEventListener('click', e => {
+        const menu = document.querySelector('.loaihuong-mn');
+        const button = document.querySelector('.btn-loaihuong');
+        if (menu && !menu.contains(e.target) && !button.contains(e.target)) {
+            menu.style.display = 'none';
+        }
+    });
+
+    function smoothReplaceContent(selector, newHtml) {
+        const container = document.querySelector(selector);
+        if (!container) return;
+
+        container.style.opacity = 0;
+        setTimeout(() => {
+            container.innerHTML = newHtml;
+            container.style.opacity = 1;
+            rebindFilterEvents();
+            if (typeof bindViewToggle === "function") bindViewToggle();
+            // Rebind add-to-cart events for new content
+            rebindAddToCartEvents();
+        }, 200);
+    }
+
+    function rebindFilterEvents() {
+        const category = document.getElementById("currentCategory")?.value;
+
+        document.querySelectorAll('.loaihuong-card').forEach(card => {
+            const scent = card.querySelector('.name-lh')?.textContent?.trim();
+            if (!scent) return;
+
+            card.onclick = () => {
+                currentScent = scent;
+                document.querySelector('.btn-loaihuong').textContent = scent;
+                document.querySelector('.loaihuong-mn').style.display = 'none';
+
+                const url = `/Category/FilterProducts?categoryName=${encodeURIComponent(category)}&scent=${encodeURIComponent(scent)}`;
+                fetch(url)
+                    .then(res => res.text())
+                    .then(html => smoothReplaceContent('.category', html))
+                    .catch(err => console.error('Lỗi lọc nhóm hương:', err));
+            };
+        });
+
+        document.querySelectorAll('.btn-lietke').forEach(btn => {
+            btn.onclick = () => {
+                const price = btn.dataset.price;
+                let url = `/Category/FilterProducts?categoryName=${encodeURIComponent(category)}&priceRange=${encodeURIComponent(price)}`;
+                if (currentScent) url += `&scent=${encodeURIComponent(currentScent)}`;
+
+                fetch(url)
+                    .then(res => res.text())
+                    .then(html => smoothReplaceContent('.category', html))
+                    .catch(err => console.error('Lỗi lọc giá:', err));
+            };
+        });
+
+        document.querySelectorAll('.brand-item button, .brand-item').forEach(btn => {
+            btn.onclick = () => {
+                const brand = btn.dataset.brand;
+                let url = `/Category/FilterProducts?categoryName=${encodeURIComponent(category)}&brandName=${encodeURIComponent(brand)}`;
+                if (currentScent) url += `&scent=${encodeURIComponent(currentScent)}`;
+
+                fetch(url)
+                    .then(res => res.text())
+                    .then(html => smoothReplaceContent('.category', html))
+                    .catch(err => console.error('Lỗi lọc thương hiệu:', err));
+            };
+        });
+        
+        // Re-bind add to cart events after filtering
+    }
+
+    document.addEventListener('DOMContentLoaded', rebindFilterEvents);
+    
+    // Function to rebind add-to-cart events for dynamically loaded content
+    function rebindAddToCartEvents() {
+        // Remove existing event listeners to avoid duplicates
+        document.querySelectorAll('.add-to-cart-fab').forEach(btn => {
+            btn.replaceWith(btn.cloneNode(true));
+        });
+        
+        // Rebind events using the same logic as site.js
+        document.querySelectorAll('.add-to-cart-fab').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const productId = this.dataset.productId;
+                const productName = this.dataset.productName;
+                const productPrice = this.dataset.productPrice;
+                const imageUrl = this.dataset.imageUrl;
+                
+                console.log('Product data:', { productId, productName, productPrice, imageUrl });
+                
+                if (!productId) {
+                    console.error('Product ID not found');
+                    return;
+                }
+                
+                // Show loading state
+                const originalContent = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-hourglass-split"></i> <span class="d-none d-md-inline">Đang thêm...</span>';
+                this.disabled = true;
+                
+                // Get CSRF token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                console.log('CSRF token:', token);
+                
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('imageUrl', imageUrl);
+                formData.append('name', productName);
+                formData.append('price', productPrice);
+                if (token) {
+                    formData.append('__RequestVerificationToken', token);
+                }
+                
+                // Send AJAX request
+                fetch('/Cart/AddToCart', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success) {
+                        // Show success message
+                        this.innerHTML = '<i class="bi bi-check-circle"></i> <span class="d-none d-md-inline">Đã thêm!</span>';
+                        this.classList.remove('btn-danger');
+                        this.classList.add('btn-success');
+                        
+                        // Update cart count if available
+                        if (typeof updateCartCount === 'function') {
+                            updateCartCount(data.cartCount);
+                        }
+                        
+                        // Show toast notification
+                        showToast(data.message || 'Đã thêm sản phẩm vào giỏ hàng!', 'success');
+                    } else {
+                        // Hiển thị thông báo lỗi từ server
+                        this.innerHTML = '<i class="bi bi-exclamation-circle"></i> <span class="d-none d-md-inline">Lỗi!</span>';
+                        this.classList.remove('btn-danger');
+                        this.classList.add('btn-warning');
+                        showToast(data.message || 'Có lỗi xảy ra khi thêm sản phẩm!', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding to cart:', error);
+                    this.innerHTML = '<i class="bi bi-exclamation-circle"></i> <span class="d-none d-md-inline">Lỗi!</span>';
+                    this.classList.remove('btn-danger');
+                    this.classList.add('btn-warning');
+                    showToast(error.message || 'Có lỗi xảy ra khi thêm sản phẩm!', 'error');
+                })
+                .finally(() => {
+                    this.disabled = false;
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        this.innerHTML = originalContent;
+                        this.classList.remove('btn-success', 'btn-warning');
+                        this.classList.add('btn-danger');
+                    }, 2000);
+                });
+            });
+        });
+    }
+    
+    // Initial bind on page load
+    document.addEventListener('DOMContentLoaded', rebindAddToCartEvents);
+    
+    // Toast notification function is handled by site.js
+    
+    // Add to cart events are handled by site.js
+</script>

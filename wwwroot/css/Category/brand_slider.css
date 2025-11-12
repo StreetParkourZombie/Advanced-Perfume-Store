@@ -1,0 +1,50 @@
+﻿.thuonghieu-slider-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.thuonghieu-slider {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+}
+
+
+.thuonghieu-item {
+    flex: 0 0 auto;
+    width: 110px;
+    text-align: center;
+}
+
+    .thuonghieu-item img {
+        width: 100px;
+        height: 47px;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+.slide-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255,255,255,0.8);
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+    .slide-btn.left {
+        left: 0;
+    }
+
+    .slide-btn.right {
+        right: 0;
+    }
+
+    .slide-btn:hover {
+        background-color: rgba(255,255,255,1);
+    }

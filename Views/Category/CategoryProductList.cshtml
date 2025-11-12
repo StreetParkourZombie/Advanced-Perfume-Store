@@ -1,0 +1,122 @@
+﻿@model List<PerfumeStore.Models.Product>
+
+<link rel="stylesheet" href="~/css/Category/category_product_list.css" />
+
+<div class="view-toggle text-end mb-3">
+    <label class="me-2">Hiển thị:</label>
+    <button id="gridViewBtn" class="btn btn-outline-secondary active">
+        <i class="bi bi-grid"></i>
+    </button>
+    <button id="listViewBtn" class="btn btn-outline-secondary">
+        <i class="bi bi-list"></i>
+    </button>
+</div>
+
+<div id="productContainer" class="category-products grid-view">
+    <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-5">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var product in Model)
+            {
+                var discountPercent = product.Discount?.DiscountPercent ?? 0;
+                var hasDiscount = discountPercent > 0 || product.DiscountPrice.HasValue;
+                var discountedPrice = product.DiscountPrice ?? product.Price;
+
+                <div class="col">
+                    <div class="card product-card h-100 position-relative shadow-sm">
+
+                        @if (hasDiscount && discountPercent > 0)
+                        {
+                            <div class="badge bg-danger position-absolute top-0 end-0 m-2 px-2 py-1">
+                                -@discountPercent%
+                            </div>
+                        }
+
+                        <a href="@Url.Action("Index", "Product", new { id = product.ProductId })" class="text-decoration-none text-dark">
+                            @if (product.ProductImages != null && product.ProductImages.Any())
+                            {
+                                var firstImage = product.ProductImages.First();
+                                if (firstImage.ImageData != null)
+                                {
+                                    <img src="data:@firstImage.ImageMimeType;base64,@Convert.ToBase64String(firstImage.ImageData)"
+                                         class="card-img-top"
+                                         alt="@product.ProductName">
+                                }
+                                else
+                                {
+                                    <img src="~/images/placeholder.jpg" class="card-img-top" alt="@product.ProductName">
+                                }
+                            }
+                            else
+                            {
+                                <img src="~/images/placeholder.jpg" class="card-img-top" alt="@product.ProductName">
+                            }
+
+                            <div class="card-body">
+                                <div class="product-title fw-semibold mb-2">@product.ProductName</div>
+
+                                <div class="price-row" style="min-height: 48px;">
+                                    @if (product.DiscountPrice.HasValue)
+                                    {
+                                        <p class="card-text text-danger fw-bold mb-0">@product.DiscountPrice.Value.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted text-decoration-line-through mb-0">@product.Price.ToString("n0") ₫</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="card-text text-danger fw-bold mb-0">@product.Price.ToString("n0") ₫</p>
+                                        <p class="card-text text-muted mb-0" style="visibility: hidden; height: 20px;">&nbsp;</p>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Add to cart button -->
+                        <button type="button" 
+                                class="btn btn-danger btn-sm rounded-pill add-to-cart-fab position-absolute"
+                                style="bottom: 10px; right: 10px; z-index: 10;"
+                                data-product-id="@product.ProductId"
+                                data-product-name="@product.ProductName"
+                                data-product-price="@discountedPrice"
+                                data-image-url="@(product.ProductImages?.FirstOrDefault()?.ImageData != null ? $"data:{product.ProductImages.First().ImageMimeType};base64,{Convert.ToBase64String(product.ProductImages.First().ImageData)}" : "/images/placeholder.jpg")"
+                                aria-label="Thêm vào giỏ hàng">
+                            <i class="bi bi-cart-plus"></i>
+                            <span class="d-none d-md-inline">Thêm</span>
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <p class="text-center">Không có sản phẩm nào được tìm thấy.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function bindViewToggle() {
+        const gridBtn = document.getElementById("gridViewBtn");
+        const listBtn = document.getElementById("listViewBtn");
+        const container = document.getElementById("productContainer");
+
+        if (!gridBtn || !listBtn || !container) return;
+
+        gridBtn.onclick = function () {
+            container.classList.remove("list-view");
+            container.classList.add("grid-view");
+            gridBtn.classList.add("active");
+            listBtn.classList.remove("active");
+        };
+
+        listBtn.onclick = function () {
+            container.classList.remove("grid-view");
+            container.classList.add("list-view");
+            listBtn.classList.add("active");
+            gridBtn.classList.remove("active");
+        };
+    }
+
+    document.addEventListener("DOMContentLoaded", bindViewToggle);
+</script>

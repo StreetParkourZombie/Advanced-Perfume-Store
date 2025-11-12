@@ -1,0 +1,105 @@
+@model IEnumerable<PerfumeStore.Areas.Admin.Models.Product>
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="mb-0">Quản lý sản phẩm</h5>
+    <a class="btn btn-primary" asp-area="Admin" asp-controller="Products" asp-action="Create"><i class="fa fa-plus me-1"></i> Thêm sản phẩm</a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="panel">
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+        <form method="get" class="d-flex flex-wrap gap-2 align-items-center">
+            <input type="text" class="form-control" name="searchName" placeholder="Tìm theo tên sản phẩm..." 
+                   value="@ViewBag.SearchName" style="max-width:300px">
+            <select class="form-select" name="categoryId" style="max-width:260px">
+                <option value="">-- Lọc theo danh mục --</option>
+                @foreach (var c in (IEnumerable<PerfumeStore.Areas.Admin.Models.Category>)ViewBag.Categories)
+                {
+                    var sel = Context.Request.Query["categoryId"].ToString();
+                    <option value="@c.CategoryId" selected="@(sel == c.CategoryId.ToString() ? "selected" : null)">@c.CategoryName</option>
+                }
+            </select>
+            <button class="btn btn-outline-secondary">Tìm kiếm</button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ảnh</th>
+                    <th>Tên</th>
+                    <th>Thương hiệu</th>
+                    <th>Giá</th>
+                    <th>Tồn</th>
+                    <th>Danh mục</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">Không có sản phẩm nào.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var p in Model)
+                    {
+                        <tr>
+                            <td>@p.ProductId</td>
+                            <td>
+                                @if (p.ProductImages.Any())
+                                {
+                                    var firstImage = p.ProductImages.First();
+                                    <img src="@Url.Action("GetImage", "Products", new { imageId = firstImage.ImageId })" 
+                                         class="rounded" style="width: 50px; height: 50px; object-fit: cover;" alt="@p.ProductName">
+                                }
+                                else
+                                {
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                }
+                            </td>
+                            <td class="fw-semibold">@p.ProductName</td>
+                            <td>@p.Brand.BrandName</td>
+                            <td>@p.Price.ToString("n0")</td>
+                            <td>@p.Stock</td>
+                            <td>
+                                @string.Join(", ", p.Categories.Select(c => c.CategoryName))
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" asp-area="Admin" asp-controller="Products" asp-action="Edit" asp-route-id="@p.ProductId">Sửa</a>
+                                <form method="post" asp-area="Admin" asp-controller="Products" asp-action="Delete" asp-route-id="@p.ProductId" class="d-inline" asp-antiforgery="true">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa sản phẩm này?')">Xóa</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+

@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "PerfumeBot Demo";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🤖 PerfumeBot - Trợ lý ảo PerfumeStore</h5>
+                </div>
+                <div class="card-body" style="height: 400px; overflow-y: auto;" id="chatMessages">
+                    <div class="alert alert-info">
+                        <strong>PerfumeBot:</strong> Chào bạn! 👋 Mình là PerfumeBot, trợ lý ảo của PerfumeStore. Mình có thể giúp bạn:
+                        <br>🌸 Tư vấn nước hoa phù hợp
+                        <br>📦 Kiểm tra đơn hàng  
+                        <br>💳 Thông tin chính sách
+                        <br><br>Bạn cần hỗ trợ gì nhé?
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="messageInput" placeholder="Nhập tin nhắn..." onkeypress="handleKeyPress(event)">
+                        <button class="btn btn-primary" onclick="sendMessage()">Gửi</button>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        API Key: <input type="text" id="apiKeyInput" class="form-control form-control-sm mt-1" placeholder="Nhập API key để test">
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const chatMessages = document.getElementById('chatMessages');
+    
+    const message = messageInput.value.trim();
+    const apiKey = apiKeyInput.value.trim();
+    
+    if (!message) return;
+    if (!apiKey) {
+        alert('Vui lòng nhập API key để test!');
+        return;
+    }
+    
+    // Hiển thị tin nhắn người dùng
+    addMessage('Bạn', message, 'user');
+    messageInput.value = '';
+    
+    // Hiển thị loading
+    const loadingId = addMessage('PerfumeBot', 'Đang suy nghĩ...', 'bot');
+    
+    try {
+        const response = await fetch('/api/ChatBot/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': apiKey
+            },
+            body: JSON.stringify({
+                message: message,
+                userId: 'demo-user'
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Xóa loading và hiển thị phản hồi
+        document.getElementById(loadingId).remove();
+        
+        if (response.ok) {
+            addMessage('PerfumeBot', data.message, 'bot');
+        } else {
+            addMessage('PerfumeBot', data.error || 'Có lỗi xảy ra', 'bot error');
+        }
+    } catch (error) {
+        document.getElementById(loadingId).remove();
+        addMessage('PerfumeBot', 'Lỗi kết nối: ' + error.message, 'bot error');
+    }
+}
+
+function addMessage(sender, message, type) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageId = 'msg-' + Date.now();
+    
+    let alertClass = 'alert-secondary';
+    if (type === 'user') alertClass = 'alert-primary';
+    else if (type === 'bot') alertClass = 'alert-success';
+    else if (type === 'bot error') alertClass = 'alert-danger';
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.id = messageId;
+    messageDiv.className = `alert ${alertClass} mb-2`;
+    messageDiv.innerHTML = `<strong>${sender}:</strong> ${message.replace(/\n/g, '<br>')}`;
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    return messageId;
+}
+</script>
+
+<style>
+.alert {
+    margin-bottom: 0.5rem;
+}
+.alert-primary {
+    text-align: right;
+}
+</style>

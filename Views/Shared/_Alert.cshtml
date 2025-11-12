@@ -1,0 +1,14 @@
+@{
+    var message = (ViewBag.AlertMessage as string) ?? (TempData["AlertMessage"] as string);
+    var type = (ViewBag.AlertType as string) ?? (TempData["AlertType"] as string) ?? "success"; // success | danger | warning | info
+}
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <div class="alert alert-@type d-flex align-items-center" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        @message
+    </div>
+}
+
+

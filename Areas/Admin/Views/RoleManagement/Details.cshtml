@@ -1,0 +1,148 @@
+@model PerfumeStore.Models.Role
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="mb-0">Chi tiết Role: @Model.RoleName</h5>
+    <div>
+        @if (!Model.IsSystem)
+        {
+            <a class="btn btn-primary me-2" asp-action="Edit" asp-route-id="@Model.RoleId">
+                <i class="fas fa-edit me-1"></i> Sửa
+            </a>
+        }
+        <a class="btn btn-secondary" asp-action="Index">
+            <i class="fa fa-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel mb-3">
+            <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Thông tin Role</h6>
+            <table class="table table-borderless">
+                <tr>
+                    <th width="150">ID:</th>
+                    <td>@Model.RoleId</td>
+                </tr>
+                <tr>
+                    <th>Tên Role:</th>
+                    <td><strong>@Model.RoleName</strong></td>
+                </tr>
+                <tr>
+                    <th>Mô tả:</th>
+                    <td>@(Model.Description ?? "-")</td>
+                </tr>
+                <tr>
+                    <th>Loại:</th>
+                    <td>
+                        @if (Model.IsSystem)
+                        {
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-shield-alt me-1"></i>Role hệ thống
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">
+                                <i class="fas fa-user me-1"></i>Role tùy chỉnh
+                            </span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <th>Số Admin:</th>
+                    <td>
+                        <span class="badge bg-secondary">@Model.Admins.Count admins</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        @if (Model.Admins.Any())
+        {
+            <div class="panel">
+                <h6 class="mb-3"><i class="fas fa-users me-2"></i>Danh sách Admin</h6>
+                <ul class="list-group">
+                    @foreach (var admin in Model.Admins)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>@admin.UserName</strong>
+                                <br><small class="text-muted">@(admin.FullName ?? "-")</small>
+                            </div>
+                            @if (!admin.IsApproved)
+                            {
+                                <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                            }
+                            else if (admin.IsBlocked)
+                            {
+                                <span class="badge bg-danger">Đã khóa</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-6">
+        <div class="panel">
+            <h6 class="mb-3">
+                <i class="fas fa-key me-2"></i>Permissions 
+                <span class="badge bg-info">@Model.Permissions.Count</span>
+            </h6>
+            
+            @if (Model.Permissions.Any())
+            {
+                var groupedPermissions = Model.Permissions.GroupBy(p => p.Area);
+                
+                @foreach (var group in groupedPermissions)
+                {
+                    <div class="mb-3">
+                        <h6 class="text-primary">
+                            <i class="fas fa-folder me-2"></i>@group.Key
+                        </h6>
+                        <ul class="list-group ms-3">
+                            @foreach (var permission in group)
+                            {
+                                <li class="list-group-item">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                        <div>
+                                            <strong>@permission.Name</strong>
+                                            <br><small class="text-muted">@permission.Action</small>
+                                            <br><small class="text-muted">@permission.Description</small>
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Role này chưa có permission nào.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .panel {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>

@@ -1,0 +1,88 @@
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var permissions = (List<PerfumeStore.Models.Permission>)ViewBag.Permissions;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="mb-0">Tạo Role mới</h5>
+    <a class="btn btn-secondary" asp-action="Index">
+        <i class="fa fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="panel">
+    <form method="post" asp-action="Create">
+        @Html.AntiForgeryToken()
+        
+        <div class="mb-3">
+            <label class="form-label">Tên Role <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="roleName" placeholder="Ví dụ: Manager, Editor..." required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea class="form-control" name="description" rows="3" placeholder="Mô tả vai trò và trách nhiệm..."></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Permissions</label>
+            <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                @if (permissions != null && permissions.Any())
+                {
+                    var groupedPermissions = permissions.GroupBy(p => p.Area);
+                    
+                    foreach (var group in groupedPermissions)
+                    {
+                        <div class="mb-3">
+                            <h6 class="text-primary">
+                                <i class="fas fa-folder me-2"></i>@group.Key
+                            </h6>
+                            <div class="ms-4">
+                                @foreach (var permission in group)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="permissionIds" value="@permission.PermissionId" 
+                                               id="perm_@permission.PermissionId">
+                                        <label class="form-check-label" for="perm_@permission.PermissionId">
+                                            <strong>@permission.Name</strong> - @permission.Action
+                                            <br><small class="text-muted">@permission.Description</small>
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">Chưa có permission nào trong hệ thống.</p>
+                }
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> Tạo Role
+            </button>
+            <a class="btn btn-secondary" asp-action="Index">Hủy</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .panel {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>

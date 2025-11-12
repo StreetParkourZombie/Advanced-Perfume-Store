@@ -1,0 +1,91 @@
+﻿.support-section {
+    background: url("/support/images/supprt_bg.jpg") no-repeat center center;
+    background-size: cover;
+    position: relative;
+    color: white;
+    padding: 60px 15px;
+}
+
+    .support-section::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 84, 61, 0.7);
+        opacity: 30%;
+        z-index: 1;
+    }
+
+.support-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.search-box {
+    background: white;
+    border-radius: 30px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .search-box input {
+        border: none;
+        flex: 1;
+        outline: none;
+    }
+
+.support-icons .support-item img {
+    width: 48px;
+    height: 48px;
+}
+
+.support-item {
+    text-align: center;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+    .support-item img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+    }
+
+.icon-circle {
+    width: 72px;
+    height: 72px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    transition: all 0.3s ease;
+}
+
+/* Hover vào toàn bộ item */
+.support-item:hover .icon-circle {
+    border-color: #ff6600;
+    background-color: #fdebdd;
+    box-shadow: 0 0 8px rgba(255, 102, 0, 0.2);
+}
+
+.support-item:hover div:last-child {
+    color: #ff6600;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.support-icons {
+    padding: 40px 0;
+    margin-top: 30px;
+}
+
+.free-label {
+    font-size: 14px;
+    margin-left: 5px;
+}

@@ -1,0 +1,273 @@
+﻿@{
+    ViewBag.Title = "Thanh toán bị hủy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .cancel-payment-container {
+        min-height: 100vh;
+        padding: 60px 0;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .cancel-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        padding: 50px;
+        max-width: 700px;
+        margin: 0 auto;
+        text-align: center;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .cancel-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        animation: scaleIn 0.5s ease-out 0.2s both;
+    }
+
+    @@keyframes scaleIn {
+        from {
+            transform: scale(0);
+        }
+        to {
+            transform: scale(1);
+        }
+    }
+
+    .cancel-icon i {
+        font-size: 50px;
+        color: white;
+    }
+
+    .cancel-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    .cancel-message {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .info-box {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .info-box i {
+        color: #ffc107;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    .info-box p {
+        margin: 0;
+        color: #856404;
+        font-weight: 500;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .btn-custom {
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-outline-custom {
+        background: white;
+        color: #f5576c;
+        border: 2px solid #f5576c;
+    }
+
+    .btn-outline-custom:hover {
+        background: #f5576c;
+        color: white;
+    }
+
+    .order-id-box {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 20px 0;
+        display: inline-block;
+    }
+
+    .order-id-label {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .order-id-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .reason-list {
+        text-align: left;
+        max-width: 500px;
+        margin: 30px auto;
+    }
+
+    .reason-item {
+        display: flex;
+        align-items: start;
+        gap: 10px;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .reason-item i {
+        color: #f5576c;
+        margin-top: 3px;
+    }
+
+    .reason-text {
+        color: #666;
+        line-height: 1.5;
+    }
+</style>
+
+<div class="cancel-payment-container">
+    <div class="container">
+        <div class="cancel-card">
+            <!-- Cancel Icon -->
+            <div class="cancel-icon">
+                <i class="fas fa-times"></i>
+            </div>
+
+            <!-- Cancel Title -->
+            <h1 class="cancel-title">Thanh toán bị hủy</h1>
+            <p class="cancel-message">
+                Giao dịch thanh toán của bạn đã bị hủy hoặc không thành công.
+            </p>
+
+            @if (ViewBag.OrderId != null)
+            {
+                <div class="order-id-box">
+                    <div class="order-id-label">Mã đơn hàng:</div>
+                    <div class="order-id-value">#@ViewBag.OrderId</div>
+                </div>
+            }
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>
+                    Đơn hàng của bạn đã được lưu nhưng chưa được thanh toán.<br>
+                    Vui lòng liên hệ với chúng tôi nếu bạn cần hỗ trợ.
+                </p>
+            </div>
+
+            <!-- Reasons -->
+            <div class="reason-list">
+                <h5 style="text-align: center; margin-bottom: 20px; color: #333;">Một số lý do có thể xảy ra:</h5>
+                
+                <div class="reason-item">
+                    <i class="fas fa-clock"></i>
+                    <div class="reason-text">
+                        <strong>Hết thời gian:</strong> Phiên thanh toán đã hết hạn
+                    </div>
+                </div>
+
+                <div class="reason-item">
+                    <i class="fas fa-credit-card"></i>
+                    <div class="reason-text">
+                        <strong>Thông tin không đúng:</strong> Thông tin thanh toán không chính xác
+                    </div>
+                </div>
+
+                <div class="reason-item">
+                    <i class="fas fa-user-times"></i>
+                    <div class="reason-text">
+                        <strong>Người dùng hủy:</strong> Bạn đã chủ động hủy giao dịch
+                    </div>
+                </div>
+
+                <div class="reason-item">
+                    <i class="fas fa-wifi"></i>
+                    <div class="reason-text">
+                        <strong>Kết nối:</strong> Có sự cố về kết nối mạng
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="@Url.Action("Checkout", "Cart")" class="btn btn-primary-custom">
+                    <i class="fas fa-redo me-2"></i>Thử lại thanh toán
+                </a>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-outline-custom">
+                    <i class="fas fa-home me-2"></i>Về trang chủ
+                </a>
+            </div>
+
+            <!-- Support Info -->
+            <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #f8f9fa;">
+                <h6 style="color: #666; margin-bottom: 15px;">
+                    <i class="fas fa-question-circle me-2"></i>Cần hỗ trợ?
+                </h6>
+                <p style="color: #999; margin-bottom: 10px;">
+                    Liên hệ với chúng tôi:
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <a href="tel:0123456789" style="color: #667eea; text-decoration: none;">
+                        <i class="fas fa-phone"></i> 0123 456 789
+                    </a>
+                    <a href="mailto:support@perfumestore.vn" style="color: #667eea; text-decoration: none;">
+                        <i class="fas fa-envelope"></i> support@perfumestore.vn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,332 @@
+/* CSS cho trang Nhóm Hương */
+
+/* Breadcrumb Styling */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    color: #6c757d;
+    font-weight: bold;
+}
+
+.breadcrumb-item a {
+    color: #d9534f;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: #c9302c;
+    text-decoration: underline !important;
+}
+
+.breadcrumb-item.active {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Header Section */
+.nhom-huong-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 3rem 0;
+    margin-bottom: 3rem;
+    border-radius: 15px;
+}
+
+.nhom-huong-header h1 {
+    color: #d9534f;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Table Styling */
+.table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    transition: all 0.3s ease;
+}
+
+.table-dark th {
+    background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 1rem;
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #dee2e6;
+}
+
+/* Card Styling */
+.nhom-huong-link {
+    display: block;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.nhom-huong-link:hover {
+    text-decoration: none !important;
+}
+
+.nhom-huong-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.nhom-huong-link:hover .nhom-huong-card {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.nhom-huong-link:active .nhom-huong-card {
+    transform: translateY(-4px) scale(0.98);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Thêm overlay khi hover */
+.nhom-huong-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(217, 83, 79, 0.1), rgba(217, 83, 79, 0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.nhom-huong-link:hover .nhom-huong-card::before {
+    opacity: 1;
+}
+
+/* Đảm bảo content nằm trên overlay */
+.nhom-huong-card .card-img-container,
+.nhom-huong-card .card-body {
+    position: relative;
+    z-index: 2;
+}
+
+.card-img-container {
+    height: 250px;
+    overflow: hidden;
+    position: relative;
+}
+
+.card-img-top {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.nhom-huong-card:hover .card-img-top {
+    transform: scale(1.1);
+}
+
+.card-body {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.card-title {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.card-text {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nhom-huong-header {
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .nhom-huong-header h1 {
+        font-size: 2rem;
+    }
+    
+    .card-img-container {
+        height: 200px;
+    }
+    
+    .table thead th,
+    .table tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .nhom-huong-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .card-img-container {
+        height: 180px;
+    }
+    
+    .table thead th,
+    .table tbody td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+}
+
+/* Animation cho loading */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nhom-huong-card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.nhom-huong-card:nth-child(1) { animation-delay: 0.1s; }
+.nhom-huong-card:nth-child(2) { animation-delay: 0.2s; }
+.nhom-huong-card:nth-child(3) { animation-delay: 0.3s; }
+.nhom-huong-card:nth-child(4) { animation-delay: 0.4s; }
+.nhom-huong-card:nth-child(5) { animation-delay: 0.5s; }
+.nhom-huong-card:nth-child(6) { animation-delay: 0.6s; }
+.nhom-huong-card:nth-child(7) { animation-delay: 0.7s; }
+.nhom-huong-card:nth-child(8) { animation-delay: 0.8s; }
+.nhom-huong-card:nth-child(9) { animation-delay: 0.9s; }
+.nhom-huong-card:nth-child(10) { animation-delay: 1.0s; }
+
+/* Hover effects cho table rows */
+.table-hover tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #e3f2fd;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Custom scrollbar cho table */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #d9534f;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #c9302c;
+}
+
+/* Modal Styling */
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* === Hero full-page style for Nhóm Hương modal === */
+.nh-hero-wrap { padding: 0; }
+.nh-hero-img img { height: 38vh; min-height: 220px; object-fit: cover; border-radius: 0; }
+@media (min-width: 768px) {
+    .nh-hero-img img { height: 46vh; }
+}
+.nh-hero-title { font-size: 2rem; font-weight: 700; line-height: 1.2; }
+@media (min-width: 768px) {
+    .nh-hero-title { font-size: 2.25rem; }
+}
+.nh-hero-subtitle { font-size: 1rem; }
+.nh-hero-desc { font-size: 1rem; color: #333; }
+.nh-sep { height: 2px; background: #ddd; border: 0; }
+
+/* Notes grid placeholders */
+.nh-note-thumb { width: 100%; aspect-ratio: 1/1; border-radius: 12px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border: 1px solid #dee2e6; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+.modal-header {
+    background: linear-gradient(135deg, #d9534f 0%, #c9302c 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.modal-header .btn-close {
+    filter: invert(1);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-body img {
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.modal-body .alert {
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 1rem 2rem 2rem;
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .modal-body .row {
+        flex-direction: column;
+    }
+    
+    .modal-body .col-md-6:first-child {
+        margin-bottom: 1rem;
+    }
+}

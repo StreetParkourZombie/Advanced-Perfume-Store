@@ -1,0 +1,372 @@
+﻿@{ 
+    ViewData["Title"] = "Các nhóm hương nước hoa phổ biến";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="text-center mb-5">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb justify-content-center">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Nhóm hương</li>
+            </ol>
+        </nav>
+        <h1 class="display-4 fw-bold text-primary mb-3">Các nhóm hương nước hoa phổ biến</h1>
+        <p class="lead text-muted">Khám phá thế giới hương thơm đa dạng và tìm hiểu nhóm hương phù hợp với phong cách của bạn</p>
+    </div>
+
+    <!-- Bảng danh sách nhóm hương -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h3 mb-4 text-center">Danh sách 10 nhóm hương nước hoa phổ biến</h2>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-center" style="width: 25%">NHÓM HƯƠNG</th>
+                            <th class="text-center" style="width: 35%">ĐẶC TRƯNG</th>
+                            <th class="text-center" style="width: 40%">PHÙ HỢP VỚI AI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="fw-semibold">Floral (Hoa cỏ)</td><td>Dịu dàng, nữ tính</td><td>Nữ giới yêu sự thanh lịch</td></tr>
+                        <tr><td class="fw-semibold">Fruity (Trái cây)</td><td>Ngọt ngào, trẻ trung</td><td>Nữ tuổi teen – U30, năng động</td></tr>
+                        <tr><td class="fw-semibold">Citrus (Cam chanh)</td><td>Tươi mát, tỉnh táo</td><td>Nam/nữ thích sự sạch sẽ, đơn giản</td></tr>
+                        <tr><td class="fw-semibold">Green (Xanh lá)</td><td>Tự nhiên, thư giãn</td><td>Người yêu thiên nhiên, thích sự mộc mạc</td></tr>
+                        <tr><td class="fw-semibold">Aquatic (Biển cả)</td><td>Mát lạnh, hiện đại</td><td>Người trẻ, thích sự tự do</td></tr>
+                        <tr><td class="fw-semibold">Oriental (Phương Đông)</td><td>Nồng nàn, quyến rũ</td><td>Người trưởng thành, yêu sự sang trọng</td></tr>
+                        <tr><td class="fw-semibold">Woody (Gỗ)</td><td>Trầm ấm, nam tính</td><td>Nam giới chín chắn, lịch lãm</td></tr>
+                        <tr><td class="fw-semibold">Spicy (Gia vị)</td><td>Ấm nồng, cá tính</td><td>Người mạnh mẽ, yêu phong cách khác biệt</td></tr>
+                        <tr><td class="fw-semibold">Leather (Da thuộc)</td><td>Mạnh mẽ, cổ điển</td><td>Nam giới trưởng thành, phong cách cổ điển</td></tr>
+                        <tr><td class="fw-semibold">Gourmand (Ẩm thực)</td><td>Ngọt như kẹo, quyến rũ</td><td>Người cá tính, thích hương ngọt</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid hiển thị nhóm hương có hình ảnh -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h3 mb-4 text-center">Bộ sưu tập nhóm hương đặc biệt</h2>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("WoodyFruity", "ScentGroup")" class="text-decoration-none">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (1).jpg" class="card-img-top" alt="Nhóm Hương Gỗ Và Trái Cây" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Gỗ Và Trái Cây</h5>
+                        <p class="card-text text-muted">Woody Fruity</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("OrientalWoody", "ScentGroup")" class="text-decoration-none">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (2).jpg" class="card-img-top" alt="Nhóm Hương Gỗ Phương Đông" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Gỗ Phương Đông</h5>
+                        <p class="card-text text-muted">Oriental Woody</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("FloralFruity", "ScentGroup")" class="text-decoration-none">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (3).jpg" class="card-img-top" alt="Nhóm Hương Thơm Hoa Cỏ Trái Cây" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Thơm Hoa Cỏ Trái Cây</h5>
+                        <p class="card-text text-muted">Floral Fruity</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none nhom-huong-link" data-title="Nhóm Hương Cam Quýt và Gỗ" data-description="Citrus Woody" data-image="~/images/nhom-huong/OIP (4).jpg">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (4).jpg" class="card-img-top" alt="Nhóm Hương Cam Quýt và Gỗ" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Cam Quýt và Gỗ</h5>
+                        <p class="card-text text-muted">Citrus Woody</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none nhom-huong-link" data-title="Nhóm Hương Thảo Mộc Gỗ Tươi Mát" data-description="Aromatic Tonic Woody" data-image="~/images/nhom-huong/OIP (5).jpg">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (5).jpg" class="card-img-top" alt="Nhóm Hương Thảo Mộc Gỗ Tươi Mát" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Thảo Mộc Gỗ Tươi Mát</h5>
+                        <p class="card-text text-muted">Aromatic Tonic Woody</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none nhom-huong-link" data-title="Nhóm Hương Thảo Mộc Phương Đông" data-description="Aromatic Oriental" data-image="~/images/nhom-huong/OIP (6).jpg">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (6).jpg" class="card-img-top" alt="Nhóm Hương Thảo Mộc Phương Đông" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Thảo Mộc Phương Đông</h5>
+                        <p class="card-text text-muted">Aromatic Oriental</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none nhom-huong-link" data-title="Nhóm Hương Thảo Mộc Dương Xỉ Gỗ" data-description="Aromatic Fougere Woody" data-image="~/images/nhom-huong/OIP (7).jpg">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (7).jpg" class="card-img-top" alt="Nhóm Hương Thảo Mộc Dương Xỉ Gỗ" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Thảo Mộc Dương Xỉ Gỗ</h5>
+                        <p class="card-text text-muted">Aromatic Fougere Woody</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none nhom-huong-link" data-title="Nhóm Hương Hoa Cỏ Táo Bạo" data-description="Fearless Floral" data-image="~/images/nhom-huong/OIP (8).jpg">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (8).jpg" class="card-img-top" alt="Nhóm Hương Hoa Cỏ Táo Bạo" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Hoa Cỏ Táo Bạo</h5>
+                        <p class="card-text text-muted">Fearless Floral</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none nhom-huong-link" data-title="Nhóm Hương Biển Cả Phương Đông" data-description="Oriental Aquatic" data-image="~/images/nhom-huong/OIP (9).jpg">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (9).jpg" class="card-img-top" alt="Nhóm Hương Biển Cả Phương Đông" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Biển Cả Phương Đông</h5>
+                        <p class="card-text text-muted">Oriental Aquatic</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none nhom-huong-link" data-title="Nhóm Hương Đặc Biệt" data-description="Special Collection" data-image="~/images/nhom-huong/OIP (10).jpg">
+                <div class="card h-100 nhom-huong-card">
+                    <div class="card-img-container">
+                        <img src="~/images/ScentGroup/OIP (10).jpg" class="card-img-top" alt="Nhóm Hương Đặc Biệt" />
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">Nhóm Hương Đặc Biệt</h5>
+                        <p class="card-text text-muted">Special Collection</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal hiển thị chi tiết nhóm hương -->
+<div class="modal fade" id="nhomHuongModal" tabindex="-1" aria-labelledby="nhomHuongModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-body nh-hero-wrap">
+                <!-- HERO IMAGE -->
+                <div class="nh-hero-img mb-4">
+                    <img id="modalImage" src="" class="img-fluid w-100" alt="Nhóm hương" />
+                    <div class="text-end mt-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+
+                <!-- INTRO BLOCK (title/subtitle left, description right) -->
+                <div class="container-fluid px-2 px-md-4">
+                    <div class="row g-4 align-items-start">
+                        <div class="col-lg-6">
+                            <div class="nh-hero-label text-danger fw-semibold mb-2">Thư viện nhóm hương</div>
+                            <h1 id="modalTitle" class="nh-hero-title mb-2"></h1>
+                            <div id="modalDescription" class="nh-hero-subtitle text-muted"></div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="nh-hero-desc">
+                                <p>Nhóm hương này mang đến trải nghiệm độc đáo với sự kết hợp hài hòa giữa các tầng hương khác nhau, tạo nên một mùi hương đặc trưng và quyến rũ. Sự cân bằng giúp mùi hương thanh lịch nhưng vẫn phóng khoáng, phù hợp cho nhiều hoàn cảnh.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="nh-sep my-4" />
+
+                    <h2 class="text-center fw-bold mb-4">Những nốt hương đặc trưng</h2>
+
+                    <!-- NOTES GRID (placeholders) -->
+                    <div class="row g-4 justify-content-center nh-notes-grid mb-4">
+                        <div class="col-4 col-sm-3 col-md-2 text-center">
+                            <div class="nh-note-thumb"></div>
+                            <div class="small mt-2 text-muted">Lavender</div>
+                        </div>
+                        <div class="col-4 col-sm-3 col-md-2 text-center">
+                            <div class="nh-note-thumb"></div>
+                            <div class="small mt-2 text-muted">Mint</div>
+                        </div>
+                        <div class="col-4 col-sm-3 col-md-2 text-center">
+                            <div class="nh-note-thumb"></div>
+                            <div class="small mt-2 text-muted">Cedarwood</div>
+                        </div>
+                        <div class="col-4 col-sm-3 col-md-2 text-center d-none d-md-block">
+                            <div class="nh-note-thumb"></div>
+                            <div class="small mt-2 text-muted">Vetiver</div>
+                        </div>
+                        <div class="col-4 col-sm-3 col-md-2 text-center d-none d-lg-block">
+                            <div class="nh-note-thumb"></div>
+                            <div class="small mt-2 text-muted">Citrus</div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 my-3">
+                        <button class="btn btn-primary" type="button">
+                            <i class="bi bi-search me-2"></i>Tìm sản phẩm thuộc nhóm hương này
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function cleanupModalArtifacts() {
+                // Remove any leftover backdrops
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                // Reset body state
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('paddingRight');
+            }
+            // Xử lý click vào card nhóm hương
+            const nhomHuongLinks = document.querySelectorAll('.nhom-huong-link');
+            const modal = document.getElementById('nhomHuongModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDescription = document.getElementById('modalDescription');
+            const modalImage = document.getElementById('modalImage');
+
+            let lastTrigger = null;
+            nhomHuongLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Lấy data từ attributes
+                    const title = this.getAttribute('data-title');
+                    const description = this.getAttribute('data-description');
+                    let image = this.getAttribute('data-image');
+                    // Resolve app-relative paths starting with ~/ to absolute
+                    if (image && image.startsWith('~/')) {
+                        image = image.replace('~/', '/');
+                    }
+                    
+                    // Cập nhật modal content
+                    modalTitle.textContent = title;
+                    modalDescription.textContent = description;
+                    modalImage.src = image;
+                    modalImage.alt = title;
+                    
+                    // Hiển thị modal (dùng getOrCreateInstance để tránh tạo nhiều backdrop)
+                    const bsModal = bootstrap.Modal.getOrCreateInstance(modal, { backdrop: true, keyboard: true, focus: true });
+                    // Lưu phần tử đã click để hoàn trả focus khi đóng
+                    lastTrigger = this;
+                    // Đẩy state để dùng nút Back quay về danh sách
+                    try {
+                        const slug = (title || '').toLowerCase().replace(/\s+/g, '-');
+                        history.pushState({ nhomHuongModal: true }, '', `#nhom-huong-${slug}`);
+                    } catch { /* ignore */ }
+                    bsModal.show();
+                });
+            });
+
+            // Bảo đảm dọn dẹp backdrop và trạng thái body khi modal đóng
+            modal.addEventListener('hidden.bs.modal', function () {
+                cleanupModalArtifacts();
+                // Fallback cleanup in case animations delay removal
+                setTimeout(cleanupModalArtifacts, 100);
+                setTimeout(cleanupModalArtifacts, 300);
+                // Trả focus về card vừa mở
+                if (lastTrigger && typeof lastTrigger.focus === 'function') {
+                    lastTrigger.focus();
+                }
+            });
+
+            // Đóng modal khi user nhấn Back; nếu đang mở, ẩn modal
+            window.addEventListener('popstate', function () {
+                const open = document.querySelector('#nhomHuongModal.show');
+                if (open) {
+                    const instance = bootstrap.Modal.getOrCreateInstance(modal);
+                    instance.hide();
+                }
+            });
+
+            // Khi click nút đóng, nếu có state đã push thì history.back()
+            modal.addEventListener('hide.bs.modal', function () {
+                try {
+                    if (history.state && history.state.nhomHuongModal) {
+                        history.back();
+                    }
+                } catch { /* ignore */ }
+            });
+
+            // Extra safety: if user clicks anywhere and no modal is visible,
+            // but body remains locked, clean it up.
+            document.addEventListener('click', function () {
+                const anyOpen = document.querySelector('.modal.show');
+                if (!anyOpen) cleanupModalArtifacts();
+            }, true);
+
+            // Thêm hiệu ứng click cho cards
+            nhomHuongLinks.forEach(link => {
+                link.addEventListener('mousedown', function() {
+                    this.style.transform = 'scale(0.98)';
+                });
+                
+                link.addEventListener('mouseup', function() {
+                    this.style.transform = 'scale(1)';
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+
+            // (Removed favorite button logic per request)
+        });
+    </script>
+}

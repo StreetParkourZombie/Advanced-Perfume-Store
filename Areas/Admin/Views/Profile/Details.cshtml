@@ -1,0 +1,139 @@
+@model PerfumeStore.Areas.Admin.Models.Customer
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="mb-0">Chi tiết khách hàng</h5>
+    <div>
+        <a asp-area="Admin" asp-controller="Profile" asp-action="Index" class="btn btn-secondary">
+            <i class="fa fa-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="panel mb-3">
+            <h6 class="mb-3">Thông tin cá nhân</h6>
+            <table class="table table-borderless">
+                <tr>
+                    <th width="200">ID Khách hàng:</th>
+                    <td>@Model.CustomerId</td>
+                </tr>
+                <tr>
+                    <th>Họ tên:</th>
+                    <td>@(Model.Name ?? "-")</td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td>@Model.Email</td>
+                </tr>
+                <tr>
+                    <th>Số điện thoại:</th>
+                    <td>@(Model.Phone ?? "-")</td>
+                </tr>
+                <tr>
+                    <th>Năm sinh:</th>
+                    <td>@(Model.BirthYear?.ToString() ?? "-")</td>
+                </tr>
+                <tr>
+                    <th>Thành viên:</th>
+                    <td>
+                        @if (Model.Membership != null)
+                        {
+                            <span class="badge bg-info">@Model.Membership.Name</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">-</span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <th>Ngày tạo:</th>
+                    <td>@(Model.CreatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                </tr>
+            </table>
+        </div>
+
+        @if (Model.Orders != null && Model.Orders.Any())
+        {
+            <div class="panel">
+                <h6 class="mb-3">Đơn hàng (@Model.Orders.Count())</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate))
+                            {
+                                <tr>
+                                    <td>#@order.OrderId</td>
+                                    <td>@(order.OrderDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                    <td>@(order.TotalAmount?.ToString("N0") ?? "0") ₫</td>
+                                    <td>
+                                        @{
+                                            var badgeClass = order.Status switch
+                                            {
+                                                "Đã giao" => "bg-success",
+                                                "Đang giao hàng" => "bg-warning text-dark",
+                                                "Đã hủy" => "bg-danger",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <span class="badge @badgeClass">@order.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <div class="panel">
+            <h6 class="mb-3">Thống kê</h6>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Tổng đơn hàng:</span>
+                    <strong>@(Model.Orders?.Count() ?? 0)</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Tổng tiền đã mua:</span>
+                    <strong>@((Model.Orders?.Sum(o => o.TotalAmount) ?? 0).ToString("N0")) ₫</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Số bình luận:</span>
+                    <strong>@(Model.Comments?.Count() ?? 0)</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Số lượt quay:</span>
+                    <strong>@(Model.SpinNumber ?? 0)</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .panel {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .table th {
+        font-weight: 600;
+        color: #495057;
+    }
+</style>
+

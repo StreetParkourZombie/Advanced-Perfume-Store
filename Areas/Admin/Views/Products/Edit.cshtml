@@ -1,0 +1,284 @@
+@model PerfumeStore.Areas.Admin.Models.AdminProductFormVM
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var isEdit = Model.ProductId.HasValue;
+}
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="mb-0">@(isEdit ? "Sửa sản phẩm" : "Thêm sản phẩm")</h5>
+    <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Products" asp-action="Index">Quay lại</a>
+    </div>
+
+<div class="panel">
+    <form method="post" asp-area="Admin" asp-controller="Products" asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.ProductId" enctype="multipart/form-data">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Tên sản phẩm</label>
+                <input asp-for="ProductName" class="form-control" />
+                <span asp-validation-for="ProductName" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Tên gợi ý</label>
+                <input asp-for="SuggestionName" class="form-control" />
+                <span asp-validation-for="SuggestionName" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Giá</label>
+                <input asp-for="Price" class="form-control" type="number" min="0" step="0.01" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Tồn kho</label>
+                <input asp-for="Stock" class="form-control" type="number" min="0" />
+                <span asp-validation-for="Stock" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Bảo hành (tháng)</label>
+                <input asp-for="WarrantyPeriodMonths" class="form-control" type="number" min="1" max="120" />
+                <span asp-validation-for="WarrantyPeriodMonths" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Thương hiệu</label>
+                <select asp-for="BrandId" class="form-select" asp-items="Model.BrandOptions">
+                    <option value="">-- Chọn thương hiệu --</option>
+                </select>
+                <span asp-validation-for="BrandId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Mùi hương</label>
+                <input asp-for="Scent" class="form-control" />
+                <span asp-validation-for="Scent" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Nồng độ</label>
+                <input asp-for="Concentration" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Nhà pha chế</label>
+                <input asp-for="Craftsman" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Phong cách</label>
+                <input asp-for="Style" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Dịp sử dụng</label>
+                <input asp-for="UsingOccasion" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Top note</label>
+                <input asp-for="TopNote" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Heart note</label>
+                <input asp-for="HeartNote" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Base note</label>
+                <input asp-for="BaseNote" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Giá khuyến mãi</label>
+                <input asp-for="DiscountPrice" class="form-control" type="number" step="0.01" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Chương trình giảm giá</label>
+                <select asp-for="DiscountId" class="form-select" asp-items="Model.DiscountOptions">
+                    <option value="">-- Không chọn --</option>
+                </select>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Mô tả ngắn</label>
+                <input asp-for="DescriptionNo1" class="form-control" />
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Mô tả chi tiết</label>
+                <textarea asp-for="DescriptionNo2" class="form-control" rows="6"></textarea>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Danh mục</label>
+                <select asp-for="SelectedCategoryIds" class="form-select" asp-items="Model.CategoryOptions" multiple size="6"></select>
+                <small class="text-muted">Giữ Ctrl/⌘ để chọn nhiều</small>
+                <div class="text-danger"><span asp-validation-for="SelectedCategoryIds"></span></div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Giới thiệu ngắn</label>
+                <textarea asp-for="Introduction" rows="6" class="form-control"></textarea>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Xuất xứ</label>
+                <input asp-for="Origin" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Năm phát hành</label>
+                <input asp-for="ReleaseYear" class="form-control" type="number" min="1900" max="2100" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check">
+                    <input class="form-check-input" asp-for="IsPublished" />
+                    <label class="form-check-label" for="IsPublished">Công khai</label>
+                </div>
+            </div>
+
+            <!-- Image Management Section -->
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-images me-2"></i>Quản lý ảnh sản phẩm</h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Existing Images -->
+                        @if (Model.ExistingImages.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Ảnh hiện tại:</label>
+                                <div class="row g-2" id="existing-images">
+                                    @foreach (var image in Model.ExistingImages)
+                                    {
+                                        <div class="col-md-3" id="image-@image.ImageId">
+                                            <div class="card">
+                                                <img src="@Url.Action("GetImage", "Products", new { imageId = image.ImageId })" 
+                                                     class="card-img-top" style="height: 150px; object-fit: cover;" alt="Product Image">
+                                                <div class="card-body p-2">
+                                                    <button type="button" class="btn btn-danger btn-sm w-100" 
+                                                            onclick="deleteImage(@image.ImageId)">
+                                                        <i class="fas fa-trash me-1"></i>Xóa
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Upload New Images -->
+                        <div class="mb-3">
+                            <label class="form-label">Thêm ảnh mới:</label>
+                            <input type="file" class="form-control" name="ImageFiles" multiple 
+                                   accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
+                                   onchange="previewImages(this)">
+                            <small class="text-muted">
+                                Chọn nhiều ảnh (JPEG, PNG, GIF, WebP). Tối đa 5MB mỗi ảnh.
+                            </small>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div id="image-preview" class="row g-2"></div>
+
+                        <!-- Hidden fields for deleted image IDs will be added by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Lưu</button>
+            <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Products" asp-action="Index">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        let deletedImageIds = [];
+
+        function previewImages(input) {
+            const previewContainer = document.getElementById('image-preview');
+            previewContainer.innerHTML = '';
+
+            if (input.files) {
+                Array.from(input.files).forEach((file, index) => {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const col = document.createElement('div');
+                            col.className = 'col-md-3';
+                            col.innerHTML = `
+                                <div class="card">
+                                    <img src="${e.target.result}" class="card-img-top" 
+                                         style="height: 150px; object-fit: cover;" alt="Preview">
+                                    <div class="card-body p-2">
+                                        <small class="text-muted">${file.name}</small>
+                                        <br>
+                                        <small class="text-muted">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                                    </div>
+                                </div>
+                            `;
+                            previewContainer.appendChild(col);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        }
+
+        function deleteImage(imageId) {
+            if (confirm('Bạn có chắc chắn muốn xóa ảnh này?')) {
+                // Add to deleted list
+                deletedImageIds.push(imageId);
+                
+                // Create hidden input for this deleted image ID
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'DeletedImageIds';
+                hiddenInput.value = imageId;
+                document.querySelector('form').appendChild(hiddenInput);
+                
+                // Hide the image element
+                const imageElement = document.getElementById('image-' + imageId);
+                if (imageElement) {
+                    imageElement.style.display = 'none';
+                }
+                
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    Ảnh sẽ được xóa khi lưu sản phẩm.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.card-body').insertBefore(alert, document.querySelector('.card-body').firstChild);
+                
+                // Auto dismiss after 3 seconds
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 3000);
+            }
+        }
+
+        // Validate file size and type before upload
+        document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            
+            let hasError = false;
+            files.forEach(file => {
+                if (file.size > maxSize) {
+                    alert(`File "${file.name}" quá lớn. Tối đa 5MB.`);
+                    hasError = true;
+                }
+                if (!allowedTypes.includes(file.type.toLowerCase())) {
+                    alert(`File "${file.name}" không đúng định dạng. Chỉ chấp nhận: JPEG, PNG, GIF, WebP.`);
+                    hasError = true;
+                }
+            });
+            
+            if (hasError) {
+                e.target.value = '';
+                document.getElementById('image-preview').innerHTML = '';
+            }
+        });
+    </script>
+}
+
+

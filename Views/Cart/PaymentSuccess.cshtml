@@ -1,0 +1,295 @@
+@model dynamic
+@{
+    ViewBag.Title = "Đặt hàng thành công";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-md px-2">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center py-5">
+                    <!-- Icon thành công -->
+                    <div class="mb-4">
+                        <div class="success-icon mx-auto d-flex align-items-center justify-content-center bg-success rounded-circle text-white"
+                             style="width: 80px; height: 80px; font-size: 2.5rem;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+
+                    <!-- Thông báo thành công -->
+                    <h2 class="text-success mb-3">Thanh toán thành công!</h2>
+                    <p class="text-muted mb-4">Cảm ơn bạn đã mua hàng tại ORCHARD Perfumes & Cosmetics</p>
+
+                    @if (Model.Customer != null)
+                    {
+                        <div class="alert alert-success mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user-check me-3"></i>
+                                <div class="text-start">
+                                    <strong>Xin chào @Model.Customer.Name!</strong><br>
+                                    <small class="text-muted">Email: @Model.Customer.Email | SĐT: @Model.Customer.Phone</small><br>
+                                    <strong>Địa chỉ giao hàng:</strong> @Model.Address.AddressLine, @Model.Address.Ward, @Model.Address.District, @Model.Address.Province
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Thông tin đơn hàng -->
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-12 col-md-8">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title text-center mb-3">Thông tin đơn hàng</h5>
+
+                                    <div class="row mb-2">
+                                        <div class="col-6 text-start">
+                                            <strong>Mã đơn hàng:</strong>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            <span class="badge bg-primary">#@Model.OrderId</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-2">
+                                        <div class="col-6 text-start">
+                                            <strong>Ngày đặt hàng:</strong>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-2">
+                                        <div class="col-6 text-start">
+                                            <strong>Số sản phẩm:</strong>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            @Model.OrderDetails.Count sản phẩm
+                                        </div>
+                                    </div>
+
+                                    @if (Model.PaymentMethod != null)
+                                    {
+                                        <div class="row mb-2">
+                                            <div class="col-6 text-start">
+                                                <strong>Phương thức thanh toán:</strong>
+                                            </div>
+                                            <div class="col-6 text-end">
+                                                <span class="badge bg-info">@Model.PaymentMethod</span>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (Model.Status != null)
+                                    {
+                                        <div class="row mb-2">
+                                            <div class="col-6 text-start">
+                                                <strong>Trạng thái đơn hàng:</strong>
+                                            </div>
+                                            <div class="col-6 text-end">
+                                                <span class="badge bg-warning">@Model.Status</span>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="row mb-2">
+                                        <div class="col-6 text-start">
+                                            <strong>Tạm tính:</strong>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            @string.Format("{0:N0} đ", Model.Subtotal ?? 0)
+                                        </div>
+                                    </div>
+
+                                    @if (Model.Coupon != null && Model.Coupon.DiscountAmount > 0)
+                                    {
+                                        <div class="row mb-2">
+                                            <div class="col-6 text-start">
+                                                <strong>Giảm giá (@Model.Coupon.Code):</strong>
+                                            </div>
+                                            <div class="col-6 text-end">
+                                                <span class="text-success">-@string.Format("{0:N0} đ", Model.Coupon.DiscountAmount)</span>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="row mb-2">
+                                        <div class="col-6 text-start">
+                                            <strong>VAT (Thuế GTGT):</strong>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            @string.Format("{0:N0} đ", Model.VAT ?? 0)
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-2">
+                                        <div class="col-6 text-start">
+                                            <strong>Phí vận chuyển:</strong>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            @if (Model.ShippingFee == null || Model.ShippingFee == 0)
+                                            {
+                                                <span class="text-success">Miễn phí</span>
+                                            }
+                                            else
+                                            {
+                                                @string.Format("{0:N0} đ", Model.ShippingFee)
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-3">
+
+                                    <div class="row mb-2">
+                                        <div class="col-6 text-start">
+                                            <strong class="fs-5">Tổng tiền:</strong>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            <span class="fs-5 text-success fw-bold">
+                                                @string.Format("{0:N0} đ", Model.TotalAmount)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Danh sách sản phẩm đã mua -->
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-12">
+                            <h5 class="text-center mb-3">Sản phẩm đã mua</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Sản phẩm</th>
+                                            <th class="text-center">Số lượng</th>
+                                            <th class="text-end">Giá</th>
+                                            <th class="text-end">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.OrderDetails)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="@item.ImageUrl" class="rounded border me-3"
+                                                             style="width:50px;height:50px;object-fit:cover"
+                                                             alt="@item.ProductName" />
+                                                        <div>
+                                                            <div class="fw-semibold">@item.ProductName</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">@item.Quantity</td>
+                                                <td class="text-end">@string.Format("{0:N0} đ", item.UnitPrice)</td>
+                                                <td class="text-end">@string.Format("{0:N0} đ", item.TotalPrice)</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông báo tiếp theo -->
+                    <div class="alert alert-success mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle me-3"></i>
+                            <div class="text-start">
+                                <strong>Thanh toán hoàn tất!</strong><br>
+                                Đơn hàng của bạn đã được thanh toán thành công.
+                                Chúng tôi sẽ xử lý và giao hàng trong 2-3 ngày làm việc.
+                                <br><small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Thời gian giao hàng dự kiến: @DateTime.Now.AddDays(3).ToString("dd/MM/yyyy")
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin liên hệ hỗ trợ -->
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-headset me-3"></i>
+                            <div class="text-start">
+                                <strong>Cần hỗ trợ?</strong><br>
+                                Liên hệ hotline: <strong>1900 1234</strong> hoặc email: <strong>support@orchard.vn</strong><br>
+                                <small class="text-muted">Thời gian hỗ trợ: 8:00 - 22:00 hàng ngày</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Các nút hành động -->
+                    <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                        <a href="/" class="btn btn-outline-primary px-4">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
+                        </a>
+                        <a href="/Cart" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-shopping-cart me-2"></i>Xem giỏ hàng
+                        </a>
+                        <button class="btn btn-success px-4" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i>In hóa đơn
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .success-icon {
+        animation: successPulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes successPulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+        }
+
+        70% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+        }
+
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        }
+    }
+
+    @@media print {
+        .btn {
+            display: none !important;
+        }
+
+        .card {
+            border: 1px solid #000 !important;
+            box-shadow: none !important;
+        }
+
+        .success-icon {
+            animation: none !important;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Tự động chuyển về trang chủ sau 30 giây (tùy chọn)
+        // setTimeout(function() {
+        //     window.location.href = '/';
+        // }, 30000);
+
+        // Thêm hiệu ứng confetti khi trang load (tùy chọn)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Có thể thêm thư viện confetti ở đây nếu muốn
+            console.log('Thanh toán thành công!');
+        });
+    </script>
+}

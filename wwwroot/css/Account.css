@@ -1,0 +1,11 @@
+.account-page .card { border: 1px solid #e9ecef; border-radius: 12px; }
+.account-page .card-body h5 { font-weight: 600; }
+.account-page .form-label { font-weight: 500; }
+.account-page .form-control { padding: 10px 12px; border-radius: 10px; }
+.account-page .btn { border-radius: 10px; padding: 10px 16px; }
+.account-page .badge.bg-success-subtle { background-color: #e6f4ea; }
+.account-page .quick-actions .list-group-item { padding: 14px 16px; }
+.account-page .list-group-item { border: 0; }
+.account-page .list-group-item + .list-group-item { border-top: 1px solid #f1f3f5; }
+
+

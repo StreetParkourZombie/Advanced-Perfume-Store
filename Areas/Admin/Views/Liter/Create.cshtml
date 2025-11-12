@@ -1,0 +1,70 @@
+﻿@model PerfumeStore.Areas.Admin.Models.Liter
+
+@{
+    ViewData["Title"] = "Thêm dung tích mới";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white text-center py-2">
+                <h5 class="mb-0">Thêm dung tích nước hoa</h5>
+            </div>
+            <div class="card-body">
+
+                <form asp-action="Create" method="post">
+
+                    <div class="mb-3">
+                        <label asp-for="LiterNumber" class="form-label fw-semibold"></label>
+                        <input asp-for="LiterNumber" class="form-control" placeholder="Nhập số ml (vd: 50)" />
+                        <span asp-validation-for="LiterNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="LiterDescription" class="form-label fw-semibold"></label>
+                        <input asp-for="LiterDescription" class="form-control" placeholder="Mô tả ngắn (vd: xịt 500 lần)" />
+                        <span asp-validation-for="LiterDescription" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="LiterPrice" class="form-label fw-semibold"></label>
+                        <input asp-for="LiterPrice" class="form-control price-input" placeholder="Nhập giá (vd: 1.580.000)" />
+                        <span asp-validation-for="LiterPrice" class="text-danger"></span>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary px-4 me-2">💾 Lưu</button>
+                        <a asp-action="Index" class="btn btn-secondary px-4">⬅ Quay lại</a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.querySelectorAll('.price-input').forEach(input => {
+            // Hiển thị format khi nhập
+            input.addEventListener('input', function () {
+                let value = this.value.replace(/\D/g, "");
+                if (value) {
+                    value = parseInt(value).toLocaleString('vi-VN');
+                    this.value = value;
+                }
+            });
+
+            // Xóa dấu chấm trước khi submit form
+            input.form.addEventListener('submit', function () {
+                input.value = input.value.replace(/\./g, "").replace(/,/g, "");
+            });
+        });
+    </script>
+}

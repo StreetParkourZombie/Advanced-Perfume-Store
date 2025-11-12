@@ -1,0 +1,1231 @@
+@model PerfumeStore.Models.ViewModels.CheckoutViewModel
+@{
+    ViewBag.Title = "Thanh toán";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="checkout-page">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Cột trái: Form thông tin -->
+            <div class="col-lg-8 checkout-form-section">
+                <div class="checkout-form-container">
+                    <!-- Header -->
+                    <div class="checkout-header mb-4">
+                        <h1 class="checkout-title">Thanh toán</h1>
+                        <p class="security-message">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            Tất cả các giao dịch đều được bảo mật và mã hóa.
+                        </p>
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-user-check me-2"></i>
+                                <strong>Xin chào @User.Identity.Name!</strong> Bạn đã đăng nhập và có thể tiếp tục đặt hàng.
+                            </div>
+                        }
+                        @if (Context.Request.Query["voucherApplied"] == "true")
+                        {
+                            <div class="alert alert-success mt-3" id="voucherAppliedAlert">
+                                <i class="fas fa-gift me-2"></i>
+                                <strong>Chúc mừng!</strong> Voucher từ vòng quay may mắn đã được áp dụng tự động vào đơn hàng của bạn!
+                            </div>
+                        }
+                    </div>
+
+                    <form asp-action="ProcessCheckout" method="post" id="checkoutForm">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Thông tin khách hàng -->
+                        <div class="form-section mb-4">
+                            <h3 class="section-title">Thông tin</h3>
+                            <div class="row">
+                                <div class="col-12">
+                                    <label for="customerEmail" class="form-label">Địa chỉ email</label>
+                                    <input type="email" class="form-control" id="customerEmail" name="CustomerEmail"
+                                           value="@(User.Identity.IsAuthenticated? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value : "")"
+                                           placeholder="example@email.com"
+                                           @(User.Identity.IsAuthenticated ? "readonly" : "") required>
+                                    <div class="invalid-feedback">
+                                        Vui lòng nhập địa chỉ email hợp lệ
+                                    </div>
+                                    <small class="text-muted">
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <text>Email này được lấy từ tài khoản đã đăng nhập</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Vui lòng nhập email để nhận thông tin đơn hàng</text>
+                                        }
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Địa chỉ thanh toán và vận chuyển -->
+                        <div class="form-section mb-4">
+                            <h3 class="section-title">Địa chỉ thanh toán và vận chuyển</h3>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="customerPhone" class="form-label">Nhập số điện thoại <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="customerPhone" name="CustomerPhone" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="customerName" class="form-label">Nhập họ và tên <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="customerName" name="CustomerName" required>
+                                </div>
+                            </div>
+
+                            <!-- Dropdown địa chỉ với class đặc biệt -->
+                            <div class="address-dropdowns mt-3">
+                                <div class="col-md-4">
+                                    <label for="province" class="form-label">Chọn Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="province" name="Province" required>
+                                        <option value="">Chọn tỉnh/thành phố</option>
+                                        <option value="ho-chi-minh">TP. Hồ Chí Minh</option>
+                                        <option value="ha-noi">Hà Nội</option>
+                                        <option value="da-nang">Đà Nẵng</option>
+                                        <option value="can-tho">Cần Thơ</option>
+                                        <option value="hai-phong">Hải Phòng</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="district" class="form-label">Chọn Quận/Huyện <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="district" name="District" required>
+                                        <option value="">Chọn quận/huyện</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="ward" class="form-label">Chọn Xã/Phường/Thị trấn <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="ward" name="Ward" required>
+                                        <option value="">Chọn xã/phường</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-3">
+                                <div class="col-12">
+                                    <label for="shippingAddress" class="form-label">Nhập địa chỉ cụ thể. Số nhà, tên đường... <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="shippingAddress" name="ShippingAddress" rows="3" required placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Checkbox để lưu địa chỉ mặc định -->
+                            <div class="row g-3 mt-2">
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="saveAsDefaultAddress" name="SaveAsDefaultAddress" value="true">
+                                        <label class="form-check-label" for="saveAsDefaultAddress">
+                                            <i class="fas fa-bookmark me-2"></i>Lưu làm địa chỉ mặc định cho lần sau
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phương thức thanh toán -->
+                        <div class="form-section mb-4">
+                            <h3 class="section-title">Thanh toán</h3>
+
+                            <!-- COD Option -->
+                            <div class="payment-option mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="paymentCOD" value="COD" checked>
+                                    <label class="form-check-label w-100" for="paymentCOD">
+                                        <div class="payment-header">
+                                            <strong>Thanh toán khi nhận hàng (COD)</strong>
+                                        </div>
+                                        <div class="payment-description">
+                                            <p>Miễn phí giao hàng toàn quốc trên 63 tỉnh thành.</p>
+                                            <p>Thanh toán khi nhận hàng, bảo hành & đổi trả theo chính sách "Bảo hành đến giọt cuối cùng" của Orchard.vn.</p>
+                                            <p>Với một số đơn ngoại thành, quý khách có thể cần thanh toán trước từ 50-100K. Orchard sẽ liên hệ để xác nhận đơn hàng cùng quý khách. Một lần nữa Orchard xin cảm ơn quý khách!</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Bank Transfer Option -->
+                            <div class="payment-option">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="paymentBank" value="BANK_TRANSFER">
+                                    <label class="form-check-label w-100" for="paymentBank">
+                                        <div class="payment-header">
+                                            <strong>Chuyển khoản ngân hàng</strong>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mã giảm giá -->
+                        <div class="form-section mb-4">
+                            <label for="voucherCode" class="form-label">Mã giảm giá</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="voucherCode" name="VoucherCode" placeholder="Nhập mã voucher..." value="@(Model.AppliedVoucher?.Code ?? "")">
+                                <button type="button" class="btn btn-outline-primary" id="applyVoucherBtn">
+                                    <i class="fas fa-check me-1"></i>Áp dụng
+                                </button>
+                                <button type="button" class="btn btn-outline-success" id="selectVoucherBtn">
+                                    <i class="fas fa-bookmark me-1"></i>Chọn voucher
+                                </button>
+                            </div>
+
+                            <!-- Debug info -->
+                            @if (Model.AppliedVoucher != null)
+                            {
+                                <small class="text-muted">Debug: Voucher = @Model.AppliedVoucher.Name (@Model.AppliedVoucher.Code)</small>
+                            }
+                            else
+                            {
+                                <small class="text-muted">Debug: No voucher applied</small>
+                            }
+                            @if (Model.AppliedVoucher != null)
+                            {
+                                <div class="alert alert-success mt-2" id="voucherSuccess">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Đã áp dụng voucher: <strong>@Model.AppliedVoucher.Name</strong>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="removeVoucherBtn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            }
+
+                            <!-- Modal chọn voucher đã lưu -->
+                            <div class="modal fade" id="savedVouchersModal" tabindex="-1" aria-labelledby="savedVouchersModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="savedVouchersModalLabel">
+                                                <i class="fas fa-bookmark me-2"></i>Voucher đã lưu
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div id="savedVouchersList">
+                                                <!-- Danh sách voucher sẽ được load bằng JavaScript -->
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal chọn voucher có sẵn -->
+                            <div class="modal fade" id="availableVouchersModal" tabindex="-1" aria-labelledby="availableVouchersModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="availableVouchersModalLabel">
+                                                <i class="fas fa-gift me-2"></i>Voucher có sẵn
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div id="availableVouchersList">
+                                                <!-- Danh sách voucher có sẵn sẽ được load bằng JavaScript -->
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ghi chú đơn hàng -->
+                        <div class="form-section mb-4">
+                            <label for="orderNotes" class="form-label">Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn. (tuỳ chọn)</label>
+                            <textarea class="form-control" id="orderNotes" name="OrderNotes" rows="3" placeholder="Nhập ghi chú cho đơn hàng..."></textarea>
+                        </div>
+
+                        <!-- Privacy Policy -->
+                        <div class="privacy-section mb-4">
+                            <p class="privacy-text">
+                                Thông tin của bạn sẽ chỉ dùng để phục vụ đơn hàng và hỗ trợ dịch vụ theo cam kết
+                                <a href="#" class="privacy-link">chính sách riêng tư</a>.
+                            </p>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="submit-section">
+                            <button type="submit" class="btn btn-checkout w-100">
+                                <i class="fas fa-shopping-cart me-2"></i>Hoàn tất đặt hàng
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Copyright -->
+                    <div class="copyright-section mt-4">
+                        <p class="copyright-text">Copyright © 2025, Orchard.vn. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Tóm tắt đơn hàng -->
+            <div class="col-lg-4 order-summary-section" id="order-summary">
+                <div class="order-summary-container">
+                    <div class="order-summary-content">
+
+                        <!-- Danh sách sản phẩm -->
+                        <div class="products-section mb-3">
+                            @foreach (var item in Model.CartItems)
+                            {
+                                <div class="product-item">
+                                    <img src="@item.ImageUrl" alt="@item.ProductName" class="product-image">
+                                    <div class="product-info">
+                                        <div class="product-name">@item.ProductName</div>
+                                        <div class="product-quantity">Số lượng: @item.Quantity</div>
+                                        <div class="product-price">@item.LineTotal.ToString("N0") ₫</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Tổng kết -->
+                        <div class="summary-section">
+                            <div class="summary-row">
+                                <span>Tạm tính</span>
+                                <span>@Model.Subtotal.ToString("N0") ₫</span>
+                            </div>
+
+                            @if (Model.Discount > 0)
+                            {
+                                <div class="summary-row discount-row">
+                                    <span>Giảm giá</span>
+                                    <span>-@Model.Discount.ToString("N0") ₫</span>
+                                </div>
+                            }
+
+                            @if (Model.VAT > 0)
+                            {
+                                <div class="summary-row">
+                                    <span>VAT (Thuế GTGT)</span>
+                                    <span>@Model.VAT.ToString("N0") ₫</span>
+                                </div>
+                            }
+
+                            <div class="summary-row">
+                                <span>Phí vận chuyển</span>
+                                @if (Model.AppliedVoucher?.Type == "freeship")
+                                {
+                                    <span class="text-success">Miễn phí</span>
+                                }
+                                else if (Model.ShippingFee > 0)
+                                {
+                                    <span>@Model.ShippingFee.ToString("N0") ₫</span>
+                                }
+                                else
+                                {
+                                    <span>0 ₫</span>
+                                }
+                            </div>
+
+                            @if (Model.AppliedVoucher != null)
+                            {
+                                <div class="summary-row voucher-row">
+                                    <span>Mã giảm giá</span>
+                                    <span class="text-success">@Model.AppliedVoucher.Name</span>
+                                </div>
+                            }
+
+                            <hr class="summary-divider">
+                            <div class="summary-row total-row">
+                                <span>Tổng</span>
+                                <span>@Model.Total.ToString("N0") ₫</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        // Dữ liệu tỉnh/thành và quận/huyện
+        const locationData = {
+            'ho-chi-minh': {
+                name: 'TP. Hồ Chí Minh',
+                districts: {
+                    'quan-1': { name: 'Quận 1', wards: ['Phường Bến Nghé', 'Phường Đa Kao', 'Phường Tân Định'] },
+                    'quan-3': { name: 'Quận 3', wards: ['Phường 1', 'Phường 2', 'Phường 3'] },
+                    'quan-5': { name: 'Quận 5', wards: ['Phường 1', 'Phường 2', 'Phường 3'] },
+                    'quan-7': { name: 'Quận 7', wards: ['Phường Tân Phong', 'Phường Tân Phú', 'Phường Tân Quy'] }
+                }
+            },
+            'ha-noi': {
+                name: 'Hà Nội',
+                districts: {
+                    'ba-dinh': { name: 'Quận Ba Đình', wards: ['Phường Phúc Xá', 'Phường Trúc Bạch', 'Phường Vĩnh Phúc'] },
+                    'hoan-kiem': { name: 'Quận Hoàn Kiếm', wards: ['Phường Phan Chu Trinh', 'Phường Tràng Tiền', 'Phường Hàng Bông'] },
+                    'dong-da': { name: 'Quận Đống Đa', wards: ['Phường Cát Linh', 'Phường Văn Miếu', 'Phường Quốc Tử Giám'] }
+                }
+            },
+            'da-nang': {
+                name: 'Đà Nẵng',
+                districts: {
+                    'hai-chau': { name: 'Quận Hải Châu', wards: ['Phường Hải Châu I', 'Phường Hải Châu II', 'Phường Nam Dương'] },
+                    'thanh-khe': { name: 'Quận Thanh Khê', wards: ['Phường Thanh Khê Tây', 'Phường Thanh Khê Đông', 'Phường Xuân Hà'] }
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const provinceSelect = document.getElementById('province');
+            const districtSelect = document.getElementById('district');
+            const wardSelect = document.getElementById('ward');
+
+            // Xử lý thay đổi tỉnh/thành
+            provinceSelect.addEventListener('change', function() {
+                const selectedProvince = this.value;
+
+                // Reset quận/huyện và xã/phường
+                districtSelect.innerHTML = '<option value="">Chọn quận/huyện</option>';
+                wardSelect.innerHTML = '<option value="">Chọn xã/phường</option>';
+
+                if (selectedProvince && locationData[selectedProvince]) {
+                    const districts = locationData[selectedProvince].districts;
+
+                    for (const [key, district] of Object.entries(districts)) {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = district.name;
+                        districtSelect.appendChild(option);
+                    }
+                }
+            });
+
+            // Xử lý thay đổi quận/huyện
+            districtSelect.addEventListener('change', function() {
+                const selectedProvince = provinceSelect.value;
+                const selectedDistrict = this.value;
+
+                // Reset xã/phường
+                wardSelect.innerHTML = '<option value="">Chọn xã/phường</option>';
+
+                if (selectedProvince && selectedDistrict &&
+                    locationData[selectedProvince] &&
+                    locationData[selectedProvince].districts[selectedDistrict]) {
+
+                    const wards = locationData[selectedProvince].districts[selectedDistrict].wards;
+
+                    wards.forEach(ward => {
+                        const option = document.createElement('option');
+                        option.value = ward;
+                        option.textContent = ward;
+                        wardSelect.appendChild(option);
+                    });
+                }
+            });
+
+            // Form validation
+            const checkoutForm = document.getElementById('checkoutForm');
+            const submitBtn = document.querySelector('.btn-checkout');
+
+            checkoutForm.addEventListener('submit', function(e) {
+                console.log('Form submit event triggered');
+                const requiredFields = ['customerEmail', 'customerPhone', 'customerName', 'province', 'district', 'ward', 'shippingAddress'];
+                let isValid = true;
+
+                console.log('Validating required fields:');
+                requiredFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    console.log(`  ${fieldId}: ${field ? field.value : 'NOT FOUND'}`);
+                    if (!field || !field.value.trim()) {
+                        if (field) {
+                            field.classList.add('is-invalid');
+                        }
+                        isValid = false;
+                    } else {
+                        if (field) {
+                            field.classList.remove('is-invalid');
+                            field.classList.add('is-valid');
+                        }
+                    }
+                });
+
+                console.log(`Form validation result: ${isValid}`);
+
+                if (!isValid) {
+                    console.log('Form validation failed, preventing submit');
+                    e.preventDefault();
+                    // Scroll to first invalid field
+                    const firstInvalid = document.querySelector('.is-invalid');
+                    if (firstInvalid) {
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstInvalid.focus();
+                    }
+                } else {
+                    console.log('Form validation passed, submitting...');
+                    // Show loading state
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+                    submitBtn.disabled = true;
+                }
+            });
+
+            // Real-time validation
+            const requiredFields = ['customerEmail', 'customerPhone', 'customerName', 'shippingAddress'];
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                field.addEventListener('blur', function() {
+                    if (!this.value.trim()) {
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                });
+            });
+
+            // Xử lý payment options
+            const paymentOptions = document.querySelectorAll('input[name="PaymentMethod"]');
+            const paymentOptionCards = document.querySelectorAll('.payment-option');
+
+            paymentOptions.forEach((option, index) => {
+                option.addEventListener('change', function() {
+                    // Xóa class selected khỏi tất cả cards
+                    paymentOptionCards.forEach(card => card.classList.remove('selected'));
+
+                    // Thêm class selected cho card được chọn
+                    if (this.checked) {
+                        paymentOptionCards[index].classList.add('selected');
+                    }
+                });
+
+                // Set initial state
+                if (option.checked) {
+                    paymentOptionCards[index].classList.add('selected');
+                }
+            });
+
+            // Auto-fill thông tin nếu đã đăng nhập
+            @if (User.Identity.IsAuthenticated)
+            {
+                    <text>
+                    const customerName = document.getElementById('customerName');
+                    const customerEmail = document.getElementById('customerEmail');
+
+                    if (customerName && !customerName.value) {
+                        customerName.value = '@Html.Raw(User.Identity.Name)';
+                    }
+
+                    // Load default address if available
+                    loadDefaultAddress();
+                    </text>
+            }
+
+            // Function to load default address
+            function loadDefaultAddress() {
+                fetch('/Cart/GetDefaultAddress')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.address) {
+                            const address = data.address;
+
+                            // Fill form fields
+                            if (address.customerName) {
+                                document.getElementById('customerName').value = address.customerName;
+                            }
+                            if (address.phone) {
+                                document.getElementById('customerPhone').value = address.phone;
+                            }
+                            if (address.province) {
+                                document.getElementById('province').value = address.province;
+                                // Trigger province change to load districts
+                                document.getElementById('province').dispatchEvent(new Event('change'));
+
+                                // Wait a bit for districts to load, then set district
+                                setTimeout(() => {
+                                    if (address.district) {
+                                        document.getElementById('district').value = address.district;
+                                        // Trigger district change to load wards
+                                        document.getElementById('district').dispatchEvent(new Event('change'));
+
+                                        // Wait a bit for wards to load, then set ward
+                                        setTimeout(() => {
+                                            if (address.ward) {
+                                                document.getElementById('ward').value = address.ward;
+                                            }
+                                        }, 500);
+                                    }
+                                }, 500);
+                            }
+                            if (address.addressLine) {
+                                document.getElementById('shippingAddress').value = address.addressLine;
+                            }
+
+                            // Show message that default address was loaded
+                            showMessage('Đã tự động điền thông tin từ địa chỉ mặc định', 'info');
+                        }
+                    })
+                    .catch(error => {
+                        console.log('No default address found or error loading:', error);
+                    });
+            }
+
+            // Function to show messages
+            function showMessage(message, type) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+                alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(alertDiv);
+
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 3000);
+            }
+
+            // Auto-fill voucher từ Model hoặc URL parameter
+            document.addEventListener('DOMContentLoaded', function() {
+                const voucherCodeInput = document.getElementById('voucherCode');
+                const applyVoucherBtn = document.getElementById('applyVoucherBtn');
+                const voucherSuccess = document.getElementById('voucherSuccess');
+
+                if (!voucherCodeInput || !applyVoucherBtn) {
+                    console.log('Voucher elements not found');
+                    return;
+                }
+
+                // Kiểm tra voucher từ Model (server-side)
+                const modelVoucherCode = '@(Model.AppliedVoucher?.Code ?? "")';
+                const modelVoucherName = '@(Model.AppliedVoucher?.Name ?? "")';
+                console.log('Model voucher code:', modelVoucherCode);
+                console.log('Model voucher name:', modelVoucherName);
+                console.log('Model.AppliedVoucher is null:', @(Model.AppliedVoucher == null ? "true" : "false"));
+
+                // Kiểm tra voucher từ URL parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const voucherApplied = urlParams.get('voucherApplied');
+                console.log('Voucher applied from URL:', voucherApplied);
+
+                // Nếu có voucher từ Model
+                if (modelVoucherCode !== '') {
+                    console.log('Auto-filling voucher from Model:', modelVoucherCode);
+                    voucherCodeInput.value = modelVoucherCode;
+
+                    // Hiển thị thông báo thành công
+                    if (voucherSuccess) {
+                        voucherSuccess.style.display = 'block';
+                    }
+
+                    // Disable input và button
+                    voucherCodeInput.disabled = true;
+                    applyVoucherBtn.disabled = true;
+                    applyVoucherBtn.innerHTML = '<i class="fas fa-check me-1"></i>Đã áp dụng';
+
+                    console.log('Voucher auto-filled successfully from Model');
+                }
+                // Nếu có voucher từ URL parameter nhưng chưa có trong Model
+                else if (voucherApplied === 'true') {
+                    console.log('Getting voucher from session via AJAX...');
+
+                    fetch('/Cart/GetAppliedVoucherApi', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log('AJAX result:', result);
+                        if (result.success && result.voucher) {
+                            console.log('Auto-filling voucher from AJAX:', result.voucher.code);
+                            voucherCodeInput.value = result.voucher.code;
+
+                            // Hiển thị thông báo thành công
+                            if (voucherSuccess) {
+                                voucherSuccess.style.display = 'block';
+                            }
+
+                            // Disable input và button
+                            voucherCodeInput.disabled = true;
+                            applyVoucherBtn.disabled = true;
+                            applyVoucherBtn.innerHTML = '<i class="fas fa-check me-1"></i>Đã áp dụng';
+
+                            console.log('Voucher auto-filled successfully from AJAX');
+
+                            // Reload trang để cập nhật tổng tiền
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            console.log('No voucher found in session');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error getting voucher from session:', error);
+                    });
+                } else {
+                    console.log('No voucher to auto-fill');
+                }
+            });
+
+            // Auto-hide voucher applied alert
+            const voucherAppliedAlert = document.getElementById('voucherAppliedAlert');
+            if (voucherAppliedAlert) {
+                setTimeout(() => {
+                    voucherAppliedAlert.style.transition = 'opacity 0.5s ease';
+                    voucherAppliedAlert.style.opacity = '0';
+                    setTimeout(() => {
+                        voucherAppliedAlert.style.display = 'none';
+                    }, 500);
+                }, 5000); // Ẩn sau 5 giây
+            }
+
+            // Chọn voucher đã lưu
+            const selectSavedVoucherBtn = document.getElementById('selectSavedVoucherBtn');
+            const viewSavedVouchersBtn = document.getElementById('viewSavedVouchersBtn');
+            const savedVouchersModal = document.getElementById('savedVouchersModal');
+            const savedVouchersList = document.getElementById('savedVouchersList');
+
+            // Chọn voucher có sẵn
+            const selectVoucherBtn = document.getElementById('selectVoucherBtn');
+            const availableVouchersModal = document.getElementById('availableVouchersModal');
+            const availableVouchersList = document.getElementById('availableVouchersList');
+
+            if (selectSavedVoucherBtn) {
+                selectSavedVoucherBtn.addEventListener('click', function() {
+                    console.log('Select saved voucher button clicked');
+
+                    // Check if global functions are available
+                    if (typeof window.loadVoucherWarehouse === 'function') {
+                        console.log('Opening voucher warehouse modal');
+                        window.loadVoucherWarehouse();
+
+                        // Get the voucher warehouse modal
+                        const voucherWarehouseModal = document.getElementById('voucherWarehouseModal');
+                        if (voucherWarehouseModal) {
+                            // Disable body scroll
+                            document.body.style.overflow = 'hidden';
+                            document.body.classList.add('modal-open');
+
+                            // Show modal with fullscreen
+                            voucherWarehouseModal.style.display = 'flex';
+                            voucherWarehouseModal.classList.add('show');
+
+                            // Force fullscreen styles
+                            voucherWarehouseModal.style.position = 'fixed';
+                            voucherWarehouseModal.style.top = '0';
+                            voucherWarehouseModal.style.left = '0';
+                            voucherWarehouseModal.style.width = '100vw';
+                            voucherWarehouseModal.style.height = '100vh';
+                            voucherWarehouseModal.style.zIndex = '99999';
+                            voucherWarehouseModal.style.background = 'rgba(0, 0, 0, 0.8)';
+                            voucherWarehouseModal.style.margin = '0';
+                            voucherWarehouseModal.style.padding = '0';
+                            voucherWarehouseModal.style.border = 'none';
+                            voucherWarehouseModal.style.borderRadius = '0';
+
+                            console.log('Voucher warehouse modal opened');
+                        } else {
+                            console.error('Voucher warehouse modal not found');
+                        }
+                    } else {
+                        console.error('Global loadVoucherWarehouse function not available');
+                        // Fallback to local modal
+                        loadSavedVouchers();
+                        if (savedVouchersModal) {
+                            const modal = new bootstrap.Modal(savedVouchersModal);
+                            modal.show();
+                        }
+                    }
+                });
+            }
+
+            if (viewSavedVouchersBtn) {
+                viewSavedVouchersBtn.addEventListener('click', function() {
+                    console.log('View saved vouchers button clicked');
+
+                    // Check if global functions are available
+                    if (typeof window.loadVoucherWarehouse === 'function') {
+                        console.log('Opening voucher warehouse modal');
+                        window.loadVoucherWarehouse();
+
+                        // Get the voucher warehouse modal
+                        const voucherWarehouseModal = document.getElementById('voucherWarehouseModal');
+                        if (voucherWarehouseModal) {
+                            // Disable body scroll
+                            document.body.style.overflow = 'hidden';
+                            document.body.classList.add('modal-open');
+
+                            // Show modal with fullscreen
+                            voucherWarehouseModal.style.display = 'flex';
+                            voucherWarehouseModal.classList.add('show');
+
+                            // Force fullscreen styles
+                            voucherWarehouseModal.style.position = 'fixed';
+                            voucherWarehouseModal.style.top = '0';
+                            voucherWarehouseModal.style.left = '0';
+                            voucherWarehouseModal.style.width = '100vw';
+                            voucherWarehouseModal.style.height = '100vh';
+                            voucherWarehouseModal.style.zIndex = '99999';
+                            voucherWarehouseModal.style.background = 'rgba(0, 0, 0, 0.8)';
+                            voucherWarehouseModal.style.margin = '0';
+                            voucherWarehouseModal.style.padding = '0';
+                            voucherWarehouseModal.style.border = 'none';
+                            voucherWarehouseModal.style.borderRadius = '0';
+
+                            console.log('Voucher warehouse modal opened');
+                        } else {
+                            console.error('Voucher warehouse modal not found');
+                        }
+                    } else {
+                        console.error('Global loadVoucherWarehouse function not available');
+                        // Fallback to local modal
+                        loadSavedVouchers();
+                        if (savedVouchersModal) {
+                            const modal = new bootstrap.Modal(savedVouchersModal);
+                            modal.show();
+                        }
+                    }
+                });
+            }
+
+            // Hoàn nguyên: bỏ alias 'Chọn voucher' trên nút Áp dụng
+
+            // Event listener cho nút chọn voucher có sẵn (nếu còn tồn tại phần tử cũ)
+            // Sử dụng biến selectVoucherBtn đã khai báo ở trên (tránh redeclare lỗi)
+            if (selectVoucherBtn) {
+                console.log('Select voucher button found:', selectVoucherBtn);
+
+                selectVoucherBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Chọn voucher button clicked - opening voucher warehouse');
+
+                    // Kiểm tra button có bị disabled không
+                    if (selectVoucherBtn.disabled) {
+                        console.log('Button is disabled');
+                        return;
+                    }
+
+                    try {
+                        const openWarehouseModal = () => {
+                            // Load content if function available
+                            if (typeof window.loadVoucherWarehouse === 'function') {
+                                window.loadVoucherWarehouse();
+                            } else {
+                                // Minimal inline render from localStorage to ensure something shows
+                                const list = document.getElementById('voucherWarehouseList');
+                                if (list) {
+                                    const savedVouchers = JSON.parse(localStorage.getItem('savedVouchers') || '[]');
+                                    if (savedVouchers.length === 0) {
+                                        list.innerHTML = '<div class="text-center py-5"><i class="fas fa-gift fa-4x text-muted mb-3"></i><h5 class="text-muted">Kho voucher trống</h5></div>';
+                                    } else {
+                                        list.innerHTML = savedVouchers.map(v => `<div class=\"p-3 border rounded mb-2 bg-white\"><div class=\"d-flex justify-content-between align-items-center\"><div><strong>${v.name}</strong><div class=\"small text-muted\">Mã: <code>${v.code}</code></div></div><button class=\"btn btn-primary btn-sm\" onclick=\"useVoucherFromWarehouse('${v.code}')\">Sử dụng</button></div></div>`).join('');
+                                    }
+                                }
+                            }
+
+                            // Open modal fullscreen
+                            const voucherWarehouseModal = document.getElementById('voucherWarehouseModal');
+                            if (voucherWarehouseModal) {
+                                document.body.style.overflow = 'hidden';
+                                document.body.classList.add('modal-open');
+                                voucherWarehouseModal.style.display = 'flex';
+                                voucherWarehouseModal.classList.add('show');
+                                voucherWarehouseModal.style.position = 'fixed';
+                                voucherWarehouseModal.style.top = '0';
+                                voucherWarehouseModal.style.left = '0';
+                                voucherWarehouseModal.style.width = '100vw';
+                                voucherWarehouseModal.style.height = '100vh';
+                                voucherWarehouseModal.style.zIndex = '99999';
+                                voucherWarehouseModal.style.background = 'rgba(0, 0, 0, 0.8)';
+                                voucherWarehouseModal.style.margin = '0';
+                                voucherWarehouseModal.style.padding = '0';
+                                voucherWarehouseModal.style.border = 'none';
+                                voucherWarehouseModal.style.borderRadius = '0';
+                                console.log('Voucher warehouse modal opened successfully');
+                            } else {
+                                console.error('Voucher warehouse modal not found');
+                                alert('Không tìm thấy modal kho voucher');
+                            }
+                        };
+
+                        // Nếu script của header chưa sẵn sàng, chờ một nhịp ngắn
+                        if (typeof window.loadVoucherWarehouse !== 'function') {
+                            setTimeout(openWarehouseModal, 100);
+                        } else {
+                            openWarehouseModal();
+                        }
+                    } catch (error) {
+                        console.error('Error showing voucher warehouse modal:', error);
+                        alert('Có lỗi xảy ra khi mở kho voucher: ' + error.message);
+                    }
+                });
+
+                // Thêm event listener để debug
+                selectVoucherBtn.addEventListener('mouseenter', function() {
+                    console.log('Mouse entered select voucher button');
+                });
+
+                selectVoucherBtn.addEventListener('mouseleave', function() {
+                    console.log('Mouse left select voucher button');
+                });
+
+            } else {
+                console.error('Select voucher button not found');
+            }
+
+            function loadSavedVouchers() {
+                try {
+                    const savedVouchers = JSON.parse(localStorage.getItem('savedVouchers') || '[]');
+                    console.log('Loaded saved vouchers:', savedVouchers);
+
+                    if (savedVouchers.length === 0) {
+                        savedVouchersList.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Bạn chưa lưu voucher nào.</p>
+                                <small class="text-muted">Hãy quay vòng quay may mắn để nhận voucher và lưu lại!</small>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    let html = '<div class="row">';
+                    savedVouchers.forEach((voucher, index) => {
+                        const isExpired = new Date(voucher.expiryDate) < new Date();
+                        const savedDate = new Date(voucher.savedAt).toLocaleDateString('vi-VN');
+
+                        html += `
+                            <div class="col-md-6 mb-3">
+                                <div class="card voucher-card ${isExpired ? 'border-danger' : 'border-success'}">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">${voucher.name}</h6>
+                                            ${isExpired ? '<span class="badge bg-danger">Hết hạn</span>' : '<span class="badge bg-success">Còn hiệu lực</span>'}
+                                        </div>
+                                        <p class="card-text">
+                                            <small class="text-muted">Mã: <strong>${voucher.code}</strong></small><br>
+                                            <small class="text-muted">Lưu ngày: ${savedDate}</small>
+                                        </p>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="selectVoucher('${voucher.code}')" ${isExpired ? 'disabled' : ''}>
+                                                <i class="fas fa-check me-1"></i>Chọn
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeSavedVoucher(${index})">
+                                                <i class="fas fa-trash me-1"></i>Xóa
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    savedVouchersList.innerHTML = html;
+                } catch (error) {
+                    console.error('Error loading saved vouchers:', error);
+                    savedVouchersList.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Có lỗi xảy ra khi tải voucher đã lưu.
+                        </div>
+                    `;
+                }
+            }
+
+            function loadAvailableVouchers() {
+                console.log('loadAvailableVouchers called');
+
+                try {
+                    // Danh sách voucher có sẵn từ hệ thống
+                    const availableVouchers = [
+                        { code: "WELCOME10", name: "Giảm 10% cho khách hàng mới", type: "percent", value: 10, description: "Áp dụng cho đơn hàng đầu tiên" },
+                        { code: "SAVE20", name: "Giảm 20% cho đơn hàng từ 500k", type: "percent", value: 20, description: "Áp dụng cho đơn hàng từ 500.000đ" },
+                        { code: "FREESHIP", name: "Miễn phí vận chuyển", type: "freeship", value: 0, description: "Miễn phí ship cho đơn hàng từ 200k" },
+                        { code: "CASH50K", name: "Giảm 50.000đ", type: "amount", value: 50000, description: "Giảm trực tiếp 50.000đ" },
+                        { code: "CASH100K", name: "Giảm 100.000đ", type: "amount", value: 100000, description: "Giảm trực tiếp 100.000đ" },
+                        { code: "VIP15", name: "Giảm 15% cho thành viên VIP", type: "percent", value: 15, description: "Dành cho khách hàng VIP" }
+                    ];
+
+                    console.log('Loading available vouchers:', availableVouchers);
+                    console.log('availableVouchersList element:', availableVouchersList);
+
+                let html = '<div class="row">';
+                availableVouchers.forEach((voucher, index) => {
+                    const iconClass = getVoucherIcon(voucher.type);
+                    const colorClass = getVoucherColorClass(voucher.type);
+
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card voucher-card border-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">${voucher.name}</h6>
+                                        <span class="badge ${colorClass}">${voucher.type === 'percent' ? voucher.value + '%' : voucher.type === 'amount' ? voucher.value.toLocaleString() + 'đ' : 'Miễn phí'}</span>
+                                    </div>
+                                    <p class="card-text">
+                                        <small class="text-muted">Mã: <strong>${voucher.code}</strong></small><br>
+                                        <small class="text-muted">${voucher.description}</small>
+                                    </p>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-primary btn-sm" onclick="selectAvailableVoucher('${voucher.code}')">
+                                            <i class="fas fa-check me-1"></i>Chọn
+                                        </button>
+                                        <button type="button" class="btn btn-outline-info btn-sm" onclick="saveAvailableVoucher(${index})">
+                                            <i class="fas fa-bookmark me-1"></i>Lưu
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                if (availableVouchersList) {
+                    availableVouchersList.innerHTML = html;
+                    console.log('Available vouchers HTML loaded successfully');
+                } else {
+                    console.error('availableVouchersList element not found');
+                }
+                } catch (error) {
+                    console.error('Error in loadAvailableVouchers:', error);
+                    if (availableVouchersList) {
+                        availableVouchersList.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Có lỗi xảy ra khi tải danh sách voucher có sẵn.
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            function getVoucherIcon(type) {
+                switch(type) {
+                    case 'percent': return 'fas fa-percentage';
+                    case 'amount': return 'fas fa-money-bill-wave';
+                    case 'freeship': return 'fas fa-truck';
+                    default: return 'fas fa-gift';
+                }
+            }
+
+            function getVoucherColorClass(type) {
+                switch(type) {
+                    case 'percent': return 'bg-success';
+                    case 'amount': return 'bg-warning';
+                    case 'freeship': return 'bg-info';
+                    default: return 'bg-primary';
+                }
+            }
+
+            // Function để chọn voucher có sẵn
+            window.selectAvailableVoucher = function(code) {
+                const voucherCodeInput = document.getElementById('voucherCode');
+                if (voucherCodeInput) {
+                    voucherCodeInput.value = code;
+                    console.log('Selected available voucher code:', code);
+
+                    // Tự động áp dụng voucher
+                    const applyVoucherBtn = document.getElementById('applyVoucherBtn');
+                    if (applyVoucherBtn && !applyVoucherBtn.disabled) {
+                        applyVoucherBtn.click();
+                    }
+
+                    // Đóng modal
+                    if (availableVouchersModal) {
+                        const modal = bootstrap.Modal.getInstance(availableVouchersModal);
+                        if (modal) {
+                            modal.hide();
+                        }
+                    }
+                }
+            };
+
+            // Function để lưu voucher có sẵn
+            window.saveAvailableVoucher = function(index) {
+                const availableVouchers = [
+                    { code: "WELCOME10", name: "Giảm 10% cho khách hàng mới", type: "percent", value: 10, description: "Áp dụng cho đơn hàng đầu tiên" },
+                    { code: "SAVE20", name: "Giảm 20% cho đơn hàng từ 500k", type: "percent", value: 20, description: "Áp dụng cho đơn hàng từ 500.000đ" },
+                    { code: "FREESHIP", name: "Miễn phí vận chuyển", type: "freeship", value: 0, description: "Miễn phí ship cho đơn hàng từ 200k" },
+                    { code: "CASH50K", name: "Giảm 50.000đ", type: "amount", value: 50000, description: "Giảm trực tiếp 50.000đ" },
+                    { code: "CASH100K", name: "Giảm 100.000đ", type: "amount", value: 100000, description: "Giảm trực tiếp 100.000đ" },
+                    { code: "VIP15", name: "Giảm 15% cho thành viên VIP", type: "percent", value: 15, description: "Dành cho khách hàng VIP" }
+                ];
+
+                if (index >= 0 && index < availableVouchers.length) {
+                    const voucher = availableVouchers[index];
+
+                    try {
+                        // Lấy danh sách voucher đã lưu từ localStorage
+                        let savedVouchers = JSON.parse(localStorage.getItem('savedVouchers') || '[]');
+
+                        // Kiểm tra xem voucher đã tồn tại chưa
+                        const existingVoucher = savedVouchers.find(v => v.code === voucher.code);
+                        if (existingVoucher) {
+                            alert('Voucher này đã được lưu trước đó!');
+                            return;
+                        }
+
+                        // Thêm voucher mới vào danh sách
+                        const voucherToSave = {
+                            ...voucher,
+                            id: Date.now(), // ID tạm thời
+                            savedAt: new Date().toISOString(),
+                            expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 ngày
+                        };
+
+                        savedVouchers.push(voucherToSave);
+
+                        // Lưu vào localStorage
+                        localStorage.setItem('savedVouchers', JSON.stringify(savedVouchers));
+
+                        // Hiển thị thông báo thành công
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-success alert-dismissible fade show';
+                        alert.innerHTML = `
+                            <i class="fas fa-check-circle me-2"></i>
+                            Đã lưu voucher "${voucher.name}" thành công!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        `;
+                        document.body.appendChild(alert);
+
+                        setTimeout(() => {
+                            alert.remove();
+                        }, 3000);
+
+                    } catch (error) {
+                        console.error('Save voucher error:', error);
+                        alert('Có lỗi xảy ra khi lưu voucher!');
+                    }
+                }
+            };
+
+            // Function để chọn voucher
+            window.selectVoucher = function(code) {
+                const voucherCodeInput = document.getElementById('voucherCode');
+                if (voucherCodeInput) {
+                    voucherCodeInput.value = code;
+                    console.log('Selected voucher code:', code);
+
+                    // Tự động áp dụng voucher
+                    const applyVoucherBtn = document.getElementById('applyVoucherBtn');
+                    if (applyVoucherBtn && !applyVoucherBtn.disabled) {
+                        applyVoucherBtn.click();
+                    }
+
+                    // Đóng modal
+                    if (savedVouchersModal) {
+                        const modal = bootstrap.Modal.getInstance(savedVouchersModal);
+                        if (modal) {
+                            modal.hide();
+                        }
+                    }
+                }
+            };
+
+            // Function để xóa voucher đã lưu
+            window.removeSavedVoucher = function(index) {
+                if (confirm('Bạn có chắc muốn xóa voucher này khỏi danh sách đã lưu?')) {
+                    try {
+                        const savedVouchers = JSON.parse(localStorage.getItem('savedVouchers') || '[]');
+                        savedVouchers.splice(index, 1);
+                        localStorage.setItem('savedVouchers', JSON.stringify(savedVouchers));
+
+                        // Reload danh sách
+                        loadSavedVouchers();
+
+                        // Hiển thị thông báo
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-success alert-dismissible fade show';
+                        alert.innerHTML = `
+                            <i class="fas fa-check-circle me-2"></i>
+                            Đã xóa voucher khỏi danh sách đã lưu.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        `;
+                        document.body.appendChild(alert);
+
+                        setTimeout(() => {
+                            alert.remove();
+                        }, 3000);
+                    } catch (error) {
+                        console.error('Error removing saved voucher:', error);
+                    }
+                }
+            };
+
+            // Xử lý nút áp dụng voucher
+            const applyVoucherBtn = document.getElementById('applyVoucherBtn');
+            if (applyVoucherBtn) {
+                applyVoucherBtn.addEventListener('click', function() {
+                    const voucherCode = document.getElementById('voucherCode').value.trim();
+                    if (!voucherCode) {
+                        alert('Vui lòng nhập mã voucher!');
+                        return;
+                    }
+
+                    // Gửi request áp dụng voucher
+                    fetch('/SpinWheel/ApplyVoucher', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify({ code: voucherCode })
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            // Reload trang để cập nhật tổng tiền
+                            window.location.reload();
+                        } else {
+                            alert(result.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra khi áp dụng voucher!');
+                    });
+                });
+            }
+
+            // Xử lý nút xóa voucher
+            const removeVoucherBtn = document.getElementById('removeVoucherBtn');
+            if (removeVoucherBtn) {
+                removeVoucherBtn.addEventListener('click', function() {
+                    // Xóa voucher khỏi session
+                    fetch('/Cart/RemoveVoucher', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            // Reload trang để cập nhật
+                            window.location.reload();
+                        } else {
+                            alert(result.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra khi xóa voucher!');
+                    });
+                });
+            }
+        });
+    </script>
+}

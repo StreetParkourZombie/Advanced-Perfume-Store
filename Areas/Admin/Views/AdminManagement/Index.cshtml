@@ -1,0 +1,145 @@
+@model IEnumerable<PerfumeStore.Models.Admin>
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="mb-0">Quản lý tài khoản Admin</h5>
+    <a class="btn btn-primary" asp-area="Admin" asp-controller="AdminAuth" asp-action="Register">
+        <i class="fa fa-plus me-1"></i> Thêm Admin mới
+    </a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="panel">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên đăng nhập</th>
+                    <th>Họ tên</th>
+                    <th>Ngày sinh</th>
+                    <th>CMND/CCCD</th>
+                    <th>Role</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">Chưa có admin nào.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var admin in Model)
+                    {
+                        <tr>
+                            <td>@admin.AdminId</td>
+                            <td class="fw-semibold">@admin.UserName</td>
+                            <td>@(admin.FullName ?? "-")</td>
+                            <td>@(admin.BirthDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                            <td>@(admin.NationalId ?? "-")</td>
+                            <td>
+                                <form method="post" asp-action="UpdateRole" asp-route-id="@admin.AdminId" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <div class="input-group input-group-sm" style="max-width: 200px;">
+                                        <select name="roleId" class="form-select form-select-sm" onchange="this.form.submit()">
+                                            <option value="">-- Chưa có role --</option>
+                                            @foreach (var role in (List<PerfumeStore.Models.Role>)ViewBag.Roles)
+                                            {
+                                                <option value="@role.RoleId" selected="@(admin.RoleId == role.RoleId)">
+                                                    @role.RoleName
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+                                </form>
+                            </td>
+                            <td>
+                                @if (!admin.IsApproved)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1"></i>Chờ phê duyệt
+                                    </span>
+                                }
+                                else if (admin.IsBlocked)
+                                {
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-ban me-1"></i>Đã khóa
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Hoạt động
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    @if (!admin.IsApproved)
+                                    {
+                                        <form method="post" asp-action="Approve" asp-route-id="@admin.AdminId" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-success" title="Phê duyệt">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    
+                                    <form method="post" asp-action="Block" asp-route-id="@admin.AdminId" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm @(admin.IsBlocked ? "btn-warning" : "btn-secondary")" 
+                                                title="@(admin.IsBlocked ? "Mở khóa" : "Khóa")">
+                                            <i class="fas @(admin.IsBlocked ? "fa-unlock" : "fa-lock")"></i>
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="post" asp-action="Delete" asp-route-id="@admin.AdminId" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('Xóa admin @admin.UserName?')"
+                                                title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .panel {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+</style>

@@ -1,0 +1,141 @@
+@{
+    ViewData["Title"] = "Yêu cầu bảo hành của tôi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/Warranty.css" />
+
+<div class="warranty-page">
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="page-title mb-1">
+                    <i class="fas fa-list me-2"></i>Yêu cầu bảo hành của tôi
+                </h2>
+                <p class="text-muted mb-0">Theo dõi trạng thái các yêu cầu bảo hành</p>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-primary">
+                <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+            </a>
+        </div>
+
+        @if (ViewBag.AlertMessage != null)
+        {
+            <div class="alert alert-@(ViewBag.AlertType ?? "info") alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i>@ViewBag.AlertMessage
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (ViewBag.Claims == null || ((List<object>)ViewBag.Claims).Count == 0)
+        {
+            <!-- Empty State -->
+            <div class="empty-warranty">
+                <div class="empty-icon">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <h3 class="empty-title">Bạn chưa có yêu cầu bảo hành nào</h3>
+                <p class="empty-text">Tạo yêu cầu bảo hành mới cho sản phẩm của bạn.</p>
+                <a asp-action="Index" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Danh sách yêu cầu bảo hành -->
+            <div class="claims-list">
+                @foreach (dynamic claim in (List<object>)ViewBag.Claims)
+                {
+                    var statusBadgeClass = claim.Status switch
+                    {
+                        "Chờ xử lý" => "status-pending",
+                        "Đang xử lý" => "status-processing",
+                        "Hoàn thành" => "status-completed",
+                        "Từ chối" => "status-rejected",
+                        _ => "status-default"
+                    };
+
+                    var statusIcon = claim.Status switch
+                    {
+                        "Chờ xử lý" => "fa-clock",
+                        "Đang xử lý" => "fa-spinner",
+                        "Hoàn thành" => "fa-check-circle",
+                        "Từ chối" => "fa-times-circle",
+                        _ => "fa-info-circle"
+                    };
+
+                    <div class="claim-card card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">
+                                    <i class="fas fa-box me-2"></i>@claim.ProductName
+                                </h5>
+                                <small class="text-muted">Mã yêu cầu: <strong>@claim.ClaimCode</strong></small>
+                            </div>
+                            <span class="status-badge @statusBadgeClass">
+                                <i class="fas @statusIcon me-1"></i>@claim.Status
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="claim-info-item mb-3">
+                                        <strong><i class="fas fa-tag me-2"></i>Loại vấn đề:</strong>
+                                        <span>@claim.IssueType</span>
+                                    </div>
+                                    <div class="claim-info-item mb-3">
+                                        <strong><i class="fas fa-file-alt me-2"></i>Mô tả:</strong>
+                                        <p class="mb-0">@claim.IssueDescription</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="claim-info-item mb-3">
+                                        <strong><i class="fas fa-calendar me-2"></i>Ngày gửi:</strong>
+                                        <span>@claim.SubmittedDate.ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                    @if (claim.ProcessedDate != null)
+                                    {
+                                        <div class="claim-info-item mb-3">
+                                            <strong><i class="fas fa-cog me-2"></i>Ngày xử lý:</strong>
+                                            <span>@(((DateTime?)claim.ProcessedDate).Value.ToString("dd/MM/yyyy HH:mm"))</span>
+                                        </div>
+                                    }
+                                    @if (claim.CompletedDate != null)
+                                    {
+                                        <div class="claim-info-item mb-3">
+                                            <strong><i class="fas fa-check me-2"></i>Ngày hoàn thành:</strong>
+                                            <span>@(((DateTime?)claim.CompletedDate).Value.ToString("dd/MM/yyyy HH:mm"))</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(claim.Resolution))
+                            {
+                                <div class="alert alert-success mt-3">
+                                    <strong><i class="fas fa-check-circle me-2"></i>Giải pháp:</strong>
+                                    <p class="mb-0">@claim.Resolution</p>
+                                    @if (!string.IsNullOrWhiteSpace(claim.ResolutionType))
+                                    {
+                                        <small class="text-muted">Loại: @claim.ResolutionType</small>
+                                    }
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(claim.AdminNotes))
+                            {
+                                <div class="alert alert-info mt-3">
+                                    <strong><i class="fas fa-sticky-note me-2"></i>Ghi chú từ admin:</strong>
+                                    <p class="mb-0">@claim.AdminNotes</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+

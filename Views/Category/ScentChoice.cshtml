@@ -1,0 +1,13 @@
+﻿<link rel="stylesheet" href="~/css/Category/scent_choice.css" asp-append-version="true" />
+<div class="list-lh">
+    <div class="loaihuong-list">
+        @foreach (var scent in Model)
+        {
+            <div class="loaihuong-card">
+                <div class="loaihuong-info" data-scent="@scent">
+                    <div class="name-lh">@scent</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

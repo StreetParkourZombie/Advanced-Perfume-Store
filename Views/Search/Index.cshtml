@@ -1,0 +1,261 @@
+﻿@model List<PerfumeStore.Models.Product>
+<link rel="stylesheet" href="~/css/Category/category_product_list.css" />
+
+<h3>Kết quả tìm kiếm cho: "@ViewBag.Query"</h3>
+
+<div class="view-toggle text-end mb-3">
+    <label class="me-2">Hiển thị:</label>
+    <button id="gridViewBtn" class="btn btn-outline-secondary active">
+        <i class="bi bi-grid"></i>
+    </button>
+    <button id="listViewBtn" class="btn btn-outline-secondary">
+        <i class="bi bi-list"></i>
+    </button>
+</div>
+
+<div id="productContainer" class="category-products grid-view">
+    <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-5">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var product in Model)
+            {
+                var discountPercent = product.Discount?.DiscountPercent ?? 0;
+                var hasDiscount = discountPercent > 0;
+                var discountedPrice = hasDiscount
+                ? product.Price * (1 - (decimal)discountPercent / 100)
+                : product.Price;
+
+                <div class="col">
+                    <div class="card product-card h-100 position-relative shadow-sm">
+
+                        @if (hasDiscount)
+                        {
+                            <div class="badge bg-danger position-absolute top-0 end-0 m-2 px-2 py-1">
+                                -@discountPercent%
+                            </div>
+                        }
+
+                        <a href="@Url.Action("Index", "Product", new { id = product.ProductId })" class="text-decoration-none text-dark">
+                            @if (product.ProductImages != null && product.ProductImages.Any())
+                            {
+                                var firstImage = product.ProductImages.First();
+                                if (firstImage.ImageData != null)
+                                {
+                                    <img src="data:@firstImage.ImageMimeType;base64,@Convert.ToBase64String(firstImage.ImageData)"
+                                         class="card-img-top"
+                                         alt="@product.ProductName">
+                                }
+                                else
+                                {
+                                    <img src="~/images/placeholder.jpg" class="card-img-top" alt="@product.ProductName">
+                                }
+                            }
+                            else
+                            {
+                                <img src="~/images/placeholder.jpg" class="card-img-top" alt="@product.ProductName">
+                            }
+
+                            <div class="card-body">
+                                <div class="product-title fw-semibold mb-2">@product.ProductName</div>
+
+                                @if (hasDiscount)
+                                {
+                                    <div class="price-row">
+                                        <p class="card-text text-danger fw-bold mb-0">@discountedPrice.ToString("N0") ₫</p>
+                                        <p class="card-text text-muted mb-0">@product.Price.ToString("N0") ₫</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="card-text text-danger fw-bold mb-0">@product.Price.ToString("N0") ₫</p>
+                                }
+                            </div>
+                        </a>
+
+                        <button type="button"
+                                class="btn btn-danger btn-sm rounded-pill add-to-cart-fab position-absolute"
+                                style="bottom: 10px; right: 10px; z-index: 10;"
+                                data-product-id="@product.ProductId"
+                                data-product-name="@product.ProductName"
+                                data-product-price="@discountedPrice"
+                                data-image-url="@(product.ProductImages?.FirstOrDefault()?.ImageData != null ? $"data:{product.ProductImages.First().ImageMimeType};base64,{Convert.ToBase64String(product.ProductImages.First().ImageData)}" : "/images/placeholder.jpg")"
+                                aria-label="Thêm vào giỏ hàng">
+                            <i class="bi bi-cart-plus"></i>
+                            <span class="d-none d-md-inline">Thêm</span>
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <p class="text-center">Không có sản phẩm nào được tìm thấy.</p>
+            </div>
+        }
+    </div>
+</div>
+<script>
+        gridBtn.onclick = function () {
+        container.classList.remove("list-view");
+        container.classList.add("grid-view");
+        gridBtn.classList.add("active");
+        listBtn.classList.remove("active");
+    };
+
+    listBtn.onclick = function () {
+        container.classList.remove("grid-view");
+        container.classList.add("list-view");
+        listBtn.classList.add("active");
+        gridBtn.classList.remove("active");
+    };
+
+</script>
+<style>
+    /* ---------------- GRID VIEW ---------------- */
+    .category-products.grid-view .product-card {
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+        align-items: flex-start;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: 0.2s;
+    }
+
+        .category-products.grid-view .product-card:hover {
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+    /* Ẩn badge khi grid view */
+    .category-products.grid-view .badge.bg-danger {
+        display: none !important;
+    }
+
+    /* Giá tiền trong grid */
+    .category-products.grid-view .product-card .price-row {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        margin-top: 6px;
+    }
+
+        .category-products.grid-view .product-card .price-row .text-danger {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #d60000 !important;
+        }
+
+        .category-products.grid-view .product-card .price-row .text-muted {
+            font-size: 0.95rem;
+            color: #999 !important;
+            text-decoration: line-through;
+        }
+
+    /* ---------------- LIST VIEW ---------------- */
+    .category-products.list-view .row {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .category-products.list-view .col {
+        width: 100%;
+    }
+
+    .category-products.list-view .product-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: 0.2s;
+    }
+
+        .category-products.list-view .product-card:hover {
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Image trong list view */
+        .category-products.list-view .product-card .card-img-top {
+            width: 220px;
+            height: 220px;
+            object-fit: contain;
+            flex-shrink: 0;
+            border-radius: 8px;
+        }
+
+        /* Body trong list view */
+        .category-products.list-view .product-card .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex: 1;
+            gap: 15px;
+        }
+
+        /* Tiêu đề sản phẩm */
+        .category-products.list-view .product-card .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 6px;
+            text-align: left;
+        }
+
+        /* Giá tiền */
+        .category-products.list-view .product-card .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+            .category-products.list-view .product-card .price-row .text-danger {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #d60000 !important;
+                order: 2;
+            }
+
+            .category-products.list-view .product-card .price-row .text-muted {
+                font-size: 1rem;
+                color: #999 !important;
+                text-decoration: line-through;
+                order: 1;
+            }
+
+        /* Link toàn card */
+        .category-products.list-view .product-card a {
+            display: flex;
+            width: 100%;
+            text-decoration: none;
+            color: inherit;
+            align-items: center;
+            gap: 20px;
+        }
+
+    .category-products.list-view .card-text {
+        text-align: left;
+    }
+
+    /* Tiêu đề sản phẩm chung */
+    .category-products .product-title {
+        font-weight: 600;
+    }
+
+    /* Add-to-cart button */
+    .add-to-cart-fab {
+        bottom: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+
+</style>

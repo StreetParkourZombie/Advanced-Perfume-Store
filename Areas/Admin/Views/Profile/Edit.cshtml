@@ -1,0 +1,165 @@
+@model PerfumeStore.Areas.Admin.Models.ViewModels.CustomerAccountVM_Admin
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="mb-0">Chỉnh sửa thông tin khách hàng</h5>
+    <a asp-area="Admin" asp-controller="Profile" asp-action="Index" class="btn btn-secondary">
+        <i class="fa fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="panel">
+    <form asp-area="Admin" asp-controller="Profile" asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="CustomerId" />
+        
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" placeholder="Nhập họ và tên (tùy chọn)" maxlength="100" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" placeholder="Nhập email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Phone" class="form-label"></label>
+                    <input asp-for="Phone" class="form-control" type="tel" inputmode="numeric" pattern="^\d{1,13}$" 
+                           placeholder="Nhập số điện thoại (tùy chọn)" maxlength="13" />
+                    <small class="text-muted">Chỉ được nhập số, tối đa 13 chữ số</small>
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="BirthYear" class="form-label"></label>
+                    <input asp-for="BirthYear" class="form-control" type="number" 
+                           placeholder="Nhập năm sinh (tùy chọn)" min="1900" max="@DateTime.Now.Year" />
+                    <small class="text-muted">Năm sinh từ 1900 đến @DateTime.Now.Year</small>
+                    <span asp-validation-for="BirthYear" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="MembershipId" class="form-label"></label>
+                    <select asp-for="MembershipId" class="form-select">
+                        <option value="">-- Chọn thành viên --</option>
+                        @foreach (var membership in (List<PerfumeStore.Areas.Admin.Models.Membership>)ViewBag.Memberships)
+                        {
+                            <option value="@membership.MembershipId">@membership.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="MembershipId" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="CreatedDate" class="form-label"></label>
+                    <input asp-for="CreatedDate" class="form-control" readonly style="background-color: #e9ecef; cursor: not-allowed;" />
+                    <small class="text-muted">Ngày tạo tài khoản (không thể thay đổi)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a asp-area="Admin" asp-controller="Profile" asp-action="Index" class="btn btn-secondary">
+                <i class="fa fa-times me-1"></i> Hủy
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa fa-save me-1"></i> Lưu thay đổi
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Chỉ cho phép nhập số vào trường Phone
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInput = document.querySelector('input[name="Phone"]');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    // Chỉ giữ lại các ký tự số
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    // Giới hạn độ dài tối đa 13 ký tự
+                    if (this.value.length > 13) {
+                        this.value = this.value.substring(0, 13);
+                    }
+                });
+
+                // Ngăn chặn paste ký tự không phải số
+                phoneInput.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const paste = (e.clipboardData || window.clipboardData).getData('text');
+                    const numbersOnly = paste.replace(/[^0-9]/g, '').substring(0, 13);
+                    this.value = numbersOnly;
+                });
+
+                // Ngăn chặn nhập ký tự không phải số từ bàn phím
+                phoneInput.addEventListener('keypress', function(e) {
+                    const char = String.fromCharCode(e.which);
+                    if (!/[0-9]/.test(char)) {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            // Validate Name: kiểm tra độ dài tối đa 100 ký tự
+            const nameInput = document.querySelector('input[name="Name"]');
+            if (nameInput) {
+                nameInput.addEventListener('input', function(e) {
+                    if (this.value.length > 100) {
+                        this.value = this.value.substring(0, 100);
+                    }
+                });
+            }
+        });
+    </script>
+}
+
+<style>
+    .panel {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+

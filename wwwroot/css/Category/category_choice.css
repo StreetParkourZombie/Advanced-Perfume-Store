@@ -1,0 +1,33 @@
+﻿.list-ltt {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 400px;
+}
+.loaithuoctinh-list {
+    width: 370px;
+    height: auto;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    display: grid;
+    grid-template-columns: auto auto;
+    border-radius: 5px;
+}
+.loaithuoctinh-list .loaithuoctinh-card {
+    height: auto;
+}
+.loaithuoctinh-card .loaithuoctinh-info {
+    width: 140px;
+    height: 20px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin: 5px auto;
+}
+.list-ltt .loaithuoctinh-card .loaithuoctinh-info:hover {
+    color: #e52d27;
+    border: 1px solid #e52d27;
+    cursor: pointer;
+    transition: 0.5s ease-in;
+}

@@ -1,0 +1,46 @@
+﻿.list-ls {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 400px;
+}
+.loaihuong-list {
+    width: 370px;
+    height: auto;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    display: grid;
+    grid-template-columns:auto auto;
+    border-radius:5px;
+}
+.loaihuong-card{
+    height:auto;
+    
+}
+.loaihuong-card .loaihuong-info {
+    width: 140px;
+    height: 40px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin: 5px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+    .loaihuong-card .loaihuong-info:hover {
+        color: #e52d27;
+        border: 1px solid #e52d27;
+        cursor:pointer;
+        transition:0.5s ease-in;
+    }
+.loaihuong-card .loaihuong-info .name-lh{
+    font-size: 13px;
+    width: 100%;
+    text-align: center;
+    line-height: 1.2;
+    margin: 0;
+    padding: 0;
+}

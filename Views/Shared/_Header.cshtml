@@ -1,0 +1,436 @@
+<header>
+    <!-- Top Red Bar -->
+    <div class="top-bar bg-danger py-1 d-none d-md-block">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <span class="text-white small"><strong class="text-uppercase">NƯỚC HOA & MỸ PHẨM CHÍNH HÃNG TỪ 2004</strong></span>
+                </div>
+                <div class="col-md-4 text-center">
+                    <form id="searchForm" method="get" action="/Search/Index" class="search-container">
+                        <input type="text" id="searchBox" name="query" class="form-control" placeholder="Tìm kiếm sản phẩm..." autocomplete="off" />
+                        <div id="suggestions" class="list-group"></div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="#" class="text-white text-decoration-none me-3">
+                        <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
+                        <span class="small">Giới thiệu về Orchard</span>
+                    </a>
+                    <a href="#" class="text-white text-decoration-none">
+                        <i class="bi bi-truck me-1" aria-hidden="true"></i>
+                        <span class="small">Tra cứu lịch sử mua hàng</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Top Bar Message -->
+    <div class="bg-danger py-1 d-md-none">
+        <div class="container text-center">
+            <span class="text-white small"><strong class="text-uppercase">NƯỚC HOA & MỸ PHẨM CHÍNH HÃNG TỪ 2004</strong></span>
+        </div>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <div class="main-header bg-white py-2 border-bottom sticky-top">
+        <div class="container">
+            <!-- Mobile/Tablet header: burger left, logo center, account + cart right -->
+            <div class="row align-items-center d-lg-none">
+                <div class="col-3 d-flex align-items-center">
+                    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Mở menu">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                </div>
+                <div class="col-6 text-center">
+                    <a href="/" class="text-decoration-none d-inline-flex align-items-center justify-content-center logo-shine">
+                        <picture class="d-none d-md-inline-block">
+                            <img src="https://orchard.vn/wp-content/uploads/2024/04/logo-orchard-2024-small.png" alt="Orchard.vn" style="height:40px; width:auto;" loading="lazy" onerror="this.style.display='none'; const t=this.closest('a').querySelector('.logo-text'); if(t){t.classList.remove('d-none');}">
+                        </picture>
+                        <div class="logo-container logo-text d-md-none">
+                            <h1 class="logo-text mb-0">ORCHARD</h1>
+                            <p class="logo-subtitle mb-0">Perfumes & Cosmetics</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-3 d-flex justify-content-end align-items-center gap-2">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <!-- Mobile User Dropdown -->
+                        <div class="dropdown">
+                            <button type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu tài khoản"
+                                    style="display: flex; align-items: center; justify-content: center; padding: 4px; border: none; background: transparent; cursor: pointer;">
+                                <i class="bi bi-person-circle fs-3 text-primary"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><h6 class="dropdown-header">@User.Identity.Name</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Index"><i class="bi bi-person me-2"></i>Tài khoản</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="MyOrders"><i class="bi bi-bag-check me-2"></i> Đơn hàng của tôi</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-heart me-2"></i>Yêu thích</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form asp-controller="Auth" asp-action="Logout" method="get" class="d-inline w-100">
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Auth", "Auth")" class="text-decoration-none mobile-account-btn" aria-label="Đăng nhập">
+                            <i class="bi bi-person-circle fs-3 text-primary" aria-hidden="true"></i>
+                        </a>
+                    }
+                    <a asp-controller="Cart" asp-action="Index" class="text-decoration-none position-relative mobile-cart-btn" aria-label="Giỏ hàng">
+                        <i class="bi bi-cart3 fs-3 text-primary" aria-hidden="true"></i>
+                        <span class="position-absolute badge rounded-pill bg-danger mobile-cart-badge cart-count" style="top: 0px; right: -5px;" id="mobile-cart-count">0</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Desktop header -->
+            <div class="row align-items-center d-none d-lg-flex">
+                <div class="col-lg-2">
+                    <a href="/" class="text-decoration-none d-flex align-items-center logo-shine">
+                        <picture class="me-2">
+                            <img src="https://orchard.vn/wp-content/uploads/2024/04/logo-orchard-2024-small.png" alt="Orchard.vn" style="height:40px; width:auto;" loading="lazy" onerror="this.style.display='none'; const t=this.closest('a').querySelector('.logo-text-wrap'); if(t){t.classList.remove('d-none');}">
+                        </picture>
+                        <div class="logo-text-wrap d-none">
+                            <h1 class="logo-text mb-0">ORCHARD</h1>
+                            <p class="logo-subtitle mb-0">Perfumes & Cosmetics</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-9">
+                    <nav class="navbar navbar-expand-lg navbar-light" role="navigation" aria-label="Điều hướng chính">
+                        <div class="collapse navbar-collapse" id="mainNavbar">
+                            <!-- Mobile search inside collapse -->
+                            <div class="d-lg-none w-100 mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span>
+                                    <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." aria-label="Tìm kiếm sản phẩm">
+                                </div>
+                            </div>
+
+                            <ul class="navbar-nav me-auto align-items-lg-center">
+                                <!-- Mega: Nuoc hoa -->
+                                <li class="nav-item dropdown position-static">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Nước hoa <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                                    </a>
+                                    <div class="dropdown-menu w-100 border-0 shadow mega-menu p-3 p-lg-4">
+                                        <div class="row g-3 g-lg-4 align-items-start">
+                                            <div class="col-6 col-lg-2">
+                                                <a class="text-decoration-none d-block">
+                                                    <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-nam.webp" alt="Nước hoa nam" class="img-fluid rounded">
+                                                    <div class="mt-2 small text-center fw-semibold text-dark">Nước hoa Nam</div>
+                                                </a>
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <a href="#" class="text-decoration-none d-block">
+                                                    <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-nu-300x360.webp" alt="Nước hoa nữ" class="img-fluid rounded">
+                                                    <div class="mt-2 small text-center fw-semibold text-dark">Nước hoa Nữ</div>
+                                                </a>
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <a href="#" class="text-decoration-none d-block">
+                                                    <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-unisex-300x360.webp" alt="Unisex" class="img-fluid rounded">
+                                                    <div class="mt-2 small text-center fw-semibold text-dark">Unisex</div>
+                                                </a>
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <a href="#" class="text-decoration-none d-block">
+                                                    <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-niche-300x360.webp" alt="Niche" class="img-fluid rounded">
+                                                    <div class="mt-2 small text-center fw-semibold text-dark">Niche</div>
+                                                </a>
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <a href="#" class="text-decoration-none d-block">
+                                                    <img src="https://orchard.vn/wp-content/uploads/2024/07/category-nuoc-hoa-mini-300x360.webp" alt="Mini" class="img-fluid rounded">
+                                                    <div class="mt-2 small text-center fw-semibold text-dark">Mini</div>
+                                                </a>
+                                            </div>
+                                            <div class="col-12 col-lg-2">
+                                                <a href="#" class="d-block">
+                                                    <img src="https://orchard.vn/wp-content/uploads/2024/11/logos_brands-600x67.webp" alt="Brands" class="img-fluid rounded">
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li class="nav-item"><a class="nav-link" asp-controller="Category" asp-action="Index" asp-route-categoryName="Nước Hoa Nữ">Nước Hoa Nữ</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Category" asp-action="Index" asp-route-categoryName="Nước Hoa Nam">Nước Hoa Nam</a></li>
+
+                                <!-- Mega: Thuong hieu -->
+                                <li class="nav-item dropdown position-static">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Thương hiệu <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                                    </a>
+                                    <div class="dropdown-menu w-100 border-0 shadow mega-menu p-3 p-lg-4">
+                                        <div class="row g-4">
+                                            <div class="col-6 col-lg-3">
+                                                <ul class="list-unstyled small lh-lg mb-0">
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Afnan</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Armaf</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Burberry</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Bvlgari</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Calvin Klein</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Carolina Herrera</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-6 col-lg-3">
+                                                <ul class="list-unstyled small lh-lg mb-0">
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Chanel</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Creed</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Dior</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Diptyque</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Dolce & Gabbana</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Frederic Malle</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-6 col-lg-3">
+                                                <ul class="list-unstyled small lh-lg mb-0">
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Giorgio Armani</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Gucci</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Hermès</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Jean Paul Gaultier</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Jo Malone</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Kilian</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-6 col-lg-3">
+                                                <ul class="list-unstyled small lh-lg mb-0">
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Lancôme</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Lalique</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Le Labo</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Maison Francis Kurkdjian</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Maison Margiela</a></li>
+                                                    <li><a class="text-dark text-decoration-none fw-semibold" href="#">Mancera</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li class="nav-item"><a class="nav-link" asp-controller="Category" asp-action="Index" asp-route-categoryName="Nước Hoa Mini">Nước hoa Mini</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Category" asp-action="Index" asp-route-categoryName="Nước Hoa Chiết">Nước Hoa Chiết</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Category" asp-action="Index" asp-route-categoryName="Nước Hoa Unisex">Unisex</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Category" asp-action="Index" asp-route-categoryName="Nước Hoa Niche">Niche</a></li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Kiến thức <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu">
+                                        <li><a class="dropdown-item" href="#" role="menuitem">Kiến thức nước hoa</a></li>
+                                        <li><a class="dropdown-item" href="#" role="menuitem">Lựa chọn nước hoa</a></li>
+                                        <li><a class="dropdown-item" href="#" role="menuitem">Thư viện mùi hương</a></li>
+                                        <li><a class="dropdown-item" href="#" role="menuitem">Thư viện nhóm hương</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </nav>
+                </div>
+                <div class="col-lg-1 text-end d-none d-lg-flex align-items-center justify-content-end gap-3">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <!-- Desktop User Dropdown -->
+                        <div class="dropdown">
+                            <button type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu tài khoản"
+                                    style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; border: none; background: transparent; cursor: pointer; border-radius: 8px;">
+                                <i class="bi bi-person-circle text-primary" style="font-size: 1.5rem;"></i>
+                                <span class="text-dark" style="font-size: 0.875rem;">@User.Identity.Name</span>
+                                <i class="bi bi-chevron-down text-muted" style="font-size: 0.75rem;"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li><h6 class="dropdown-header">Xin chào, @User.Identity.Name!</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Index"><i class="bi bi-person me-2"></i>Thông tin tài khoản</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-bag me-2"></i>Đơn hàng của tôi</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-heart me-2"></i>Sản phẩm yêu thích</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-gift me-2"></i>Voucher của tôi</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form asp-controller="Auth" asp-action="Logout" method="get" class="d-inline w-100">
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Auth", "Auth")" class="text-decoration-none desktop-account-btn d-flex align-items-center gap-2" aria-label="Đăng nhập">
+                            <i class="bi bi-person-circle fs-4 text-primary" aria-hidden="true"></i>
+                            <span class="small text-dark">Đăng nhập</span>
+                        </a>
+                    }
+                    <a asp-controller="Cart" asp-action="Index" class="text-decoration-none position-relative desktop-cart-btn" aria-label="Giỏ hàng">
+                        <i class="bi bi-cart3 fs-4 text-primary" aria-hidden="true"></i>
+                        <span class="position-absolute badge rounded-pill bg-danger cart-count" style="top: -5px; right: -8px;" id="desktop-cart-count">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offcanvas Search -->
+    <div class="offcanvas offcanvas-top" tabindex="-1" id="offcanvasSearch" aria-labelledby="offcanvasSearchLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasSearchLabel">Tìm kiếm</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form role="search" aria-label="Tìm kiếm sản phẩm">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span>
+                    <input type="search" class="form-control" placeholder="Nhập từ khóa..." aria-label="Nhập từ khóa">
+                    <button class="btn btn-primary" type="submit">Tìm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mobile/Tablet quick category bar -->
+    <div class="mobile-category-bar d-lg-none border-top bg-white">
+        <div class="container">
+            <div class="nav-scroller" role="navigation" aria-label="Chuyên mục nhanh">
+                <ul class="nav nav-underline flex-nowrap">
+                    <li class="nav-item"><a class="nav-link active" href="#">Nước Hoa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Nước Hoa Nam</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Nước Hoa Nữ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Nước hoa Mini</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Nước Hoa Chiết</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Unisex</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Niche</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Thương hiệu</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Blog</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>
+
+<style>
+    .search-container {
+        position: relative;
+        overflow: visible;
+        #searchBox
+
+    {
+        width: 100%;
+        max-width: 400px;
+        min-width: 200px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+    }
+    /* focus */
+    #searchBox:focus {
+        outline: none;
+        border-color: #dc3545;
+        box-shadow: 0 2px 12px rgba(220,53,69,0.25);
+    }
+    /* suggestions đẹp hơn */
+    #suggestions .list-group-item {
+        border: none;
+        padding: 8px 12px;
+        transition: background 0.2s;
+    }
+
+        #suggestions .list-group-item:hover {
+            background: #f8f9fa;
+        }
+
+
+    #suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+        max-height: 320px;
+        overflow-y: auto;
+        z-index: 9999;
+        display: none;
+    }
+
+    .suggestion-item {
+        cursor: pointer;
+    }
+
+    .top-bar, .main-header, .container {
+        overflow: visible !important;
+    }
+</style>
+
+<script>
+    const searchBox = document.getElementById("searchBox");
+    const suggestions = document.getElementById("suggestions");
+    let debounceTimer;
+
+    searchBox.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fetchSuggestions, 250);
+    });
+
+    async function fetchSuggestions() {
+        const keyword = searchBox.value.trim();
+        if (keyword.length < 2) {
+            suggestions.innerHTML = "";
+            suggestions.style.display = "none";
+            return;
+        }
+        try {
+            const res = await fetch(`/Search/SearchProducts?keyword=${encodeURIComponent(keyword)}`);
+            const data = await res.json();
+            if (!data || data.length === 0) {
+                suggestions.innerHTML = `<div class="list-group-item text-muted small">Không tìm thấy sản phẩm</div>`;
+            } else {
+                suggestions.innerHTML = data.map(p => `
+                    <div class="list-group-item list-group-item-action d-flex align-items-center suggestion-item" data-href="/Product/Index/${p.id}">
+                        <img src="${p.image}" style="width:45px;height:45px;object-fit:cover;border-radius:6px;margin-right:10px;">
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">${p.name}</div>
+                            <small class="text-danger fw-bold">${p.price.toLocaleString()} ₫</small>
+                        </div>
+                    </div>
+                `).join("");
+            }
+            suggestions.style.display = "block";
+        } catch (err) {
+            console.error(err);
+            suggestions.innerHTML = `<div class="list-group-item text-muted small">Lỗi tìm kiếm</div>`;
+            suggestions.style.display = "block";
+        }
+    }
+
+    // Click vào suggestion
+    suggestions.addEventListener("mousedown", e => {
+        const item = e.target.closest(".suggestion-item");
+        if (item) {
+            suggestions.style.display = "none"; // ẩn ngay để giảm nhấp nháy
+            window.location.href = item.dataset.href;
+            e.preventDefault();
+        }
+    });
+
+    // Click ngoài input/suggestions sẽ ẩn
+    document.addEventListener("click", e => {
+        if (!e.target.closest('#searchBox') && !e.target.closest('#suggestions')) {
+            suggestions.style.display = "none";
+        }
+    });
+</script>

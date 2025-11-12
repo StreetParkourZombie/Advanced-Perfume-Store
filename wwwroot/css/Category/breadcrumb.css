@@ -1,0 +1,25 @@
+﻿.breadcrumb-container {
+    margin-bottom: 15px;
+}
+
+    .breadcrumb-container h1 {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+.breadcrumb-z {
+    font-size: 14px;
+}
+
+    .breadcrumb-z a {
+        color: #888;
+        text-decoration: none;
+        margin-right: 3px;
+    }
+
+    .breadcrumb-z span {
+        font-weight: bold;
+        color: #000;
+        margin-left: 3px;
+    }

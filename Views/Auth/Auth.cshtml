@@ -1,0 +1,246 @@
+@model PerfumeStore.Models.Customer
+@{
+    ViewData["Title"] = "Authentication";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Perfume - Authentication</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="~/css/Auth.css" rel="stylesheet">
+</head>
+<body class="auth-body">
+    <div class="auth-main-container">
+        <div class="auth-wrapper">
+            <!-- Bottle Section -->
+            <div class="bottle-container">
+                <div class="bottle" id="perfumeBottle">
+                    <div class="bottle-liquid"></div>
+                    <div class="bottle-cap"></div>
+                    <div class="bottle-label">PerfumeStore</div>
+                </div>
+            </div>
+
+            <!-- Auth Form Section -->
+            <div class="auth-card">
+                <h1 class="auth-title" id="authTitle">Welcome Back</h1>
+                
+                <div class="form-container">
+                    <!-- Sign In Form -->
+                    <form class="auth-form" id="signInForm" asp-action="Login" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group">
+                            <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" name="password" class="form-control" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                        <div class="text-center">
+                            <a href="#" class="btn-link" id="showSignUp">Don't have an account? Sign Up</a>
+                        </div>
+					<div class="text-center">
+						<a href="/Auth/ForgotPassword" class="btn-link">Quên mật khẩu?</a>
+					</div>
+                        
+                        @if (!string.IsNullOrEmpty(ViewBag.Error))
+                        {
+                            <div class="text-danger">@ViewBag.Error</div>
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.Message))
+                        {
+                            <div class="text-success">@ViewBag.Message</div>
+                        }
+                    </form>
+
+                    <!-- Sign Up Form -->
+                    <form class="auth-form" id="signUpForm" asp-action="Register" method="post" style="display: none;">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group">
+                            <input type="text" name="name" class="form-control" placeholder="Full Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" name="password" class="form-control" placeholder="Password" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="phone" class="form-control" placeholder="Phone Number (Optional)">
+                        </div>
+                        <div class="form-group">
+                            <input type="number" name="birthYear" class="form-control" placeholder="Birth Year (Optional)" min="1900" max="@DateTime.Now.Year">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </button>
+                        <div class="text-center">
+                            <a href="#" class="btn-link" id="showSignIn">Already have an account? Sign In</a>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(ViewBag.Error))
+                        {
+                            <div class="text-danger">@ViewBag.Error</div>
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.Message))
+                        {
+                            <div class="text-success">@ViewBag.Message</div>
+                        }
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PerfumeAuth {
+            constructor() {
+                this.bottle = document.getElementById('perfumeBottle');
+                this.authTitle = document.getElementById('authTitle');
+                this.signInForm = document.getElementById('signInForm');
+                this.signUpForm = document.getElementById('signUpForm');
+                this.showSignUpBtn = document.getElementById('showSignUp');
+                this.showSignInBtn = document.getElementById('showSignIn');
+                this.isSignUpMode = false;
+                
+                this.init();
+            }
+
+            init() {
+                this.showSignUpBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.switchToSignUp();
+                });
+
+                this.showSignInBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.switchToSignIn();
+                });
+
+                // Form submit handlers
+                this.signInForm.addEventListener('submit', (e) => {
+                    this.handleFormSubmit(e, this.signInForm);
+                });
+
+                this.signUpForm.addEventListener('submit', (e) => {
+                    this.handleFormSubmit(e, this.signUpForm);
+                });
+            }
+
+            switchToSignUp() {
+                if (this.isSignUpMode) return;
+                
+                this.isSignUpMode = true;
+                this.animateBottleFlip();
+                this.changeTitle('Join Our Luxury Club');
+                this.switchForms();
+            }
+
+            switchToSignIn() {
+                if (!this.isSignUpMode) return;
+                
+                this.isSignUpMode = false;
+                this.animateBottleFlip();
+                this.changeTitle('Welcome Back');
+                this.switchForms();
+            }
+
+            animateBottleFlip() {
+                this.bottle.style.transform = 'rotateY(360deg)';
+                
+                setTimeout(() => {
+                    this.bottle.style.transform = 'rotateY(0deg)';
+                }, 800);
+            }
+
+            changeTitle(newTitle) {
+                this.authTitle.style.opacity = '0';
+                
+                setTimeout(() => {
+                    this.authTitle.textContent = newTitle;
+                    this.authTitle.classList.toggle('luxury', this.isSignUpMode);
+                    this.authTitle.style.opacity = '1';
+                }, 300);
+            }
+
+            switchForms() {
+                if (this.isSignUpMode) {
+                    // Hide sign in, show sign up
+                    this.signInForm.style.transform = 'translateX(-100%)';
+                    this.signInForm.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        this.signInForm.style.display = 'none';
+                        this.signUpForm.style.display = 'block';
+                        this.signUpForm.style.transform = 'translateX(100%)';
+                        this.signUpForm.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            this.signUpForm.style.transform = 'translateX(0)';
+                            this.signUpForm.style.opacity = '1';
+                        }, 50);
+                    }, 400);
+                } else {
+                    // Hide sign up, show sign in
+                    this.signUpForm.style.transform = 'translateX(100%)';
+                    this.signUpForm.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        this.signUpForm.style.display = 'none';
+                        this.signInForm.style.display = 'block';
+                        this.signInForm.style.transform = 'translateX(-100%)';
+                        this.signInForm.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            this.signInForm.style.transform = 'translateX(0)';
+                            this.signInForm.style.opacity = '1';
+                        }, 50);
+                    }, 400);
+                }
+            }
+
+            handleFormSubmit(e, form) {
+                const submitBtn = form.querySelector('.btn-primary');
+                const originalText = submitBtn.innerHTML;
+                
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                submitBtn.disabled = true;
+                
+                // Add bottle animation
+                this.animateBottleFlip();
+                
+                // Form will submit normally to server
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new PerfumeAuth();
+        });
+
+        // Add 3D interactive effects for the bottle
+        const bottle = document.getElementById('perfumeBottle');
+        let isMouseOver = false;
+
+        bottle.addEventListener('mouseenter', function() {
+            isMouseOver = true;
+            this.style.transform = 'scale(1.08) rotateY(10deg) rotateX(5deg)';
+            this.style.filter = 'drop-shadow(0 30px 60px rgba(0,0,0,0.25))';
+        });
+
+        bottle.addEventListener('mouseleave', function() {
+            isMouseOver = false;
+            this.style.transform = 'scale(1) rotateY(0deg) rotateX(0deg)';
+            this.style.filter = 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))';
+        });
+    </script>
+</body>
+</html>

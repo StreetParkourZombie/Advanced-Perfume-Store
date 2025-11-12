@@ -1,0 +1,149 @@
+@model List<PerfumeStore.Areas.Admin.Models.ViewModels.ProductCommentsVM>
+
+@{
+    ViewData["Title"] = "Quản lý bình luận";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">Quản lý bình luận</h1>
+                <a href="@Url.Action("Create")" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Tạo bình luận mới
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Tên sản phẩm</label>
+                    <input type="text" name="searchProduct" class="form-control" value="@ViewBag.SearchProduct" placeholder="Nhập tên sản phẩm...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Thương hiệu</label>
+                    <input type="text" name="searchBrand" class="form-control" value="@ViewBag.SearchBrand" placeholder="Nhập thương hiệu...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Danh mục</label>
+                    <select name="categoryId" class="form-select">
+                        <option value="">Tất cả</option>
+                        @foreach (var category in ViewBag.Categories)
+                        {
+                            <option value="@category.CategoryId" selected="@(ViewBag.CategoryId == category.CategoryId)">@category.CategoryName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary">Lọc</button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Products with Comments Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Hình ảnh</th>
+                                <th>Sản phẩm</th>
+                                <th>Thương hiệu</th>
+                                <th>Danh mục</th>
+                                <th class="text-center">Tổng BL</th>
+                                <th class="text-center">Đã duyệt</th>
+                                <th class="text-center">Chờ duyệt</th>
+                                <th class="text-center">Đánh giá TB</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (item.FirstImageId.HasValue)
+                                        {
+                                            <img src="@Url.Action("GetImage", "Products", new { imageId = item.FirstImageId })" 
+                                                 alt="@item.ProductName" 
+                                                 class="rounded" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-secondary rounded d-flex align-items-center justify-content-center text-white" 
+                                                 style="width: 60px; height: 60px;">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@item.ProductName</strong>
+                                    </td>
+                                    <td>@item.BrandName</td>
+                                    <td>@item.CategoryNames</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">@item.TotalComments</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">@item.PublishedComments</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.PendingComments > 0)
+                                        {
+                                            <span class="badge bg-warning text-dark">@item.PendingComments</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">0</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.TotalComments > 0)
+                                        {
+                                            <span class="badge bg-info">
+                                                @item.AverageRating.ToString("0.0") <i class="fas fa-star"></i>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="@Url.Action("Details", new { productId = item.ProductId })" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye me-1"></i>Xem bình luận
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <p class="mb-0">Không có sản phẩm nào có bình luận</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+</style>

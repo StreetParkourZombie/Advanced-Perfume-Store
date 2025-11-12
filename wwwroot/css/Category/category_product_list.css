@@ -1,0 +1,120 @@
+﻿
+.category-products.grid-view .product-card {
+    display: flex;
+    flex-direction: column;
+    text-align: left; 
+    align-items: flex-start;
+    padding: 10px;
+}
+
+.category-products.grid-view .badge.bg-danger {
+    display: none !important;
+}
+
+.category-products.grid-view .product-card .price-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+    .category-products.grid-view .product-card .price-row .text-danger {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #d60000 !important;
+    }
+
+    .category-products.grid-view .product-card .price-row .text-muted {
+        font-size: 0.95rem;
+        color: #999 !important;
+        text-decoration: line-through;
+    }
+
+.category-products.list-view .row {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.category-products.list-view .col {
+    width: 100%;
+}
+
+.category-products.list-view .product-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: 0.2s;
+}
+
+    .category-products.list-view .product-card:hover {
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .category-products.list-view .product-card .card-img-top {
+        width: 220px;
+        height: 220px;
+        object-fit: contain;
+        flex-shrink: 0;
+        border-radius: 8px;
+    }
+
+    .category-products.list-view .product-card .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        flex: 1;
+        gap: 15px;
+    }
+
+    .category-products.list-view .product-card .product-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #222;
+        margin-bottom: 6px;
+        text-align: left;
+    }
+
+    .category-products.list-view .product-card .price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+    }
+
+        .category-products.list-view .product-card .price-row .text-danger {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #d60000 !important;
+            order: 2;
+        }
+
+        .category-products.list-view .product-card .price-row .text-muted {
+            font-size: 1rem;
+            color: #999 !important;
+            text-decoration: line-through;
+            order: 1;
+        }
+
+    .category-products.list-view .product-card a {
+        display: flex;
+        width: 100%;
+        text-decoration: none;
+        color: inherit;
+        align-items: center;
+        gap: 20px;
+    }
+
+.category-products.list-view .card-text {
+    text-align: left;
+}
+
+.category-products .product-title {
+    font-weight: 600;
+}

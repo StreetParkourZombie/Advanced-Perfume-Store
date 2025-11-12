@@ -1,0 +1,329 @@
+﻿@model dynamic
+@{
+    ViewBag.Title = "Thanh toán thành công";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .payment-success-container {
+        min-height: 100vh;
+        padding: 60px 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .success-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        padding: 50px;
+        max-width: 800px;
+        margin: 0 auto;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .success-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        animation: scaleIn 0.5s ease-out 0.2s both;
+    }
+
+    @@keyframes scaleIn {
+        from {
+            transform: scale(0);
+        }
+        to {
+            transform: scale(1);
+        }
+    }
+
+    .success-icon i {
+        font-size: 50px;
+        color: white;
+    }
+
+    .success-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .success-message {
+        font-size: 16px;
+        color: #666;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .order-info-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .order-info-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #333;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .order-items {
+        margin-top: 20px;
+    }
+
+    .order-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+
+    .item-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .item-quantity {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .item-price {
+        font-weight: 600;
+        color: #667eea;
+        text-align: right;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .btn-custom {
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-outline-custom {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+
+    .btn-outline-custom:hover {
+        background: #667eea;
+        color: white;
+    }
+
+    .payment-badge {
+        display: inline-block;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+</style>
+
+<div class="payment-success-container">
+    <div class="container">
+        <div class="success-card">
+            <!-- Success Icon -->
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+
+            <!-- Success Title -->
+            <h1 class="success-title">Thanh toán thành công!</h1>
+            <p class="success-message">
+                Cảm ơn bạn đã thanh toán. Đơn hàng của bạn đã được xác nhận và đang được xử lý.
+            </p>
+
+            <!-- Order Information -->
+            <div class="order-info-section">
+                <h3 class="order-info-title">
+                    <i class="fas fa-receipt"></i>
+                    Thông tin đơn hàng
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">Mã đơn hàng:</span>
+                    <span class="info-value">#@Model.OrderId</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ngày đặt hàng:</span>
+                    <span class="info-value">@Convert.ToDateTime(Model.OrderDate).ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Trạng thái:</span>
+                    <span class="info-value">
+                        <span class="payment-badge">@Model.Status</span>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phương thức thanh toán:</span>
+                    <span class="info-value">@Model.PaymentMethod</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Tổng tiền:</span>
+                    <span class="info-value" style="color: #667eea; font-size: 20px;">
+                        @Convert.ToDecimal(Model.TotalAmount).ToString("N0") ₫
+                    </span>
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="order-info-section">
+                <h3 class="order-info-title">
+                    <i class="fas fa-user"></i>
+                    Thông tin khách hàng
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">Họ và tên:</span>
+                    <span class="info-value">@Model.Customer.Name</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">@Model.Customer.Email</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Số điện thoại:</span>
+                    <span class="info-value">@Model.Customer.Phone</span>
+                </div>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="order-info-section">
+                <h3 class="order-info-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Địa chỉ giao hàng
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">Người nhận:</span>
+                    <span class="info-value">@Model.Address.RecipientName</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Số điện thoại:</span>
+                    <span class="info-value">@Model.Address.Phone</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Địa chỉ:</span>
+                    <span class="info-value">
+                        @Model.Address.AddressLine<br>
+                        @Model.Address.Ward, @Model.Address.District<br>
+                        @Model.Address.Province
+                    </span>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="order-info-section">
+                <h3 class="order-info-title">
+                    <i class="fas fa-box"></i>
+                    Sản phẩm đã đặt
+                </h3>
+                <div class="order-items">
+                    @foreach (var item in Model.OrderDetails)
+                    {
+                        <div class="order-item">
+                            <img src="@item.ImageUrl" alt="@item.ProductName" class="item-image">
+                            <div class="item-details">
+                                <div class="item-name">@item.ProductName</div>
+                                <div class="item-quantity">Số lượng: @item.Quantity</div>
+                            </div>
+                            <div class="item-price">
+                                @Convert.ToDecimal(item.TotalPrice).ToString("N0") ₫
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary-custom">
+                    <i class="fas fa-home me-2"></i>Về trang chủ
+                </a>
+                <a href="@Url.Action("Index", "Account")" class="btn btn-outline-custom">
+                    <i class="fas fa-list me-2"></i>Xem đơn hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,295 @@
+/* Comment Section Styles */
+.comment-section {
+    margin: 2rem 0;
+    padding: 0;
+    background-color: transparent;
+}
+
+.comment-header {
+    margin-bottom: 1.5rem;
+}
+
+.comment-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 0.5rem;
+}
+
+.comment-subtitle {
+    color: #666;
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* Rating Summary Box */
+.rating-summary {
+    background: #f8f9fa;
+    padding: 2rem 1.5rem;
+    border-radius: 0;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 1rem;
+    height: 100%;
+}
+
+.average-rating {
+    text-align: left;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.rating-number {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #000;
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.rating-stars {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.star {
+    font-size: 1.8rem;
+    color: #ddd;
+    margin-right: 2px;
+}
+
+    .star.filled {
+        color: #ffa500;
+    }
+
+.rating-label {
+    font-size: 0.75rem;
+    color: #666;
+    margin: 0.5rem 0 0 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Rating Breakdown */
+.rating-breakdown {
+    margin-bottom: 1.5rem;
+}
+
+.rating-bar-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+}
+
+.star-label {
+    width: 50px;
+    color: #000;
+    font-size: 0.9rem;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+    .star-label::before {
+        content: "";
+        margin-right: 0;
+    }
+
+.rating-bar {
+    flex: 1;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    margin: 0 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.rating-bar-fill {
+    height: 100%;
+    background-color: #ffa500;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.rating-count {
+    min-width: 110px;
+    text-align: left;
+    color: #666;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.btn-rate-now {
+    width: 100%;
+    background-color: #000;
+    color: white;
+    border: 2px solid #000;
+    padding: 0.85rem;
+    border-radius: 0;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+    .btn-rate-now:hover {
+        background-color: #fff;
+        color: #000;
+    }
+
+/* Comments List */
+.comments-list {
+    background: white;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 200px;
+}
+
+.comment-item {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+    .comment-item:last-child {
+        border-bottom: none;
+    }
+
+    .comment-item .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.8rem;
+    }
+
+.commenter-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.commenter-name {
+    font-weight: 700;
+    color: #000;
+    font-size: 1rem;
+}
+
+.commenter-source {
+    font-size: 0.85rem;
+    color: #28a745;
+    display: flex;
+    align-items: center;
+}
+
+    .commenter-source::before {
+        content: "✓";
+        margin-right: 4px;
+        font-weight: bold;
+    }
+
+.comment-item .comment-rating {
+    margin-left: 1rem;
+    display: inline-block;
+}
+
+    .comment-item .comment-rating .star {
+        font-size: 1.2rem;
+        display: inline-block;
+        margin-right: 2px;
+    }
+
+.comment-content {
+    margin: 0.8rem 0;
+    line-height: 1.6;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.comment-date {
+    font-size: 0.85rem;
+    color: #999;
+    margin-bottom: 0.5rem;
+}
+
+.reply-link {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+    .reply-link:hover {
+        text-decoration: underline;
+    }
+
+.no-comments {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #666;
+}
+
+    .no-comments p {
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .comment-section {
+        padding: 1rem;
+    }
+
+    .rating-summary {
+        padding: 1.5rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .comments-list {
+        padding: 1rem;
+    }
+
+    .rating-number {
+        font-size: 3rem;
+    }
+
+    .comment-item .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .comment-item .comment-rating {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+
+    .rating-bar-item {
+        font-size: 0.8rem;
+    }
+
+    .star-label {
+        width: 45px;
+        font-size: 0.85rem;
+    }
+
+    .rating-count {
+        min-width: 100px;
+        font-size: 0.75rem;
+    }
+}
+
+/* Ensure proper column layout */
+@media (min-width: 769px) {
+    .comment-section .row > div:first-child {
+        padding-right: 15px;
+    }
+
+    .comment-section .row > div:last-child {
+        padding-left: 15px;
+    }
+}

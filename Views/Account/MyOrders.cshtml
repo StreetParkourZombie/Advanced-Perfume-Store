@@ -1,0 +1,163 @@
+@model IEnumerable<PerfumeStore.Models.Order>
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/MyOrders.css" />
+
+<div class="my-orders-page">
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="page-title mb-1">
+                    <i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi
+                </h2>
+                <p class="text-muted mb-0">Quản lý và theo dõi đơn hàng của bạn</p>
+            </div>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
+                <i class="fas fa-shopping-cart me-2"></i>Tiếp tục mua sắm
+            </a>
+        </div>
+
+        @if (ViewBag.AlertMessage != null)
+        {
+            <div class="alert alert-@(ViewBag.AlertType ?? "info") alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i>@ViewBag.AlertMessage
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <!-- Empty State -->
+            <div class="empty-orders">
+                <div class="empty-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <h3 class="empty-title">Bạn chưa có đơn hàng nào</h3>
+                <p class="empty-text">Hãy bắt đầu mua sắm ngay hôm nay để khám phá những sản phẩm tuyệt vời!</p>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shopping-cart me-2"></i>Mua sắm ngay
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Orders List -->
+            <div class="orders-list">
+                @foreach (var order in Model)
+                {
+                    var badgeClass = order.Status switch
+                    {
+                        "Đã giao" or "Đã giao hàng" => "status-delivered",
+                        "Đang giao hàng" or "Đang giao" => "status-shipping",
+                        "Đã hủy" or "Hủy" => "status-cancelled",
+                        "Chờ xác nhận" => "status-pending",
+                        "Chờ lấy hàng" => "status-processing",
+                        _ => "status-default"
+                    };
+
+                    var statusIcon = order.Status switch
+                    {
+                        "Đã giao" or "Đã giao hàng" => "fa-check-circle",
+                        "Đang giao hàng" or "Đang giao" => "fa-truck",
+                        "Đã hủy" or "Hủy" => "fa-times-circle",
+                        "Chờ xác nhận" => "fa-clock",
+                        "Chờ lấy hàng" => "fa-box",
+                        _ => "fa-info-circle"
+                    };
+
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <div class="order-id">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    <strong>Đơn hàng #@order.OrderId</strong>
+                                </div>
+                                <div class="order-date">
+                                    <i class="far fa-calendar me-1"></i>
+                                    @(order.OrderDate?.ToString("dd/MM/yyyy HH:mm") ?? "-")
+                                </div>
+                            </div>
+                            <div class="order-status">
+                                <span class="status-badge @badgeClass">
+                                    <i class="fas @statusIcon me-1"></i>
+                                    @(order.Status ?? "Đã đặt hàng")
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="order-body">
+                            <!-- Products Preview -->
+                            <div class="products-preview">
+                                @if (order.OrderDetails != null && order.OrderDetails.Any())
+                                {
+                                    @foreach (var detail in order.OrderDetails.Take(3))
+                                    {
+                                        <div class="product-item">
+                                            @if (detail.Product?.ProductImages?.FirstOrDefault() != null)
+                                            {
+                                                var image = detail.Product.ProductImages.FirstOrDefault();
+                                                string imageUrl = "/images/placeholder.jpg";
+                                                if (image?.ImageData != null && !string.IsNullOrWhiteSpace(image.ImageMimeType))
+                                                {
+                                                    imageUrl = $"data:{image.ImageMimeType};base64,{Convert.ToBase64String(image.ImageData)}";
+                                                }
+                                                <img src="@imageUrl" alt="@detail.Product.ProductName" class="product-image" />
+                                            }
+                                            else
+                                            {
+                                                <div class="product-image-placeholder">
+                                                    <i class="fas fa-image"></i>
+                                                </div>
+                                            }
+                                            <div class="product-info">
+                                                <div class="product-name">@(detail.Product?.ProductName ?? "Sản phẩm không xác định")</div>
+                                                <div class="product-quantity">Số lượng: @(detail.Quantity ?? 0)</div>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (order.OrderDetails.Count > 3)
+                                    {
+                                        <div class="product-more">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                            <span>+@(order.OrderDetails.Count - 3) sản phẩm khác</span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+
+                            <!-- Order Summary -->
+                            <div class="order-summary">
+                                <div class="summary-row">
+                                    <span class="summary-label">Tổng tiền:</span>
+                                    <span class="summary-value">@(order.TotalAmount?.ToString("N0") ?? "0") ₫</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Phương thức thanh toán:</span>
+                                    <span class="summary-value">@(order.PaymentMethod ?? "Chưa cập nhật")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="order-footer">
+                            <a asp-controller="Account" asp-action="OrderDetail" asp-route-id="@order.OrderId" class="btn btn-view-detail">
+                                <i class="fas fa-eye me-2"></i>Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Summary -->
+            <div class="orders-summary">
+                <div class="summary-card">
+                    <i class="fas fa-chart-line me-2"></i>
+                    <span>Tổng số đơn hàng: <strong>@Model.Count()</strong></span>
+                </div>
+            </div>
+        }
+    </div>
+</div>

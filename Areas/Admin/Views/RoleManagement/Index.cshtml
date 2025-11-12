@@ -1,0 +1,119 @@
+@model IEnumerable<PerfumeStore.Models.Role>
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="mb-0">Quản lý Role & Phân quyền</h5>
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fa fa-plus me-1"></i> Tạo Role mới
+    </a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="panel">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên Role</th>
+                    <th>Mô tả</th>
+                    <th>Số Permissions</th>
+                    <th>Số Admin</th>
+                    <th>Loại</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Chưa có role nào.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var role in Model)
+                    {
+                        <tr>
+                            <td>@role.RoleId</td>
+                            <td class="fw-semibold">@role.RoleName</td>
+                            <td>@(role.Description ?? "-")</td>
+                            <td>
+                                <span class="badge bg-info">@role.Permissions.Count permissions</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">@role.Admins.Count admins</span>
+                            </td>
+                            <td>
+                                @if (role.IsSystem)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-shield-alt me-1"></i>Hệ thống
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-user me-1"></i>Tùy chỉnh
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@role.RoleId" title="Chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    
+                                    @if (!role.IsSystem)
+                                    {
+                                        <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@role.RoleId" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        <form method="post" asp-action="Delete" asp-route-id="@role.RoleId" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-danger" 
+                                                    onclick="return confirm('Xóa role @role.RoleName?')"
+                                                    title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .panel {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+</style>

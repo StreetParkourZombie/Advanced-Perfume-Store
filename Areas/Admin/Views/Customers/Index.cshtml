@@ -1,0 +1,149 @@
+@model List<PerfumeStore.Areas.Admin.Models.Customer>
+
+@{
+    ViewData["Title"] = "Quản lý khách hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">Quản lý khách hàng</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Tổng khách hàng</h6>
+                            <h2 class="mb-0">@ViewBag.TotalCustomers</h2>
+                        </div>
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Khách hàng hoạt động</h6>
+                            <h2 class="mb-0">@ViewBag.ActiveCustomers</h2>
+                        </div>
+                        <i class="fas fa-user-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Khách hàng mới (tháng này)</h6>
+                            <h2 class="mb-0">@ViewBag.NewCustomersThisMonth</h2>
+                        </div>
+                        <i class="fas fa-user-plus fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Tên khách hàng</label>
+                    <input type="text" name="searchName" class="form-control" value="@ViewBag.SearchName" placeholder="Nhập tên...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Email</label>
+                    <input type="text" name="searchEmail" class="form-control" value="@ViewBag.SearchEmail" placeholder="Nhập email...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="text" name="searchPhone" class="form-control" value="@ViewBag.SearchPhone" placeholder="Nhập SĐT...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Loại thành viên</label>
+                    <select name="membershipId" class="form-select">
+                        <option value="">Tất cả</option>
+                        @foreach (var membership in ViewBag.Memberships)
+                        {
+                            <option value="@membership.MembershipId" selected="@(ViewBag.MembershipId == membership.MembershipId)">@membership.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary">Lọc</button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customers Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Khách hàng</th>
+                                <th>Email</th>
+                                <th>Số điện thoại</th>
+                                <th>Loại thành viên</th>
+                                <th>Số đơn hàng</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var customer in Model)
+                            {
+                                <tr>
+                                    <td>@customer.CustomerId</td>
+                                    <td>@customer.Name</td>
+                                    <td>@customer.Email</td>
+                                    <td>@customer.Phone</td>
+                                    <td>@customer.Membership?.Name</td>
+                                    <td>@customer.Orders.Count</td>
+                                    <td>@customer.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <a href="@Url.Action("Details", new { id = customer.CustomerId })" class="btn btn-sm btn-info">Chi tiết</a>
+                                        <a href="@Url.Action("Edit", new { id = customer.CustomerId })" class="btn btn-sm btn-warning">Sửa</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <p class="mb-0">Không có khách hàng nào</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+</style>

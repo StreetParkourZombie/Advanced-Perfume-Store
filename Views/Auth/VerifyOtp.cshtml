@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Xác minh OTP";
+    var email = ViewBag.Email as string ?? string.Empty;
+}
+
+<div class="container py-5" style="min-height: 80vh; display:flex; align-items:center;">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-8 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="mb-2" style="font-size: 40px; color: #0d6efd;"><i class="fa-solid fa-shield"></i></div>
+                        <h3 class="fw-semibold mb-1">Xác minh OTP</h3>
+                        <p class="text-muted mb-0">Nhập mã 6 số đã gửi đến <strong>@email</strong></p>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(TempData["Message"] as string))
+                    {
+                        <div class="alert alert-success">@TempData["Message"]</div>
+                    }
+                    @if (!string.IsNullOrEmpty(TempData["Error"] as string))
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+                    @if (!string.IsNullOrEmpty(ViewBag.Error as string))
+                    {
+                        <div class="alert alert-danger">@ViewBag.Error</div>
+                    }
+
+                    <form asp-action="VerifyOtp" method="post" class="mb-3 mt-3">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="email" value="@email" />
+                        <div class="mb-3">
+                            <label class="form-label">Mã OTP</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-key"></i></span>
+                                    <input type="text" class="form-control text-center" name="otp" maxlength="6" placeholder="_ _ _ _ _ _" inputmode="numeric" pattern="[0-9]{6}" required />
+                            </div>
+                            <small class="text-muted">Mã có hiệu lực trong 10 phút</small>
+                        </div>
+                        <button class="btn btn-primary w-100 btn-lg" type="submit">Xác minh</button>
+                    </form>
+
+                    <form asp-action="ResendOtp" method="post" class="text-center">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="email" value="@email" />
+                        <button class="btn btn-link" type="submit"><i class="fa-solid fa-paper-plane me-1"></i>Gửi lại OTP</button>
+                    </form>
+                    <div class="text-center mt-2">
+                        <a href="/Auth/ForgotPassword" class="text-decoration-none"><i class="fa-solid fa-arrow-left me-1"></i>Đổi email</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+

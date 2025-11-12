@@ -1,0 +1,197 @@
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<div class="row g-3">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card stat-products">
+            <div class="icon">📦</div>
+            <div class="content">
+                <div class="label">Tổng sản phẩm</div>
+                <div class="value">1,234</div>
+                <div class="trend text-success">+12%</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card stat-orders">
+            <div class="icon">🛒</div>
+            <div class="content">
+                <div class="label">Đơn hàng</div>
+                <div class="value">856</div>
+                <div class="trend text-success">+8%</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card stat-revenue">
+            <div class="icon">💰</div>
+            <div class="content">
+                <div class="label">Doanh thu</div>
+                <div class="value">đ245M</div>
+                <div class="trend text-success">+23%</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card stat-customers">
+            <div class="icon">👤</div>
+            <div class="content">
+                <div class="label">Khách hàng</div>
+                <div class="value">3,421</div>
+                <div class="trend text-success">+5%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-12 col-xl-6">
+        <div class="panel">
+            <div class="panel-title">Doanh thu theo tháng</div>
+            <canvas id="revenueChart" height="140"></canvas>
+        </div>
+    </div>
+    <div class="col-12 col-xl-6">
+        <div class="panel">
+            <div class="panel-title">Phân bố danh mục</div>
+            <canvas id="categoryChart" height="140"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-12 col-xl-6">
+        <div class="panel">
+            <div class="panel-title d-flex justify-content-between align-items-center">
+                <span>Đơn hàng mới nhất</span>
+                <a href="#" class="small">Xem tất cả</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày đặt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#ORD-2024-001</td>
+                            <td>Nguyễn Văn A</td>
+                            <td class="text-end">đ2,450,000</td>
+                            <td><span class="badge status-processing">Đang xử lý</span></td>
+                            <td>02/10/2024</td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-2024-002</td>
+                            <td>Trần Thị B</td>
+                            <td class="text-end">đ1,890,000</td>
+                            <td><span class="badge status-completed">Đã giao</span></td>
+                            <td>30/09/2024</td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-2024-003</td>
+                            <td>Lê Văn C</td>
+                            <td class="text-end">đ3,200,000</td>
+                            <td><span class="badge status-pending">Chờ xác nhận</span></td>
+                            <td>29/09/2024</td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-2024-004</td>
+                            <td>Phạm Thị D</td>
+                            <td class="text-end">đ950,000</td>
+                            <td><span class="badge status-cancelled">Đã hủy</span></td>
+                            <td>29/09/2024</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-6">
+        <div class="panel">
+            <div class="panel-title d-flex justify-content-between align-items-center">
+                <span>Sản phẩm sắp hết hàng</span>
+                <a href="#" class="small">Nhập hàng</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tên</th>
+                            <th>Thương hiệu</th>
+                            <th class="text-end">Số lượng còn</th>
+                            <th class="text-end">Tối thiểu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="row-low">
+                            <td>Chanel No.5 EDP</td>
+                            <td>Chanel</td>
+                            <td class="text-end">5 chai</td>
+                            <td class="text-end">20</td>
+                        </tr>
+                        <tr class="row-low">
+                            <td>Dior Sauvage</td>
+                            <td>Dior</td>
+                            <td class="text-end">8 chai</td>
+                            <td class="text-end">25</td>
+                        </tr>
+                        <tr class="row-low">
+                            <td>Tom Ford Black Orchid</td>
+                            <td>Tom Ford</td>
+                            <td class="text-end">3 chai</td>
+                            <td class="text-end">15</td>
+                        </tr>
+                        <tr class="row-low">
+                            <td>Versace Eros</td>
+                            <td>Versace</td>
+                            <td class="text-end">12 chai</td>
+                            <td class="text-end">30</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const revenueCtx = document.getElementById('revenueChart');
+    const revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+            datasets: [{
+                label: 'Doanh thu',
+                data: [12,19,13,25,22,30,28,35,31,45,38,50],
+                fill: false,
+                borderColor: '#7A1FFF',
+                backgroundColor: '#7A1FFF',
+                tension: 0.35,
+                pointRadius: 3
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+
+    const categoryCtx = document.getElementById('categoryChart');
+    const categoryChart = new Chart(categoryCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Nữ', 'Nam', 'Unisex'],
+            datasets: [{
+                data: [45, 35, 20],
+                backgroundColor: ['#F4E8FF','#E8FFF8','#FFF6E5']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+</script>
+}
+
+

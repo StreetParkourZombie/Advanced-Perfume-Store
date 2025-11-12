@@ -1,0 +1,67 @@
+@model PerfumeStore.ViewComponents.ReviewFormViewModel
+
+<div class="review-form-overlay" id="reviewFormOverlay" style="display: none;">
+    <div class="review-form-container">
+        <div class="review-form-header">
+            <h4>Đánh giá @Model.ProductName</h4>
+            <button type="button" class="btn-close-form" id="closeReviewForm">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        @if (User?.Identity?.IsAuthenticated == true)
+        {
+        <form class="review-form" id="reviewForm" method="post" asp-controller="Comments" asp-action="Add">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="productId" name="productId" value="@Model.ProductId" />
+            <div class="form-group">
+                <textarea class="review-textarea" id="reviewContent" placeholder="Mời bạn chia sẻ thêm một số cảm nhận..." minlength="5" required></textarea>
+                <div class="char-count-container">
+                    <span class="char-count" id="charCount">0 ký tự (Tối thiểu 5)</span>
+                </div>
+            </div>
+            
+            <div class="rating-section">
+                <p class="rating-question">Bạn cảm thấy thế nào về sản phẩm? (Chọn sao)</p>
+                <div class="star-rating" id="starRating">
+                    <div class="star-item" data-rating="1">
+                        <span class="star">★</span>
+                        <span class="rating-label">Rất tệ</span>
+                    </div>
+                    <div class="star-item" data-rating="2">
+                        <span class="star">★</span>
+                        <span class="rating-label">Không tệ</span>
+                    </div>
+                    <div class="star-item" data-rating="3">
+                        <span class="star">★</span>
+                        <span class="rating-label">Trung bình</span>
+                    </div>
+                    <div class="star-item" data-rating="4">
+                        <span class="star">★</span>
+                        <span class="rating-label">Tốt</span>
+                    </div>
+                    <div class="star-item" data-rating="5">
+                        <span class="star">★</span>
+                        <span class="rating-label">Tuyệt vời</span>
+                    </div>
+                </div>
+                <input type="hidden" id="selectedRating" name="rating" value="0">
+            </div>
+            
+            <div class="form-fields">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="reviewerName" placeholder="Họ tên*" value="@User?.Identity?.Name" disabled>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-submit-review">GỬI ĐÁNH GIÁ</button>
+        </form>
+        }
+        else
+        {
+            <div class="text-center p-3">
+                <a href="/Auth/Login" class="btn btn-primary">Đăng nhập để đánh giá</a>
+            </div>
+        }
+    </div>
+</div>

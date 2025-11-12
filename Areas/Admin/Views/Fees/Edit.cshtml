@@ -1,0 +1,141 @@
+@model PerfumeStore.Areas.Admin.Models.Fee
+
+@{
+    ViewData["Title"] = "Chỉnh sửa khoản phí";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">Chỉnh sửa khoản phí</h1>
+                <a href="@Url.Action("Index")" class="btn btn-secondary">Quay lại</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="FeeId" />
+                        
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">Tên khoản phí</label>
+                            <input asp-for="Name" class="form-control" readonly />
+                            <small class="form-text text-muted">Tên khoản phí không thể thay đổi</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Value" class="form-label">
+                                Giá trị
+                                @if (Model.Name == "VAT")
+                                {
+                                    <span class="text-muted">(0-100 phần trăm)</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">(VNĐ)</span>
+                                }
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="Value" class="form-control" type="number" 
+                                       step="@(Model.Name == "VAT" ? "0.01" : "1000")"
+                                       min="@(Model.Name == "VAT" ? "0" : "0")"
+                                       max="@(Model.Name == "VAT" ? "100" : "")" required />
+                                @if (Model.Name == "VAT")
+                                {
+                                    <span class="input-group-text">%</span>
+                                }
+                                else
+                                {
+                                    <span class="input-group-text">VNĐ</span>
+                                }
+                            </div>
+                            <span asp-validation-for="Value" class="text-danger"></span>
+                            @if (Model.Name == "VAT")
+                            {
+                                <small class="form-text text-muted">VAT phải từ 0 đến 100 phần trăm</small>
+                            }
+                            else if (Model.Name == "Shipping")
+                            {
+                                <small class="form-text text-muted">Phí vận chuyển chỉ áp dụng khi đơn hàng &lt; ngưỡng bên dưới</small>
+                            }
+                        </div>
+
+                        @if (Model.Name == "Shipping")
+                        {
+                            <div class="mb-3">
+                                <label asp-for="Threshold" class="form-label">Ngưỡng áp dụng (VNĐ)</label>
+                                <div class="input-group">
+                                    <input asp-for="Threshold" class="form-control" type="number" 
+                                           step="1000" min="0" />
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="Threshold" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Phí vận chuyển chỉ áp dụng khi đơn hàng &lt; ngưỡng này. 
+                                    Để trống sẽ dùng mặc định 5,000,000 VNĐ.
+                                </small>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Mô tả</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Cập nhật</button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">Hủy</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>ID:</strong> @Model.FeeId</p>
+                    <p><strong>Tên:</strong> @Model.Name</p>
+                    @if (Model.Name == "VAT")
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>VAT (Thuế GTGT):</strong> Áp dụng cho tất cả đơn hàng. Giá trị từ 0-100 phần trăm.
+                        </div>
+                    }
+                    else if (Model.Name == "Shipping")
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Phí vận chuyển:</strong> 
+                            @if (Model.Threshold.HasValue)
+                            {
+                                <text>Chỉ áp dụng khi đơn hàng &lt; @Model.Threshold.Value.ToString("N0") VNĐ.</text>
+                            }
+                            else
+                            {
+                                <text>Chỉ áp dụng khi đơn hàng &lt; 5,000,000 VNĐ (mặc định).</text>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+

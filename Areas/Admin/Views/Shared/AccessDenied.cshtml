@@ -1,0 +1,46 @@
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-ban text-danger" style="font-size: 80px;"></i>
+                    <h2 class="mt-4 text-danger">Truy cập bị từ chối</h2>
+                    <p class="text-muted mt-3">
+                        Bạn không có quyền truy cập vào chức năng này.
+                    </p>
+                    <p class="text-muted">
+                        Vui lòng liên hệ quản trị viên để được cấp quyền.
+                    </p>
+                    <div class="mt-4">
+                        <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Về Dashboard
+                        </a>
+                        <a href="javascript:history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-4">
+                <h6><i class="fas fa-info-circle me-2"></i>Thông tin tài khoản của bạn:</h6>
+                <ul class="mb-0">
+                    <li><strong>Tên:</strong> @User.Identity?.Name</li>
+                    <li><strong>Username:</strong> @User.FindFirst("UserName")?.Value</li>
+                    <li><strong>Role:</strong> @User.FindFirst("RoleName")?.Value ?? "Chưa có role"</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+</style>

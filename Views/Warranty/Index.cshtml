@@ -1,0 +1,245 @@
+@{
+    ViewData["Title"] = "Yêu cầu bảo hành";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/Warranty.css" />
+
+<div class="warranty-page">
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="page-title mb-1">
+                    <i class="fas fa-shield-alt me-2"></i>Yêu cầu bảo hành
+                </h2>
+                <p class="text-muted mb-0">Gửi yêu cầu bảo hành cho sản phẩm của bạn</p>
+            </div>
+            <a asp-action="MyClaims" class="btn btn-outline-primary">
+                <i class="fas fa-list me-2"></i>Xem yêu cầu của tôi
+            </a>
+        </div>
+
+        @if (ViewBag.AlertMessage != null)
+        {
+            <div class="alert alert-@(ViewBag.AlertType ?? "info") alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i>@ViewBag.AlertMessage
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (ViewBag.Warranties == null || ((List<object>)ViewBag.Warranties).Count == 0)
+        {
+            <!-- Empty State -->
+            <div class="empty-warranty">
+                <div class="empty-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="empty-title">Bạn chưa có sản phẩm nào đang trong thời gian bảo hành</h3>
+                <p class="empty-text">Chỉ các sản phẩm đã mua và đang trong thời gian bảo hành mới có thể yêu cầu bảo hành.</p>
+                <a asp-controller="Account" asp-action="MyOrders" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shopping-bag me-2"></i>Xem đơn hàng của tôi
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Form yêu cầu bảo hành -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="warranty-form-card card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Thông tin yêu cầu bảo hành</h5>
+                        </div>
+                        <div class="card-body">
+                            <form asp-action="Create" method="post" id="warrantyForm">
+                                @Html.AntiForgeryToken()
+
+                                <!-- Chọn sản phẩm bảo hành -->
+                                <div class="form-group mb-4">
+                                    <label for="warrantyId" class="form-label required">
+                                        <i class="fas fa-box me-2"></i>Chọn sản phẩm cần bảo hành
+                                    </label>
+                                    <select class="form-select" id="warrantyId" name="warrantyId" required>
+                                        <option value="">-- Chọn sản phẩm --</option>
+                                        @foreach (dynamic warranty in (List<object>)ViewBag.Warranties)
+                                        {
+                                            var hasActiveClaim = warranty.HasActiveClaim;
+                                            if (hasActiveClaim)
+                                            {
+                                                <option value="@warranty.WarrantyId" 
+                                                        data-product="@warranty.ProductName"
+                                                        data-code="@warranty.WarrantyCode"
+                                                        data-enddate="@warranty.EndDate.ToString("dd/MM/yyyy")"
+                                                        disabled>
+                                                    @warranty.ProductName - Mã BH: @warranty.WarrantyCode (Đang có yêu cầu chờ xử lý)
+                                                </option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@warranty.WarrantyId" 
+                                                        data-product="@warranty.ProductName"
+                                                        data-code="@warranty.WarrantyCode"
+                                                        data-enddate="@warranty.EndDate.ToString("dd/MM/yyyy")">
+                                                    @warranty.ProductName - Mã BH: @warranty.WarrantyCode
+                                                </option>
+                                            }
+                                        }
+                                    </select>
+                                    <small class="form-text text-muted">
+                                        Chỉ hiển thị các sản phẩm đang trong thời gian bảo hành
+                                    </small>
+                                </div>
+
+                                <!-- Thông tin sản phẩm được chọn -->
+                                <div id="selectedProductInfo" class="alert alert-info d-none mb-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <div>
+                                            <strong id="selectedProductName"></strong><br>
+                                            <small>Mã bảo hành: <span id="selectedWarrantyCode"></span> | Hết hạn: <span id="selectedEndDate"></span></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Loại vấn đề -->
+                                <div class="form-group mb-4">
+                                    <label for="issueType" class="form-label required">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Loại vấn đề
+                                    </label>
+                                    <select class="form-select" id="issueType" name="issueType" required>
+                                        <option value="">-- Chọn loại vấn đề --</option>
+                                        <option value="Sản phẩm hỏng">Sản phẩm hỏng</option>
+                                        <option value="Sản phẩm lỗi">Sản phẩm lỗi</option>
+                                        <option value="Sản phẩm không hoạt động">Sản phẩm không hoạt động</option>
+                                        <option value="Bao bì hỏng">Bao bì hỏng</option>
+                                        <option value="Thiếu phụ kiện">Thiếu phụ kiện</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                </div>
+
+                                <!-- Mô tả vấn đề -->
+                                <div class="form-group mb-4">
+                                    <label for="issueDescription" class="form-label required">
+                                        <i class="fas fa-file-alt me-2"></i>Mô tả chi tiết vấn đề
+                                    </label>
+                                    <textarea class="form-control" id="issueDescription" name="issueDescription" 
+                                              rows="6" placeholder="Vui lòng mô tả chi tiết vấn đề bạn gặp phải với sản phẩm (ít nhất 10 ký tự)..." 
+                                              required minlength="10"></textarea>
+                                    <small class="form-text text-muted">
+                                        <span id="charCount">0</span> / Tối thiểu 10 ký tự
+                                    </small>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                                        <i class="fas fa-paper-plane me-2"></i>Gửi yêu cầu bảo hành
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar - Thông tin bảo hành -->
+                <div class="col-lg-4">
+                    <div class="info-card card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin bảo hành</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-item">
+                                <i class="fas fa-clock me-2 text-primary"></i>
+                                <strong>Thời gian xử lý:</strong><br>
+                                <span class="text-muted">3-5 ngày làm việc</span>
+                            </div>
+                            <hr>
+                            <div class="info-item">
+                                <i class="fas fa-check-circle me-2 text-success"></i>
+                                <strong>Cam kết:</strong><br>
+                                <span class="text-muted">Xử lý nhanh chóng và chuyên nghiệp</span>
+                            </div>
+                            <hr>
+                            <div class="info-item">
+                                <i class="fas fa-headset me-2 text-info"></i>
+                                <strong>Hỗ trợ:</strong><br>
+                                <span class="text-muted">Hotline: 1900 1234</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const warrantySelect = document.getElementById('warrantyId');
+            const selectedProductInfo = document.getElementById('selectedProductInfo');
+            const selectedProductName = document.getElementById('selectedProductName');
+            const selectedWarrantyCode = document.getElementById('selectedWarrantyCode');
+            const selectedEndDate = document.getElementById('selectedEndDate');
+            const issueDescription = document.getElementById('issueDescription');
+            const charCount = document.getElementById('charCount');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Hiển thị thông tin sản phẩm được chọn
+            warrantySelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    selectedProductName.textContent = selectedOption.getAttribute('data-product');
+                    selectedWarrantyCode.textContent = selectedOption.getAttribute('data-code');
+                    selectedEndDate.textContent = selectedOption.getAttribute('data-enddate');
+                    selectedProductInfo.classList.remove('d-none');
+                } else {
+                    selectedProductInfo.classList.add('d-none');
+                }
+            });
+
+            // Đếm ký tự mô tả
+            issueDescription.addEventListener('input', function() {
+                const length = this.value.length;
+                charCount.textContent = length;
+                if (length < 10) {
+                    charCount.classList.add('text-danger');
+                } else {
+                    charCount.classList.remove('text-danger');
+                }
+            });
+
+            // Validate form trước khi submit
+            document.getElementById('warrantyForm').addEventListener('submit', function(e) {
+                const warrantyId = warrantySelect.value;
+                const issueType = document.getElementById('issueType').value;
+                const description = issueDescription.value.trim();
+
+                if (!warrantyId) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn sản phẩm cần bảo hành.');
+                    return false;
+                }
+
+                if (!issueType) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn loại vấn đề.');
+                    return false;
+                }
+
+                if (description.length < 10) {
+                    e.preventDefault();
+                    alert('Vui lòng mô tả vấn đề chi tiết (ít nhất 10 ký tự).');
+                    issueDescription.focus();
+                    return false;
+                }
+
+                // Disable button và hiển thị loading
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang gửi...';
+            });
+        });
+    </script>
+}
+

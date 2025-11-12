@@ -1,0 +1,38 @@
+﻿@model List<PerfumeStore.Models.Brand>
+
+<link rel="stylesheet" href="~/css/Category/brand_slider.css" />
+
+<div class="thuonghieu-slider-container">
+    <div class="thuonghieu-slider" id="thuonghieuSlider">
+        @{
+            var brands = ViewBag.Brands as List<PerfumeStore.Models.Brand>;
+        }
+        @if (brands != null && brands.Any())
+        {
+            @foreach (var brand in brands)
+            {
+                <div class="thuonghieu-item"> 
+                    @if (brand.ImageData != null)
+                    {
+                        <img src="data:@brand.ImageMimeType;base64,@Convert.ToBase64String(brand.ImageData)" 
+                             alt="@brand.BrandName" 
+                             title="@brand.BrandName" />
+                    }
+                    else
+                    {
+                        <img src="~/images/placeholder.jpg" 
+                             alt="@brand.BrandName" 
+                             title="@brand.BrandName" />
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="thuonghieu-item">
+                <p>Không có thương hiệu nào được tìm thấy.</p>
+            </div>
+        }
+    </div>
+</div>
+
