@@ -1,4 +1,4 @@
-﻿@model IEnumerable<PerfumeStore.Areas.Admin.Models.Coupon>
+﻿@model PerfumeStore.Areas.Admin.Models.PagedResult<PerfumeStore.Areas.Admin.Models.Coupon>
 
 @{
     ViewData["Title"] = "Danh sách Coupon";
@@ -29,6 +29,7 @@
                     <tr>
                         <th>#</th>
                         <th>Code</th>
+                        <th>Khách hàng</th>
                         <th>Đã sử dụng</th>
                         <th>Ngày tạo</th>
                         <th>Ngày hết hạn</th>
@@ -38,13 +39,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.Any())
+                    @if (Model?.Items?.Any() ?? false)
                     {
-                        @foreach (var item in Model)
+                        @foreach (var item in Model.Items)
                         {
                             <tr>
                                 <td>@item.CouponId</td>
                                 <td>@item.Code</td>
+                                <td class="text-start">
+                                    @if (item.Customer != null)
+                                    {
+                                        var displayName = !string.IsNullOrWhiteSpace(item.Customer.Name) ? item.Customer.Name : item.Customer.Email ?? $"KH#{item.Customer.CustomerId}";
+                                        var contacts = new[] { item.Customer.Email, item.Customer.Phone }
+                                            .Where(x => !string.IsNullOrWhiteSpace(x));
+                                        <div class="fw-semibold">@displayName</div>
+                                        if (contacts.Any())
+                                        {
+                                            <small class="text-muted">@string.Join(" • ", contacts)</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa gán</span>
+                                    }
+                                </td>
                                 <td>
                                     @if (item.IsUsed == true)
                                     {
@@ -73,13 +91,15 @@
                     else
                     {
                         <tr>
-                            <td colspan="8" class="text-muted">Chưa có coupon nào</td>
+                            <td colspan="9" class="text-muted">Chưa có coupon nào</td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
     </div>
+
+    @await Html.PartialAsync("~/Areas/Admin/Views/Shared/_Pagination.cshtml", Model)
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

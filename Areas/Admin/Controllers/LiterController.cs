@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using PerfumeStore.Areas.Admin.Filters;
 using PerfumeStore.Areas.Admin.Models;
+using PerfumeStore.Areas.Admin.Services;
 using System.Threading.Tasks;
 
 namespace PerfumeStore.Areas.Admin.Controllers
@@ -13,14 +14,19 @@ namespace PerfumeStore.Areas.Admin.Controllers
     public class LiterController : Controller
     {
         public readonly PerfumeStoreContext _context;
-        public LiterController(PerfumeStoreContext context)
+        private readonly IPaginationService _paginationService;
+        
+        public LiterController(PerfumeStoreContext context, IPaginationService paginationService)
         {
             _context = context;
+            _paginationService = paginationService;
         }
-        public async Task<IActionResult> Index()
+        
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var liters = await _context.Liters.ToListAsync();
-            return View(liters);
+            var litersQuery = _context.Liters.OrderBy(l => l.LiterId).AsQueryable();
+            var pagedResult = await _paginationService.PaginateAsync(litersQuery, page, 10);
+            return View(pagedResult);
         }
 
         public async Task<IActionResult> Create()

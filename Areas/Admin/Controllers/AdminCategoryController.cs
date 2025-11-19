@@ -2,30 +2,51 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PerfumeStore.Models;
 using PerfumeStore.Areas.Admin.Filters;
+using PerfumeStore.Areas.Admin.Services;
+using System;
 
 namespace PerfumeStore.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [AdminAuthorize] // Kiểm tra đăng nhập cơ bản giống ProductsController
-    public class CategoryController : Controller
+    public class AdminCategoryController : Controller
     {
         private readonly PerfumeStoreContext _context;
+        private readonly IPaginationService _paginationService;
 
-        public CategoryController(PerfumeStoreContext context)
+        public AdminCategoryController(PerfumeStoreContext context, IPaginationService paginationService)
         {
             _context = context;
+            _paginationService = paginationService;
         }
 
         // GET: Admin/Category
         [RequirePermission("View Categories")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var categories = await _context.Categories
+            var categoriesQuery = _context.Categories
                 .Include(c => c.Products)
                 .OrderBy(c => c.CategoryName)
-                .ToListAsync();
+                .AsQueryable();
             
-            return View(categories);
+            var pagedResult = await _paginationService.PaginateAsync(categoriesQuery, page, 10);
+
+            var totalCategories = await _context.Categories.CountAsync();
+            var totalProducts = await _context.Products.CountAsync();
+            var topCategoryStats = await _context.Categories
+                .OrderByDescending(c => c.Products.Count)
+                .Select(c => new { c.CategoryName, ProductCount = c.Products.Count })
+                .FirstOrDefaultAsync();
+
+            ViewBag.TotalCategories = totalCategories;
+            ViewBag.TotalCategoryProducts = totalProducts;
+            ViewBag.AverageProductsPerCategory = totalCategories > 0
+                ? Math.Round((double)totalProducts / Math.Max(totalCategories, 1), 1)
+                : 0;
+            ViewBag.TopCategoryName = topCategoryStats?.CategoryName;
+            ViewBag.TopCategoryProductCount = topCategoryStats?.ProductCount ?? 0;
+
+            return View(pagedResult);
         }
 
         // GET: Admin/Category/Details/5
@@ -39,12 +60,20 @@ namespace PerfumeStore.Areas.Admin.Controllers
 
             var category = await _context.Categories
                 .Include(c => c.Products)
+                    .ThenInclude(p => p.ProductImages)
                 .FirstOrDefaultAsync(m => m.CategoryId == id);
             
             if (category == null)
             {
                 return NotFound();
             }
+
+            // Tính toán thống kê
+            var totalProducts = await _context.Products.CountAsync();
+            var totalCategories = await _context.Categories.CountAsync();
+            
+            ViewBag.TotalProducts = totalProducts;
+            ViewBag.TotalCategories = totalCategories;
 
             return View(category);
         }
@@ -257,6 +286,103 @@ namespace PerfumeStore.Areas.Admin.Controllers
                 productCount = productCount,
                 canDelete = productCount == 0
             });
+        }
+
+        // GET: Admin/Category/CategoryDetails/5
+        [RequirePermission("View Category Details")]
+        public async Task<IActionResult> CategoryDetails(int? id, int page = 1, int pageSize = 12, string? searchTerm = null, string? sortBy = "name", string? sortOrder = "asc")
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(c => c.CategoryId == id);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            // Query products in this category
+            var productsQuery = _context.Products
+                .Where(p => p.Categories.Any(c => c.CategoryId == id))
+                .Include(p => p.Brand)
+                .Include(p => p.ProductImages)
+                .AsQueryable();
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                productsQuery = productsQuery.Where(p => p.ProductName.Contains(searchTerm));
+            }
+
+            // Get total count for pagination
+            var totalProducts = await productsQuery.CountAsync();
+
+            // Apply sorting
+            productsQuery = sortBy?.ToLower() switch
+            {
+                "price" => sortOrder?.ToLower() == "desc" 
+                    ? productsQuery.OrderByDescending(p => p.Price)
+                    : productsQuery.OrderBy(p => p.Price),
+                "date" => sortOrder?.ToLower() == "desc"
+                    ? productsQuery.OrderByDescending(p => p.ProductId)
+                    : productsQuery.OrderBy(p => p.ProductId),
+                _ => sortOrder?.ToLower() == "desc"
+                    ? productsQuery.OrderByDescending(p => p.ProductName)
+                    : productsQuery.OrderBy(p => p.ProductName)
+            };
+
+            // Apply pagination
+            var products = await productsQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
+
+            // Convert to Admin models
+            var adminCategory = new PerfumeStore.Areas.Admin.Models.Category
+            {
+                CategoryId = category.CategoryId,
+                CategoryName = category.CategoryName
+            };
+
+            var adminProducts = products.Select(p => new PerfumeStore.Areas.Admin.Models.Product
+            {
+                ProductId = p.ProductId,
+                ProductName = p.ProductName,
+                Price = p.Price,
+                Brand = p.Brand != null ? new PerfumeStore.Areas.Admin.Models.Brand
+                {
+                    BrandId = p.Brand.BrandId,
+                    BrandName = p.Brand.BrandName
+                } : null,
+                ProductImages = p.ProductImages.Select(pi => new PerfumeStore.Areas.Admin.Models.ProductImage
+                {
+                    ImageId = pi.ImageId,
+                    ImageData = pi.ImageData,
+                    ImageMimeType = pi.ImageMimeType,
+                    ProductId = pi.ProductId
+                }).ToList()
+            }).ToList();
+
+            var viewModel = new PerfumeStore.Areas.Admin.Models.ViewModels.CategoryDetailsViewModel
+            {
+                Category = adminCategory,
+                Products = adminProducts,
+                CurrentPage = page,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                TotalProducts = totalProducts,
+                SearchTerm = searchTerm,
+                SortBy = sortBy,
+                SortOrder = sortOrder
+            };
+
+            return View(viewModel);
         }
     }
 }

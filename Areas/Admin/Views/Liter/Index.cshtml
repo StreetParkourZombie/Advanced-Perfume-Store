@@ -1,4 +1,4 @@
-﻿@model IEnumerable<PerfumeStore.Areas.Admin.Models.Liter>
+﻿@model PerfumeStore.Areas.Admin.Models.PagedResult<PerfumeStore.Areas.Admin.Models.Liter>
 
 @{
     ViewData["Title"] = "Quản lý dung tích (Liter)";
@@ -22,7 +22,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Items)
         {
             <tr>
                 <td>@item.LiterId</td>
@@ -37,3 +37,5 @@
         }
     </tbody>
 </table>
+
+@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_Pagination.cshtml", Model)

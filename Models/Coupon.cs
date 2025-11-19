@@ -17,7 +17,9 @@ namespace PerfumeStore.Models
         public DateTime? ExpiryDate { get; set; }
         public DateTime? UsedDate { get; set; }
         public decimal? DiscountAmount { get; set; }
+        public int? CustomerId { get; set; }
 
+        public virtual Customer? Customer { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
     }
 }

@@ -34,61 +34,67 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// Function to update cart count in header
+// Function to update cart count in header (nhận tham số hoặc gọi API)
 function updateCartCount(cartCount) {
-    console.log('updateCartCount called with:', cartCount);
-    if (cartCount === undefined || cartCount === null) {
-        console.log('cartCount is undefined/null, returning');
-        return;
-    }
-    
-    // Update mobile cart count
-    const mobileCartCount = document.getElementById('mobile-cart-count');
-    console.log('mobile-cart-count element:', mobileCartCount);
-    if (mobileCartCount) {
-        mobileCartCount.textContent = cartCount;
-        console.log('Updated mobile cart count to:', cartCount);
+    // Nếu có tham số, update trực tiếp
+    if (cartCount !== undefined && cartCount !== null) {
+        const count = parseInt(cartCount) || 0;
+        
+        // Update mobile cart count
+        const mobileCartCount = document.getElementById('mobile-cart-count');
+        if (mobileCartCount) {
+            mobileCartCount.textContent = count;
+            if (count > 0) {
+                mobileCartCount.style.display = 'block';
+                mobileCartCount.classList.add('cart-badge-animation');
+                setTimeout(() => mobileCartCount.classList.remove('cart-badge-animation'), 600);
+            } else {
+                mobileCartCount.style.display = 'none';
+            }
+        }
+        
+        // Update desktop cart count
+        const desktopCartCount = document.getElementById('desktop-cart-count');
+        if (desktopCartCount) {
+            desktopCartCount.textContent = count;
+            if (count > 0) {
+                desktopCartCount.style.display = 'block';
+                desktopCartCount.classList.add('cart-badge-animation');
+                setTimeout(() => desktopCartCount.classList.remove('cart-badge-animation'), 600);
+            } else {
+                desktopCartCount.style.display = 'none';
+            }
+        }
+        
+        // Update all elements with cart-count class (fallback)
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        cartCountElements.forEach((element) => {
+            element.textContent = count;
+            if (count > 0) {
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
+        });
     } else {
-        console.log('Mobile cart count element not found');
+        // Nếu không có tham số, gọi API để lấy cart count
+        loadCartCount();
     }
-    
-    // Update desktop cart count
-    const desktopCartCount = document.getElementById('desktop-cart-count');
-    console.log('desktop-cart-count element:', desktopCartCount);
-    if (desktopCartCount) {
-        desktopCartCount.textContent = cartCount;
-        console.log('Updated desktop cart count to:', cartCount);
-    } else {
-        console.log('Desktop cart count element not found');
-    }
-    
-    // Update all elements with cart-count class (fallback)
-    const cartCountElements = document.querySelectorAll('.cart-count');
-    console.log('Found cart-count elements:', cartCountElements.length);
-    cartCountElements.forEach((element, index) => {
-        element.textContent = cartCount;
-        console.log(`Updated cart-count element ${index} to:`, cartCount);
-    });
 }
 
 // Function to load cart count from server
 function loadCartCount() {
-    console.log('loadCartCount called');
     fetch('/Cart/GetCartCount', {
         method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => {
-        console.log('Cart count response:', response);
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        console.log('Cart count data:', data);
-        if (data.success && data.cartCount !== undefined) {
-            updateCartCount(data.cartCount);
-        }
+        const count = data.cartCount || data.count || 0;
+        // Gọi updateCartCount với tham số để update UI
+        updateCartCount(count);
     })
     .catch(error => {
         console.error('Error loading cart count:', error);

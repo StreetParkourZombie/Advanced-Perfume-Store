@@ -1,4 +1,4 @@
-@model IEnumerable<PerfumeStore.Models.Role>
+@model PerfumeStore.Areas.Admin.Models.PagedResult<PerfumeStore.Models.Role>
 @{
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
@@ -41,7 +41,7 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!Model.Any())
+                @if (!(Model?.Items?.Any() ?? false))
                 {
                     <tr>
                         <td colspan="7" class="text-center text-muted py-4">Chưa có role nào.</td>
@@ -49,7 +49,7 @@
                 }
                 else
                 {
-                    foreach (var role in Model)
+                    foreach (var role in Model.Items)
                     {
                         <tr>
                             <td>@role.RoleId</td>
@@ -105,6 +105,8 @@
         </table>
     </div>
 </div>
+
+@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_Pagination.cshtml", Model)
 
 <style>
     .panel {

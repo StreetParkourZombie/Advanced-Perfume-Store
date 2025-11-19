@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using PerfumeStore.Models;
+using PerfumeStore.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -17,19 +18,24 @@ namespace PerfumeStore.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "Vòng Quay Voucher";
 
             var customerId = GetCurrentCustomerId();
             var remainingSpins = GetRemainingSpins(customerId);
             var dailySpins = GetDailySpins(customerId);
+            var availableVouchers = await GetAvailableCouponsAsync();
 
-            ViewBag.RemainingSpins = remainingSpins;
-            ViewBag.DailySpins = dailySpins;
-            ViewBag.IsLoggedIn = customerId.HasValue;
+            var model = new SpinWheelViewModel
+            {
+                RemainingSpins = remainingSpins,
+                DailySpins = dailySpins,
+                IsLoggedIn = customerId.HasValue,
+                AvailableVouchers = availableVouchers
+            };
 
-            return View();
+            return View(model);
         }
 
         private int? GetCurrentCustomerId()
@@ -93,11 +99,65 @@ namespace PerfumeStore.Controllers
                     });
                 }
 
-                // Danh sách voucher với tỷ lệ trúng khác nhau
-                var vouchers = GetVoucherPool();
-                var selectedVoucher = SelectVoucherByProbability(vouchers);
+                // Danh sách voucher có sẵn từ database
+                var vouchers = await GetAvailableCouponsAsync();
+                if (!vouchers.Any())
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Hiện chưa có coupon nào trên vòng quay, vui lòng quay lại sau!",
+                        remainingSpins
+                    });
+                }
+
+                VoucherModel? selectedVoucher = null;
+                int selectedIndex = -1;
+
+                if (customerId.HasValue)
+                {
+                    var selectionPool = new List<VoucherModel>(vouchers);
+                    while (selectionPool.Any())
+                    {
+                        var candidateVoucher = SelectVoucherByProbability(selectionPool, out _);
+                        var assignmentSucceeded = await AssignCouponToCustomerAsync(candidateVoucher.Id, customerId.Value);
+
+                        if (assignmentSucceeded)
+                        {
+                            selectedVoucher = candidateVoucher;
+                            selectedIndex = Math.Max(0, vouchers.FindIndex(v => v.Id == candidateVoucher.Id));
+                            break;
+                        }
+
+                        selectionPool.RemoveAll(v => v.Id == candidateVoucher.Id);
+                    }
+
+                    if (selectedVoucher == null)
+                    {
+                        return Json(new
+                        {
+                            success = false,
+                            message = "🎟️ Các coupon vừa được nhận hết, vui lòng thử lại!",
+                            remainingSpins
+                        });
+                    }
+                }
+                else
+                {
+                    selectedVoucher = SelectVoucherByProbability(vouchers, out selectedIndex);
+                }
 
                 // Giảm số lần quay
+                if (selectedVoucher == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Không thể xác định voucher, vui lòng thử lại!",
+                        remainingSpins
+                    });
+                }
+
                 if (customerId.HasValue)
                 {
                     // Đã đăng nhập - cập nhật database
@@ -122,9 +182,10 @@ namespace PerfumeStore.Controllers
                 }
 
                 // Tính góc quay với animation mượt mà
-                var finalAngle = CalculateSpinAngle(selectedVoucher.Id);
+                var finalAngle = CalculateSpinAngle(selectedIndex, vouchers.Count);
 
                 var newRemainingSpins = GetRemainingSpins(customerId);
+                var updatedVouchers = await GetAvailableCouponsAsync();
 
                 _logger.LogInformation($"Spin completed for customer {customerId}: {selectedVoucher.Name}");
 
@@ -136,6 +197,7 @@ namespace PerfumeStore.Controllers
                     voucher = selectedVoucher,
                     angle = finalAngle,
                     remainingSpins = newRemainingSpins,
+                    availableVouchers = updatedVouchers,
                     message = GetSpinMessage(selectedVoucher),
                     animation = GetAnimationType(selectedVoucher)
                 });
@@ -166,31 +228,34 @@ namespace PerfumeStore.Controllers
             };
         }
 
-        private VoucherModel SelectVoucherByProbability(List<VoucherModel> vouchers)
+        private VoucherModel SelectVoucherByProbability(List<VoucherModel> vouchers, out int selectedIndex)
         {
             var random = new Random();
             var totalProbability = vouchers.Sum(v => v.Probability);
             var randomNumber = random.Next(1, totalProbability + 1);
 
             var currentProbability = 0;
-            foreach (var voucher in vouchers)
+            for (var i = 0; i < vouchers.Count; i++)
             {
-                currentProbability += voucher.Probability;
+                currentProbability += vouchers[i].Probability;
                 if (randomNumber <= currentProbability)
                 {
-                    return voucher;
+                    selectedIndex = i;
+                    return vouchers[i];
                 }
             }
 
+            selectedIndex = vouchers.Count - 1;
             return vouchers.Last(); // Fallback
         }
 
-        private double CalculateSpinAngle(int voucherId)
+        private double CalculateSpinAngle(int voucherIndex, int totalSlots)
         {
             var random = new Random();
             var spins = 5 + random.Next(3); // 5-7 vòng quay
-            var sectorAngle = 360.0 / 8; // 8 sector
-            var targetAngle = (voucherId - 1) * sectorAngle + (sectorAngle / 2); // Giữa sector
+            var slotCount = Math.Max(1, totalSlots);
+            var sectorAngle = 360.0 / slotCount;
+            var targetAngle = voucherIndex * sectorAngle + (sectorAngle / 2); // Giữa sector
             var finalAngle = spins * 360 + targetAngle;
 
             return finalAngle;
@@ -223,15 +288,50 @@ namespace PerfumeStore.Controllers
         }
 
         [HttpPost]
-        public IActionResult ApplyVoucher([FromBody] VoucherRequestModel model)
+        public async Task<IActionResult> ApplyVoucher([FromBody] VoucherRequestModel model)
         {
             _logger.LogInformation($"ApplyVoucher called with code: {model?.Code}");
 
             if (model == null || string.IsNullOrEmpty(model.Code))
                 return Json(new { success = false, message = "❌ Mã voucher không hợp lệ" });
 
-            var vouchers = GetVoucherPool();
-            var voucher = vouchers.FirstOrDefault(v => v.Code.Equals(model.Code, StringComparison.OrdinalIgnoreCase));
+            VoucherModel? voucher = null;
+
+            // Bước 1: Tìm coupon trong database trước
+            var now = DateTime.Now;
+            var codeLower = model.Code.ToLower();
+            var coupon = await _context.Coupons
+                .FirstOrDefaultAsync(c =>
+                    c.Code != null &&
+                    c.Code.ToLower() == codeLower &&
+                    (c.IsUsed == null || c.IsUsed == false) &&
+                    (c.ExpiryDate == null || c.ExpiryDate >= now) &&
+                    c.DiscountAmount.HasValue &&
+                    c.DiscountAmount.Value > 0);
+
+            if (coupon != null)
+            {
+                // Chuyển đổi coupon từ database thành VoucherModel
+                voucher = new VoucherModel
+                {
+                    Id = coupon.CouponId,
+                    Code = coupon.Code!,
+                    Name = $"Giảm {coupon.DiscountAmount.Value:N0}đ",
+                    Value = coupon.DiscountAmount.Value,
+                    Type = "amount",
+                    Color = "#4facfe",
+                    Description = "Mã giảm giá từ admin",
+                    ExpiryDate = coupon.ExpiryDate,
+                    IsActive = true
+                };
+                _logger.LogInformation($"Found coupon in database: {voucher.Name} ({voucher.Code})");
+            }
+            else
+            {
+                // Bước 2: Nếu không tìm thấy trong database, tìm trong danh sách voucher mặc định
+                var vouchers = GetVoucherPool();
+                voucher = vouchers.FirstOrDefault(v => v.Code.Equals(model.Code, StringComparison.OrdinalIgnoreCase));
+            }
 
             if (voucher == null)
             {
@@ -393,9 +493,81 @@ namespace PerfumeStore.Controllers
             }
         }
 
+        private async Task<List<VoucherModel>> GetAvailableCouponsAsync()
+        {
+            var baseColors = new[]
+            {
+                "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
+                "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
+                "linear-gradient(135deg, #f6d365 0%, #fda085 100%)",
+                "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
+                "linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%)",
+                "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+                "linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)",
+                "linear-gradient(135deg, #fddb92 0%, #d1fdff 100%)",
+                "linear-gradient(135deg, #9890e3 0%, #b1f4cf 100%)",
+                "linear-gradient(135deg, #f6e58d 0%, #ffbe76 100%)"
+            };
+
+            var coupons = await _context.Coupons
+                .Where(c =>
+                    (c.IsUsed == null || c.IsUsed == false) &&
+                    c.CustomerId == null &&
+                    (c.ExpiryDate == null || c.ExpiryDate >= DateTime.Now))
+                .OrderBy(c => c.ExpiryDate ?? DateTime.MaxValue)
+                .ThenBy(c => c.CouponId)
+                .ToListAsync();
+
+            if (!coupons.Any())
+            {
+                return new List<VoucherModel>();
+            }
+
+            var equalProbability = Math.Max(1, 100 / coupons.Count);
+
+            var vouchers = coupons.Select((coupon, index) => new VoucherModel
+            {
+                Id = coupon.CouponId,
+                Name = coupon.DiscountAmount.HasValue
+                    ? $"Giảm {coupon.DiscountAmount.Value:N0}đ"
+                    : $"Coupon #{coupon.CouponId}",
+                Code = coupon.Code ?? $"CP{coupon.CouponId}",
+                Value = coupon.DiscountAmount ?? 0,
+                Type = "amount",
+                Color = baseColors[index % baseColors.Length],
+                Probability = equalProbability,
+                Description = coupon.ExpiryDate.HasValue
+                    ? $"Hạn sử dụng: {coupon.ExpiryDate:dd/MM/yyyy}"
+                    : "Không có hạn sử dụng",
+                ExpiryDate = coupon.ExpiryDate,
+                IsActive = true
+            }).ToList();
+
+            // Bổ sung xác suất cho phần dư để tổng ~100
+            var totalProbability = vouchers.Sum(v => v.Probability);
+            if (totalProbability < 100 && vouchers.Any())
+            {
+                vouchers[0].Probability += (100 - totalProbability);
+            }
+
+            return vouchers;
+        }
+
         public class VoucherRequestModel
         {
             public string Code { get; set; } = "";
+        }
+
+        private async Task<bool> AssignCouponToCustomerAsync(int couponId, int customerId)
+        {
+            var rowsAffected = await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE [Coupons]
+                SET [CustomerId] = {customerId},
+                    [IsUsed] = CASE WHEN [IsUsed] IS NULL THEN 0 ELSE [IsUsed] END,
+                    [UsedDate] = NULL
+                WHERE [CouponId] = {couponId} AND [CustomerId] IS NULL");
+
+            return rowsAffected > 0;
         }
     }
 }

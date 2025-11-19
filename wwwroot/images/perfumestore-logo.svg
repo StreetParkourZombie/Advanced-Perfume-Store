@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" role="img" aria-labelledby="title desc">
+  <title id="title">PerfumeStore Logo</title>
+  <desc id="desc">Custom wordmark inspired by Orchard Perfumes &amp; Cosmetics logo</desc>
+  <defs>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#b43e3e" />
+      <stop offset="100%" stop-color="#8d2a2a" />
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#c28968" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  <g filter="url(#softShadow)">
+    <text x="50%" y="140" text-anchor="middle" fill="url(#textGradient)"
+          font-family="'Playfair Display','Cormorant Garamond','Times New Roman',serif"
+          font-size="150" font-weight="600" letter-spacing="14">
+      PERFUME
+    </text>
+    <text x="50%" y="210" text-anchor="middle" fill="#b54a4a"
+          font-family="'Cormorant Garamond','Georgia',serif"
+          font-size="76" letter-spacing="12">
+      STORE
+    </text>
+  </g>
+  <text x="50%" y="240" text-anchor="middle" fill="#b7544c"
+        font-family="'Raleway','Gill Sans',sans-serif"
+        font-size="28" letter-spacing="10">
+    PERFUMES &amp; COSMETICS
+  </text>
+</svg>
+

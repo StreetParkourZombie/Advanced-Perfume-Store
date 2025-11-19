@@ -12,15 +12,19 @@ namespace PerfumeStore.Areas.Admin.Controllers
     {
         private readonly PerfumeStoreContext _db;
         private readonly DBQueryService.IDbQueryService _queryService;
+        private readonly IWarrantyService _warrantyService;
+        private readonly IPaginationService _paginationService;
 
-        public OrdersController(PerfumeStoreContext db, DBQueryService.IDbQueryService queryService)
+        public OrdersController(PerfumeStoreContext db, DBQueryService.IDbQueryService queryService, IWarrantyService warrantyService, IPaginationService paginationService)
         {
             _db = db;
             _queryService = queryService;
+            _warrantyService = warrantyService;
+            _paginationService = paginationService;
         }
 
         [RequirePermission("View Orders")]
-        public async Task<IActionResult> Index(string? searchName, string? status, DateTime? fromDate, DateTime? toDate)
+        public async Task<IActionResult> Index(string? searchName, string? status, DateTime? fromDate, DateTime? toDate, int page = 1)
         {
             var orders = await _queryService.GetOrdersWithIncludesAsync();
 
@@ -49,13 +53,16 @@ namespace PerfumeStore.Areas.Admin.Controllers
                 orders = orders.Where(o => o.OrderDate <= toDate.Value.AddDays(1).AddMilliseconds(-1)).ToList();
             }
 
+            // Apply pagination
+            var pagedResult = _paginationService.Paginate(orders, page, 10);
+
             ViewBag.Statuses = await GetOrderStatuses();
             ViewBag.SearchName = searchName;
             ViewBag.Status = status;
             ViewBag.FromDate = fromDate;
             ViewBag.ToDate = toDate;
 
-            return View(orders);
+            return View(pagedResult);
         }
 
         [RequirePermission("View Orders")]
@@ -119,8 +126,12 @@ namespace PerfumeStore.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            // Lưu trạng thái cũ để so sánh
+            var oldStatus = existingOrder.Status;
+            var newStatus = order.Status;
+
             // Update status
-            existingOrder.Status = order.Status;
+            existingOrder.Status = newStatus;
             
             if (!string.IsNullOrWhiteSpace(order.Notes))
             {
@@ -130,7 +141,54 @@ namespace PerfumeStore.Areas.Admin.Controllers
             try
             {
                 await _db.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Cập nhật đơn hàng thành công!";
+
+                // Xử lý bảo hành dựa trên thay đổi trạng thái
+                if (oldStatus != newStatus)
+                {
+                    if (newStatus == "Đã giao hàng")
+                    {
+                        // Xóa bảo hành cũ trước (nếu có) để tránh duplicate
+                        await _warrantyService.DeleteWarrantiesForOrderAsync(id);
+                        
+                        // Tạo bảo hành khi đơn hàng được set ở trạng thái "Đã giao hàng"
+                        try
+                        {
+                            var warrantyCount = await _warrantyService.CreateWarrantiesForOrderAsync(id);
+                            TempData["SuccessMessage"] = $"Cập nhật đơn hàng thành công! Đã tạo {warrantyCount} bảo hành cho đơn hàng.";
+                        }
+                        catch (Exception ex)
+                        {
+                            TempData["SuccessMessage"] = "Cập nhật đơn hàng thành công!";
+                            TempData["WarningMessage"] = $"Có lỗi khi tạo bảo hành: {ex.Message}";
+                        }
+                    }
+                    else if (oldStatus == "Đã giao hàng")
+                    {
+                        // Chỉ xóa bảo hành nếu đơn hàng đang ở trạng thái "Đã giao hàng" và được đổi sang trạng thái khác
+                        try
+                        {
+                            var deletedCount = await _warrantyService.DeleteWarrantiesForOrderAsync(id);
+                            if (deletedCount > 0)
+                            {
+                                TempData["SuccessMessage"] = $"Cập nhật đơn hàng thành công! Đã xóa {deletedCount} bảo hành của đơn hàng.";
+                            }
+                            else
+                            {
+                                TempData["SuccessMessage"] = "Cập nhật đơn hàng thành công!";
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            TempData["SuccessMessage"] = "Cập nhật đơn hàng thành công!";
+                            TempData["WarningMessage"] = $"Có lỗi khi xóa bảo hành: {ex.Message}";
+                        }
+                    }
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = "Cập nhật đơn hàng thành công!";
+                }
+
                 return RedirectToAction(nameof(Details), new { id });
             }
             catch (DbUpdateException)
@@ -155,6 +213,7 @@ namespace PerfumeStore.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Không tìm thấy đơn hàng" });
             }
 
+            var oldStatus = order.Status;
             order.Status = "Đã hủy";
             if (!string.IsNullOrWhiteSpace(reason))
             {
@@ -164,6 +223,21 @@ namespace PerfumeStore.Areas.Admin.Controllers
             try
             {
                 await _db.SaveChangesAsync();
+
+                // Xóa bảo hành khi hủy đơn hàng (vì trạng thái không còn là "Đã giao hàng")
+                if (oldStatus == "Đã giao hàng")
+                {
+                    try
+                    {
+                        var deletedCount = await _warrantyService.DeleteWarrantiesForOrderAsync(id);
+                        return Json(new { success = true, message = $"Đã hủy đơn hàng thành công! Đã xóa {deletedCount} bảo hành của đơn hàng." });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = true, message = "Đã hủy đơn hàng thành công!", warning = $"Có lỗi khi xóa bảo hành: {ex.Message}" });
+                    }
+                }
+
                 return Json(new { success = true, message = "Đã hủy đơn hàng thành công!" });
             }
             catch (Exception ex)

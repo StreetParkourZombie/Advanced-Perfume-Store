@@ -80,18 +80,47 @@ function updateCartCount() {
     fetch('/Cart/GetCartCount')
         .then(response => response.json())
         .then(data => {
+            // Sử dụng cartCount từ response (API trả về cartCount, không phải count)
+            const count = data.cartCount || data.count || 0;
+            
+            // Update mobile cart count
             const mobileCount = document.getElementById('mobile-cart-count');
-            const desktopCount = document.getElementById('desktop-cart-count');
-            
             if (mobileCount) {
-                mobileCount.textContent = data.count;
-                mobileCount.style.display = data.count > 0 ? 'block' : 'none';
+                mobileCount.textContent = count;
+                // Hiển thị badge nếu có sản phẩm, ẩn nếu không có
+                if (count > 0) {
+                    mobileCount.style.display = 'block';
+                    mobileCount.classList.add('cart-badge-animation');
+                    setTimeout(() => mobileCount.classList.remove('cart-badge-animation'), 600);
+                } else {
+                    mobileCount.style.display = 'none';
+                }
             }
             
+            // Update desktop cart count
+            const desktopCount = document.getElementById('desktop-cart-count');
             if (desktopCount) {
-                desktopCount.textContent = data.count;
-                desktopCount.style.display = data.count > 0 ? 'block' : 'none';
+                desktopCount.textContent = count;
+                // Hiển thị badge nếu có sản phẩm, ẩn nếu không có
+                if (count > 0) {
+                    desktopCount.style.display = 'block';
+                    desktopCount.classList.add('cart-badge-animation');
+                    setTimeout(() => desktopCount.classList.remove('cart-badge-animation'), 600);
+                } else {
+                    desktopCount.style.display = 'none';
+                }
             }
+            
+            // Update tất cả các element có class cart-count (fallback)
+            const allCartCounts = document.querySelectorAll('.cart-count');
+            allCartCounts.forEach(element => {
+                element.textContent = count;
+                if (count > 0) {
+                    element.style.display = 'block';
+                } else {
+                    element.style.display = 'none';
+                }
+            });
         })
         .catch(error => {
             console.error('Error updating cart count:', error);

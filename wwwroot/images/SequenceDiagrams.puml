@@ -1,0 +1,181 @@
+@startuml Sequence_Registration
+title Sequence Diagram: Đăng ký tài khoản (Registration)
+
+actor User
+participant "AuthController" as Auth
+database "Database\n(PerfumeStoreContext)" as DB
+participant "EmailService" as Email
+participant "BCrypt" as BCrypt
+
+== Đăng ký tài khoản ==
+
+User -> Auth: POST /Auth/Register\n(name, email, password, phone, birthYear)
+activate Auth
+
+Auth -> Auth: Validate input\n(email, password required)
+
+alt Email đã tồn tại
+    Auth -> DB: Check if email exists\nin Customers table
+    DB --> Auth: Email exists
+    Auth --> User: ViewBag.Error = "Email đã được sử dụng"
+    deactivate Auth
+else Email chưa tồn tại
+    Auth -> DB: Check pending registration\nin last 5 minutes
+    DB --> Auth: Pending registration status
+    
+    alt Có pending trong 5 phút
+        Auth --> User: ViewBag.Message = "Vui lòng kiểm tra email"
+        deactivate Auth
+    else Không có pending hoặc đã hết hạn
+        Auth -> DB: Delete expired\npending registrations
+        DB --> Auth: Deleted
+        
+        Auth -> BCrypt: HashPassword(password)
+        BCrypt --> Auth: Hashed password
+        
+        Auth -> Auth: Generate token\n(Guid.NewGuid())
+        
+        Auth -> DB: Create PendingRegistration\n(name, email, passwordHash, token,\nCreatedAt, ExpiresAt = 24h)
+        DB --> Auth: PendingRegistration saved
+        
+        Auth -> Auth: Generate callback URL\n(scheme://host/Auth/ConfirmEmail?token=...)
+        
+        Auth -> Email: SendVerificationEmailAsync\n(email, token, callbackUrl)
+        activate Email
+        Email -> Email: Send email with\nverification link
+        Email --> Auth: Email sent
+        deactivate Email
+        
+        Auth --> User: ViewBag.Message = "Vui lòng kiểm tra email\n(link có hiệu lực 24 giờ)"
+        deactivate Auth
+    end
+end
+
+== Xác thực email ==
+
+User -> Auth: GET /Auth/ConfirmEmail?token=xxx
+activate Auth
+
+Auth -> DB: Find PendingRegistration\nby token (not processed)
+DB --> Auth: PendingRegistration
+
+alt Token không tồn tại hoặc đã dùng
+    Auth --> User: "Token không tồn tại\nhoặc đã được sử dụng"
+    deactivate Auth
+else Token đã hết hạn
+    Auth --> User: "Token đã hết hạn.\nVui lòng đăng ký lại"
+    deactivate Auth
+else Token hợp lệ
+    Auth -> DB: Create Customer\n(name, email, passwordHash, CreatedDate)
+    DB --> Auth: Customer created
+    
+    Auth -> DB: Update PendingRegistration\n(IsProcessed = true)
+    DB --> Auth: Updated
+    
+    Auth -> DB: SaveChanges()
+    DB --> Auth: Saved
+    
+    Auth --> User: "Xác thực thành công!\nChào mừng {name}!\n<a href='/Auth/Login'>Đăng nhập ngay</a>"
+    deactivate Auth
+end
+
+@enduml
+
+@startuml Sequence_Login
+title Sequence Diagram: Đăng nhập (Login)
+
+actor User
+participant "AuthController" as Auth
+database "Database\n(PerfumeStoreContext)" as DB
+participant "BCrypt" as BCrypt
+participant "Cookie\nAuthentication" as Cookie
+
+== Đăng nhập ==
+
+User -> Auth: POST /Auth/Login\n(email, password)
+activate Auth
+
+Auth -> DB: Find Customer by email
+DB --> Auth: Customer (or null)
+
+alt Customer không tồn tại
+    Auth --> User: ViewBag.Error = "Email hoặc mật khẩu không đúng"
+    deactivate Auth
+else Customer tồn tại
+    alt PasswordHash rỗng hoặc không khớp
+        Auth -> BCrypt: Verify(password, customer.PasswordHash)
+        BCrypt --> Auth: false
+        Auth --> User: ViewBag.Error = "Email hoặc mật khẩu không đúng"
+        deactivate Auth
+    else Password đúng
+        Auth -> BCrypt: Verify(password, customer.PasswordHash)
+        BCrypt --> Auth: true
+        
+        Auth -> Auth: Create Claims\n(ClaimTypes.NameIdentifier = CustomerId,\nClaimTypes.Name = Name,\nClaimTypes.Email = Email)
+        
+        Auth -> Cookie: SignInAsync\n(CookieAuthenticationScheme,\nClaimsPrincipal,\nAuthenticationProperties\nIsPersistent = true)
+        activate Cookie
+        Cookie -> Cookie: Create authentication cookie
+        Cookie --> Auth: Signed in
+        deactivate Cookie
+        
+        Auth --> User: RedirectToAction("Index", "Home")
+        deactivate Auth
+    end
+end
+
+@enduml
+
+@startuml Sequence_ProductSearch
+title Sequence Diagram: Tìm kiếm sản phẩm (Product Search)
+
+actor User
+participant "SearchController" as Search
+database "Database\n(PerfumeStoreContext)" as DB
+
+== Tìm kiếm sản phẩm (Trang kết quả) ==
+
+User -> Search: GET /Search/Index?query=keyword
+activate Search
+
+Search -> Search: Validate query\n(string.IsNullOrWhiteSpace)
+
+alt Query rỗng
+    Search --> User: View with empty results\nViewBag.Query = ""
+    deactivate Search
+else Query có giá trị
+    Search -> DB: Query Products\n.Include(Discount)\n.Include(ProductImages)\n.Where(IsPublished == true AND\n(ProductName.Contains(query) OR\nSuggestionName.Contains(query)))\n.OrderByDescending(ProductId)\n.Take(50)
+    activate DB
+    DB -> DB: Execute query
+    DB --> Search: List<Product> (results)
+    deactivate DB
+    
+    Search -> Search: Set ViewBag.Query = query
+    
+    Search --> User: View(results) with search results
+    deactivate Search
+end
+
+== Tìm kiếm nhanh (AJAX/JSON) ==
+
+User -> Search: GET /Search/SearchProducts?keyword=xxx
+activate Search
+
+Search -> Search: Validate keyword\n(string.IsNullOrWhiteSpace)
+
+alt Keyword rỗng
+    Search --> User: Json(Enumerable.Empty<object>())
+    deactivate Search
+else Keyword có giá trị
+    Search -> DB: Query Products\n.Include(ProductImages)\n.Where(IsPublished == true AND\n(ProductName.Contains(keyword) OR\nSuggestionName.Contains(keyword)))\n.Select(new { id, name, price, image })\n.Take(8)
+    activate DB
+    DB -> DB: Execute query
+    DB --> Search: List of anonymous objects
+    deactivate DB
+    
+    Search --> User: Json(data)\n[{id, name, price, image}, ...]
+    deactivate Search
+end
+
+@enduml
+

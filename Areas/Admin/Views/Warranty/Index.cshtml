@@ -1,6 +1,5 @@
-@model IEnumerable<PerfumeStore.Models.Warranty>
+@model PerfumeStore.Areas.Admin.Models.PagedResult<PerfumeStore.Areas.Admin.Models.Warranty>
 @{
-    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Quản lý bảo hành";
 }
 
@@ -203,9 +202,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.Any())
+                    @if (Model?.Items?.Any() ?? false)
                     {
-                        @foreach (var warranty in Model)
+                        @foreach (var warranty in Model.Items)
                         {
                             var daysLeft = (warranty.EndDate - DateTime.Now).Days;
                             var statusClass = warranty.Status switch
@@ -220,7 +219,7 @@
                                 "Active" => daysLeft > 0 ? $"Còn {daysLeft} ngày" : "Hết hạn",
                                 "Expired" => "Đã hết hạn",
                                 "Cancelled" => "Đã hủy",
-                                _ => warranty.Status
+                                _ => "Hoạt động" // Mặc định hiển thị "Hoạt động"
                             };
 
                             <tr>
@@ -272,6 +271,11 @@
                                            class="btn btn-outline-primary" title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        <a asp-action="Delete" asp-route-id="@warranty.WarrantyId" 
+                                           class="btn btn-outline-danger" title="Xóa"
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa bảo hành này?');">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
                                         <div class="btn-group btn-group-sm" role="group">
                                             <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="Cập nhật trạng thái">
                                                 <i class="fas fa-cog"></i>
@@ -313,6 +317,8 @@
         </div>
     </div>
 </div>
+
+@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_Pagination.cshtml", Model)
 
 <!-- Update Status Form (Hidden) -->
 <form id="updateStatusForm" method="post" asp-action="UpdateStatus" style="display: none;">

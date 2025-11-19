@@ -7,6 +7,7 @@ namespace PerfumeStore.Areas.Admin.Services
     {
         Task<bool> CreateWarrantyForOrderDetailAsync(int orderDetailId, int customerId, int warrantyPeriodMonths);
         Task<int> CreateWarrantiesForOrderAsync(int orderId);
+        Task<int> DeleteWarrantiesForOrderAsync(int orderId);
         Task<bool> UpdateWarrantyStatusAsync(int warrantyId, string status);
         Task<List<Warranty>> GetExpiringWarrantiesAsync(int daysBeforeExpiry = 30);
     }
@@ -62,7 +63,7 @@ namespace PerfumeStore.Areas.Admin.Services
 
         /// <summary>
         /// Tạo bảo hành cho tất cả sản phẩm trong đơn hàng
-        /// Được gọi khi đơn hàng được xác nhận/thanh toán thành công
+        /// Được gọi khi admin set đơn hàng ở trạng thái "Đã giao hàng"
         /// </summary>
         public async Task<int> CreateWarrantiesForOrderAsync(int orderId)
         {
@@ -95,6 +96,54 @@ namespace PerfumeStore.Areas.Admin.Services
                 }
 
                 return createdCount;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Xóa tất cả bảo hành của đơn hàng
+        /// Được gọi khi admin set đơn hàng ở trạng thái khác "Đã giao hàng"
+        /// </summary>
+        public async Task<int> DeleteWarrantiesForOrderAsync(int orderId)
+        {
+            try
+            {
+                // Lấy tất cả OrderDetailIds của đơn hàng
+                var orderDetailIds = await _context.OrderDetails
+                    .Where(od => od.OrderId == orderId)
+                    .Select(od => od.OrderDetailId)
+                    .ToListAsync();
+
+                if (!orderDetailIds.Any())
+                {
+                    return 0;
+                }
+
+                // Tìm tất cả bảo hành liên quan đến các OrderDetail này
+                var warranties = await _context.Warranties
+                    .Include(w => w.WarrantyClaims)
+                    .Where(w => orderDetailIds.Contains(w.OrderDetailId))
+                    .ToListAsync();
+
+                int deletedCount = warranties.Count;
+
+                // Xóa tất cả WarrantyClaims trước
+                foreach (var warranty in warranties)
+                {
+                    if (warranty.WarrantyClaims.Any())
+                    {
+                        _context.WarrantyClaims.RemoveRange(warranty.WarrantyClaims);
+                    }
+                }
+
+                // Sau đó xóa các Warranty
+                _context.Warranties.RemoveRange(warranties);
+                await _context.SaveChangesAsync();
+
+                return deletedCount;
             }
             catch (Exception)
             {

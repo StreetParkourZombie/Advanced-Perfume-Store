@@ -2061,6 +2061,17 @@ table tbody td {
     100% { transform: scale(1); }
 }
 
+/* Cart Count Badge - Ẩn mặc định, JavaScript sẽ điều khiển hiển thị */
+#mobile-cart-count,
+#desktop-cart-count {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 0.75rem;
+    line-height: 18px;
+    text-align: center;
+}
+
 /* Hide number input spinner arrows */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {

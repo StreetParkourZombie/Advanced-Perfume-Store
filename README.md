@@ -34,7 +34,7 @@ dotnet ef migrations add AdminInitialCreate -o Areas/Admin/Migrations
 Package								  |				 Chức năng				 |						Lệnh cài đặt
 --------------------------------------|--------------------------------------|--------------------------------------------------------
 BCrypt.Net-Next						  |	Mã hóa mật khẩu						 | dotnet add package BCrypt.Net-Next --version 4.0.2
-PayOS								  | Cổng thanh toán trực tuyến		 | dotnet add package payOS
+PayOS								  | Cổng thanh toán trực tuyến			 | dotnet add package payOS
 
 
 

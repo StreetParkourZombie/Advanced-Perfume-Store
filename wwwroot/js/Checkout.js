@@ -36,6 +36,28 @@
 
         // Cập nhật số lượng sản phẩm trên icon giỏ hàng của HEADER
         cartCountBadges.forEach(b => b.textContent = String(totalQty));
+        
+        // Update cart count trong header (mobile và desktop)
+        if (typeof updateCartCount === 'function') {
+            // Gọi API để lấy cart count chính xác từ server
+            updateCartCount();
+        } else {
+            // Fallback: update trực tiếp các badge
+            const mobileCount = document.getElementById('mobile-cart-count');
+            const desktopCount = document.getElementById('desktop-cart-count');
+            const allCartCounts = document.querySelectorAll('.cart-count');
+            
+            [mobileCount, desktopCount, ...allCartCounts].forEach(element => {
+                if (element) {
+                    element.textContent = totalQty;
+                    if (totalQty > 0) {
+                        element.style.display = 'block';
+                    } else {
+                        element.style.display = 'none';
+                    }
+                }
+            });
+        }
     }
 
     // Function to update quantity in session
@@ -207,6 +229,11 @@
                 const tr = btn.closest('tr');
                 tr.parentNode.removeChild(tr);
                 recalc();
+                
+                // Update cart count trong header
+                if (typeof updateCartCount === 'function') {
+                    updateCartCount();
+                }
 
                 // Reload page if no items left
                 if (json.remaining === 0) {

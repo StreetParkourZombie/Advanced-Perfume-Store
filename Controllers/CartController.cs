@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PerfumeStore.Models;
 using PerfumeStore.Models.ViewModels;
 using PerfumeStore.Services;
+using PerfumeStore.Areas.Admin.Services;
 using System.Text.Json;
 
 namespace PerfumeStore.Controllers
@@ -13,13 +14,15 @@ namespace PerfumeStore.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly IOrderService _orderService;
         private readonly PerfumeStoreContext _context;
+        private readonly IWarrantyService _warrantyService;
 
-        public CartController(ILogger<CartController> logger, IWebHostEnvironment env, IOrderService orderService, PerfumeStoreContext context)
+        public CartController(ILogger<CartController> logger, IWebHostEnvironment env, IOrderService orderService, PerfumeStoreContext context, IWarrantyService warrantyService)
         {
             _logger = logger;
             _env = env;
             _orderService = orderService;
             _context = context;
+            _warrantyService = warrantyService;
         }
 
         public IActionResult Index()
@@ -50,8 +53,8 @@ namespace PerfumeStore.Controllers
             var count = cart.Sum(item => item.Quantity);
             return Json(new
             {
-                success = true,
-                cartCount = count
+                success = true, 
+                cartCount = count 
             });
         }
 
@@ -556,15 +559,46 @@ namespace PerfumeStore.Controllers
                 _context.ShippingAddresses.Add(shippingAddress);
                 await _context.SaveChangesAsync();
 
-                // Tạo order
+                // Tìm hoặc tạo coupon từ voucher đã áp dụng
+                Coupon? coupon = null;
+                if (appliedVoucher != null)
+                {
+                    // Tìm coupon trong database theo code
+                    var codeLower = appliedVoucher.Code.ToLower();
+                    coupon = await _context.Coupons
+                        .FirstOrDefaultAsync(c => c.Code != null && c.Code.ToLower() == codeLower);
+
+                    if (coupon == null)
+                    {
+                        // Tạo coupon mới nếu chưa tồn tại
+                        coupon = new Coupon
+                        {
+                            Code = appliedVoucher.Code,
+                            DiscountAmount = appliedVoucher.Type == "amount" ? appliedVoucher.Value : 0,
+                            CreatedDate = DateTime.Now,
+                            ExpiryDate = DateTime.Now.AddDays(30),
+                            IsUsed = false
+                        };
+                        _context.Coupons.Add(coupon);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                // Tạo order - Tính tổng tiền đúng bao gồm VAT và shipping fee
                 var subtotal = cart.Sum(item => item.LineTotal);
+                var discount = CalculateDiscount(subtotal, appliedVoucher);
+                var shippingFee = CalculateShippingFee(subtotal, appliedVoucher);
+                var vat = CalculateVAT(subtotal); // VAT tính trên giá gốc (trước khi trừ voucher)
+                var total = subtotal - discount + shippingFee + vat;
+                
                 var paymentMethodText = model.PaymentMethod == "BANK_TRANSFER" ? "Chuyển khoản ngân hàng" : "Thanh toán khi nhận hàng";
                 var order = new Order
                 {
                     CustomerId = customer.CustomerId,
                     AddressId = shippingAddress.AddressId,
+                    CouponId = coupon?.CouponId,
                     OrderDate = DateTime.Now,
-                    TotalAmount = subtotal,
+                    TotalAmount = total, // Lưu tổng tiền đúng bao gồm VAT và shipping fee
                     PaymentMethod = paymentMethodText,
                     Status = model.PaymentMethod == "BANK_TRANSFER" ? "Chờ thanh toán" : "Đang xử lý",
                     Notes = model.OrderNotes
@@ -628,6 +662,18 @@ namespace PerfumeStore.Controllers
 
                 await _context.SaveChangesAsync();
 
+                // Đánh dấu coupon đã sử dụng cho COD orders (bank transfer sẽ đánh dấu sau khi thanh toán thành công)
+                if (model.PaymentMethod != "BANK_TRANSFER" && coupon != null)
+                {
+                    coupon.IsUsed = true;
+                    coupon.UsedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Marked coupon {coupon.Code} as used for COD order {order.OrderId}");
+                }
+
+                // Bảo hành sẽ được tạo tự động khi admin set đơn hàng ở trạng thái "Đã giao hàng"
+                // Không tạo bảo hành ở đây nữa
+
                 // Lưu thông tin đơn hàng vào session để hiển thị trong trang thành công
                 var orderInfo = new
                 {
@@ -635,10 +681,11 @@ namespace PerfumeStore.Controllers
                     OrderDate = order.OrderDate,
                     Items = cart.ToList(),
                     Subtotal = subtotal,
-                    Discount = 0m,
-                    ShippingFee = 0m,
+                    Discount = discount,
+                    ShippingFee = shippingFee,
+                    VAT = vat,
                     Total = order.TotalAmount,
-                    AppliedVoucher = (object)null,
+                    AppliedVoucher = appliedVoucher != null ? (object)appliedVoucher : null,
                     CustomerInfo = new
                     {
                         Name = model.CustomerName,
@@ -663,18 +710,18 @@ namespace PerfumeStore.Controllers
                 else
                 {
                     // COD - Xóa giỏ hàng và voucher sau khi đặt hàng thành công
-                    cart.Clear();
-                    SaveCartToSession(cart);
-                    HttpContext.Session.Remove("AppliedVoucher");
+                cart.Clear();
+                SaveCartToSession(cart);
+                HttpContext.Session.Remove("AppliedVoucher");
 
-                    return RedirectToAction(nameof(PaymentSuccess));
+                return RedirectToAction(nameof(PaymentSuccess));
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating order");
                 TempData["Error"] = $"Có lỗi xảy ra khi tạo đơn hàng: {ex.Message}";
-
+                
                 // Reload model để hiển thị lại form
                 model.CartItems = cart;
                 model.Subtotal = cart.Sum(item => item.LineTotal);
@@ -697,7 +744,7 @@ namespace PerfumeStore.Controllers
             {
                 var orderInfo = JsonSerializer.Deserialize<JsonElement>(orderJson);
                 var orderId = orderInfo.GetProperty("OrderId").GetString();
-
+                
                 // Lấy thông tin đơn hàng từ database
                 var order = await _orderService.GetOrderByOrderIdAsync(orderId);
                 if (order != null)
@@ -765,7 +812,7 @@ namespace PerfumeStore.Controllers
                             Quantity = od.Quantity,
                             UnitPrice = od.UnitPrice,
                             TotalPrice = od.TotalPrice,
-                            ImageUrl = od.Product.ProductImages?.FirstOrDefault()?.ImageData != null
+                            ImageUrl = od.Product.ProductImages?.FirstOrDefault()?.ImageData != null 
                                 ? $"data:{od.Product.ProductImages.First().ImageMimeType};base64,{Convert.ToBase64String(od.Product.ProductImages.First().ImageData)}"
                                 : "/images/ProductSummary/chanel-bleu-de-chanel-edp-100-ml.webp" // Default image
                         }).ToList(),
@@ -775,7 +822,7 @@ namespace PerfumeStore.Controllers
                             DiscountAmount = order.Coupon.DiscountAmount
                         } : null
                     };
-
+                    
                     return View(orderViewModel);
                 }
                 else
@@ -827,6 +874,37 @@ namespace PerfumeStore.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult GetCheckoutSummary()
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var appliedVoucher = GetAppliedVoucher();
+
+                var subtotal = cart.Sum(item => item.LineTotal);
+                var discount = CalculateDiscount(subtotal, appliedVoucher);
+                var shippingFee = CalculateShippingFee(subtotal, appliedVoucher);
+                var vat = CalculateVAT(subtotal);
+                var total = subtotal - discount + shippingFee + vat;
+
+                return Json(new
+                {
+                    success = true,
+                    subtotal = subtotal,
+                    discount = discount,
+                    shippingFee = shippingFee,
+                    vat = vat,
+                    total = total
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting checkout summary");
+                return Json(new { success = false, message = $"❌ Lỗi: {ex.Message}" });
+            }
+        }
+
         // Test method để kiểm tra database connection
         [HttpGet]
         public async Task<IActionResult> TestDatabaseConnection()
@@ -834,14 +912,14 @@ namespace PerfumeStore.Controllers
             try
             {
                 Console.WriteLine("Testing database connection...");
-
+                
                 // Test database connection bằng cách đếm số customer
                 var customerCount = await _context.Customers.CountAsync();
                 Console.WriteLine($"Database connection successful. Customer count: {customerCount}");
-
+                
                 return Json(new
                 {
-                    success = true,
+                    success = true, 
                     message = "Database connection is working",
                     customerCount = customerCount
                 });
@@ -851,7 +929,7 @@ namespace PerfumeStore.Controllers
                 Console.WriteLine($"Database connection error: {ex.Message}");
                 return Json(new
                 {
-                    success = false,
+                    success = false, 
                     message = "Database connection failed",
                     error = ex.Message
                 });
@@ -865,24 +943,24 @@ namespace PerfumeStore.Controllers
             try
             {
                 Console.WriteLine("Testing full order flow...");
-
+                
                 // 1. Thêm sản phẩm test vào cart
                 var cart = GetCartFromSession();
                 cart.Clear();
-
-                var testProduct = new CartItem
-                {
-                    ImageUrl = "/images/Checkout/product1.jpg",
-                    ProductName = "Test Product",
-                    Description = "Test Description",
-                    Quantity = 1,
-                    UnitPrice = 100000
+                
+                var testProduct = new CartItem 
+                { 
+                    ImageUrl = "/images/Checkout/product1.jpg", 
+                    ProductName = "Test Product", 
+                    Description = "Test Description", 
+                    Quantity = 1, 
+                    UnitPrice = 100000 
                 };
-
+                
                 cart.Add(testProduct);
                 SaveCartToSession(cart);
                 Console.WriteLine("Test product added to cart");
-
+                
                 // 2. Tạo model test
                 var model = new CheckoutViewModel
                 {
@@ -895,17 +973,17 @@ namespace PerfumeStore.Controllers
                     ShippingAddress = "123 Test Street",
                     OrderNotes = "Test order"
                 };
-
+                
                 Console.WriteLine("Test model created");
-
+                
                 // 3. Test tạo đơn hàng
                 Console.WriteLine("Creating test order...");
                 var order = await _orderService.CreateOrderAsync(model, model.CustomerEmail, cart, null);
                 Console.WriteLine($"Test order created with ID: {order.OrderId}");
-
+                
                 return Json(new
                 {
-                    success = true,
+                    success = true, 
                     message = "Full order flow test completed successfully",
                     orderId = order.OrderId,
                     cartCount = cart.Count
@@ -917,7 +995,7 @@ namespace PerfumeStore.Controllers
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return Json(new
                 {
-                    success = false,
+                    success = false, 
                     message = "Full order flow test failed",
                     error = ex.Message
                 });

@@ -135,6 +135,7 @@
 
 .order-body {
     padding: 1.5rem;
+    background-color: white;
 }
 
 .products-preview {
@@ -144,6 +145,7 @@
     margin-bottom: 1.5rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid #e9ecef;
+    background-color: transparent;
 }
 
 .product-item {
@@ -152,6 +154,7 @@
     gap: 0.75rem;
     flex: 0 0 auto;
     max-width: 250px;
+    background-color: transparent !important;
 }
 
 .product-image {
@@ -160,6 +163,7 @@
     object-fit: cover;
     border-radius: 8px;
     border: 1px solid #e9ecef;
+    background-color: white;
 }
 
 .product-image-placeholder {
@@ -177,6 +181,7 @@
 .product-info {
     flex: 1;
     min-width: 0;
+    background-color: transparent !important;
 }
 
 .product-name {
@@ -187,11 +192,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    background-color: transparent !important;
 }
 
 .product-quantity {
     font-size: 0.85rem;
     color: #6c757d;
+    background-color: transparent !important;
 }
 
 .product-more {

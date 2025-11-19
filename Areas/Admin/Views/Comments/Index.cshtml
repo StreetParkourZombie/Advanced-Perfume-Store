@@ -1,4 +1,4 @@
-@model List<PerfumeStore.Areas.Admin.Models.ViewModels.ProductCommentsVM>
+@model PerfumeStore.Areas.Admin.Models.PagedResult<PerfumeStore.Areas.Admin.Models.ViewModels.ProductCommentsVM>
 
 @{
     ViewData["Title"] = "Quản lý bình luận";
@@ -50,7 +50,7 @@
     <!-- Products with Comments Table -->
     <div class="card">
         <div class="card-body">
-            @if (Model != null && Model.Any())
+            @if (Model?.Items?.Any() ?? false)
             {
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
@@ -68,7 +68,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model)
+                            @foreach (var item in Model.Items)
                             {
                                 <tr>
                                     <td>
@@ -140,6 +140,8 @@
         </div>
     </div>
 </div>
+
+@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_Pagination.cshtml", Model)
 
 <style>
     .table th {

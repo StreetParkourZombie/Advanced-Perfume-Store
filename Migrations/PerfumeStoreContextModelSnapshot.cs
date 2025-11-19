@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using PerfumeStore.Models;
+using PerfumeStore.Areas.Admin.Models;
 
 #nullable disable
 
-namespace PerfumeStore.Migrations
+namespace PerfumeStore.Areas.Admin.Migrations
 {
     [DbContext(typeof(PerfumeStoreContext))]
     partial class PerfumeStoreContextModelSnapshot : ModelSnapshot
@@ -58,7 +58,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("EqualLiter", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Admin", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Admin", b =>
                 {
                     b.Property<int>("AdminId")
                         .ValueGeneratedOnAdd()
@@ -103,7 +103,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Admins");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Brand", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Brand", b =>
                 {
                     b.Property<int>("BrandId")
                         .ValueGeneratedOnAdd()
@@ -130,7 +130,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Brands");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Category", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Category", b =>
                 {
                     b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
@@ -149,7 +149,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Comment", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Comment", b =>
                 {
                     b.Property<int>("ProductId")
                         .HasColumnType("int")
@@ -183,7 +183,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Coupon", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Coupon", b =>
                 {
                     b.Property<int>("CouponId")
                         .ValueGeneratedOnAdd()
@@ -203,6 +203,9 @@ namespace PerfumeStore.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("DiscountAmount")
                         .HasColumnType("decimal(10,2)");
 
@@ -219,10 +222,12 @@ namespace PerfumeStore.Migrations
 
                     b.HasKey("CouponId");
 
+                    b.HasIndex("CustomerId");
+
                     b.ToTable("Coupons");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Customer", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Customer", b =>
                 {
                     b.Property<int>("CustomerId")
                         .ValueGeneratedOnAdd()
@@ -274,7 +279,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.DiscountProgram", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.DiscountProgram", b =>
                 {
                     b.Property<int>("DiscountId")
                         .ValueGeneratedOnAdd()
@@ -296,7 +301,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("DiscountPrograms");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Fee", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Fee", b =>
                 {
                     b.Property<int>("FeeId")
                         .HasColumnType("int");
@@ -321,7 +326,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Fee", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Liter", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Liter", b =>
                 {
                     b.Property<int>("LiterId")
                         .ValueGeneratedOnAdd()
@@ -345,7 +350,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Liters");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Membership", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Membership", b =>
                 {
                     b.Property<int>("MembershipId")
                         .ValueGeneratedOnAdd()
@@ -388,7 +393,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Memberships");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Order", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Order", b =>
                 {
                     b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
@@ -437,7 +442,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.OrderDetail", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.OrderDetail", b =>
                 {
                     b.Property<int>("OrderDetailId")
                         .ValueGeneratedOnAdd()
@@ -472,7 +477,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("OrderDetails");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.PendingRegistration", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.PendingRegistration", b =>
                 {
                     b.Property<int>("PendingRegistrationId")
                         .ValueGeneratedOnAdd()
@@ -522,7 +527,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("PendingRegistration", (string)null);
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Permission", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Permission", b =>
                 {
                     b.Property<int>("PermissionId")
                         .ValueGeneratedOnAdd()
@@ -555,7 +560,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Permissions");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Product", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Product", b =>
                 {
                     b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
@@ -664,7 +669,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.ProductImage", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.ProductImage", b =>
                 {
                     b.Property<int>("ImageId")
                         .ValueGeneratedOnAdd()
@@ -693,7 +698,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("ProductImages");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Role", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Role", b =>
                 {
                     b.Property<int>("RoleId")
                         .ValueGeneratedOnAdd()
@@ -719,7 +724,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.ShippingAddress", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.ShippingAddress", b =>
                 {
                     b.Property<int>("AddressId")
                         .ValueGeneratedOnAdd()
@@ -775,7 +780,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("ShippingAddresses");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Warranty", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Warranty", b =>
                 {
                     b.Property<int>("WarrantyId")
                         .ValueGeneratedOnAdd()
@@ -829,7 +834,7 @@ namespace PerfumeStore.Migrations
                     b.ToTable("Warranties");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.WarrantyClaim", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.WarrantyClaim", b =>
                 {
                     b.Property<int>("WarrantyClaimId")
                         .ValueGeneratedOnAdd()
@@ -917,13 +922,13 @@ namespace PerfumeStore.Migrations
 
             modelBuilder.Entity("EqualCategory", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Category", null)
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .IsRequired()
                         .HasConstraintName("FK__EqualCate__Categ__7C4F7684");
 
-                    b.HasOne("PerfumeStore.Models.Product", null)
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .IsRequired()
@@ -932,22 +937,22 @@ namespace PerfumeStore.Migrations
 
             modelBuilder.Entity("EqualLiter", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Liter", null)
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Liter", null)
                         .WithMany()
                         .HasForeignKey("LiterId")
                         .IsRequired()
                         .HasConstraintName("FK__EqualLite__Liter__7E37BEF6");
 
-                    b.HasOne("PerfumeStore.Models.Product", null)
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .IsRequired()
                         .HasConstraintName("FK__EqualLite__Produ__7D439ABD");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Admin", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Admin", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Role", "Role")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Role", "Role")
                         .WithMany("Admins")
                         .HasForeignKey("RoleId")
                         .HasConstraintName("FK__Admins__RoleID__778AC167");
@@ -955,15 +960,15 @@ namespace PerfumeStore.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Comment", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Comment", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Customer", "Customer")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Customer", "Customer")
                         .WithMany("Comments")
                         .HasForeignKey("CustomerId")
                         .IsRequired()
                         .HasConstraintName("FK__Comments__Custom__797309D9");
 
-                    b.HasOne("PerfumeStore.Models.Product", "Product")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Product", "Product")
                         .WithMany("Comments")
                         .HasForeignKey("ProductId")
                         .IsRequired()
@@ -974,9 +979,19 @@ namespace PerfumeStore.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Customer", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Coupon", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Membership", "Membership")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Customer", "Customer")
+                        .WithMany("Coupons")
+                        .HasForeignKey("CustomerId")
+                        .HasConstraintName("FK__Coupons__Custome__1F98B2C1");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Customer", b =>
+                {
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Membership", "Membership")
                         .WithMany("Customers")
                         .HasForeignKey("MembershipId")
                         .HasConstraintName("FK__Customers__Membe__7A672E12");
@@ -984,20 +999,20 @@ namespace PerfumeStore.Migrations
                     b.Navigation("Membership");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Order", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Order", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.ShippingAddress", "Address")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.ShippingAddress", "Address")
                         .WithMany("Orders")
                         .HasForeignKey("AddressId")
                         .IsRequired()
                         .HasConstraintName("FK__Orders__AddressI__02FC7413");
 
-                    b.HasOne("PerfumeStore.Models.Coupon", "Coupon")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Coupon", "Coupon")
                         .WithMany("Orders")
                         .HasForeignKey("CouponId")
                         .HasConstraintName("FK__Orders__CouponID__02084FDA");
 
-                    b.HasOne("PerfumeStore.Models.Customer", "Customer")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
                         .IsRequired()
@@ -1010,15 +1025,15 @@ namespace PerfumeStore.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.OrderDetail", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.OrderDetail", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Order", "Order")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
                         .IsRequired()
                         .HasConstraintName("FK__OrderDeta__Order__7F2BE32F");
 
-                    b.HasOne("PerfumeStore.Models.Product", "Product")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Product", "Product")
                         .WithMany("OrderDetails")
                         .HasForeignKey("ProductId")
                         .IsRequired()
@@ -1029,15 +1044,15 @@ namespace PerfumeStore.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Product", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Product", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Brand", "Brand")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Brand", "Brand")
                         .WithMany("Products")
                         .HasForeignKey("BrandId")
                         .IsRequired()
                         .HasConstraintName("FK__Products__BrandI__04E4BC85");
 
-                    b.HasOne("PerfumeStore.Models.DiscountProgram", "Discount")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.DiscountProgram", "Discount")
                         .WithMany("Products")
                         .HasForeignKey("DiscountId")
                         .HasConstraintName("FK__Products__Discou__05D8E0BE");
@@ -1047,9 +1062,9 @@ namespace PerfumeStore.Migrations
                     b.Navigation("Discount");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.ProductImage", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.ProductImage", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Product", "Product")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Product", "Product")
                         .WithMany("ProductImages")
                         .HasForeignKey("ProductId")
                         .IsRequired()
@@ -1058,9 +1073,9 @@ namespace PerfumeStore.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.ShippingAddress", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.ShippingAddress", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Customer", "Customer")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Customer", "Customer")
                         .WithMany("ShippingAddresses")
                         .HasForeignKey("CustomerId")
                         .IsRequired()
@@ -1069,9 +1084,9 @@ namespace PerfumeStore.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.WarrantyClaim", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.WarrantyClaim", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Warranty", "Warranty")
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Warranty", "Warranty")
                         .WithMany("WarrantyClaims")
                         .HasForeignKey("WarrantyId")
                         .IsRequired()
@@ -1082,54 +1097,56 @@ namespace PerfumeStore.Migrations
 
             modelBuilder.Entity("RolePermission", b =>
                 {
-                    b.HasOne("PerfumeStore.Models.Permission", null)
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Permission", null)
                         .WithMany()
                         .HasForeignKey("PermissionId")
                         .IsRequired()
                         .HasConstraintName("FK__RolePermi__Permi__07C12930");
 
-                    b.HasOne("PerfumeStore.Models.Role", null)
+                    b.HasOne("PerfumeStore.Areas.Admin.Models.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .IsRequired()
                         .HasConstraintName("FK__RolePermi__RoleI__06CD04F7");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Brand", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Brand", b =>
                 {
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Coupon", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Coupon", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Customer", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Customer", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("Coupons");
 
                     b.Navigation("Orders");
 
                     b.Navigation("ShippingAddresses");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.DiscountProgram", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.DiscountProgram", b =>
                 {
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Membership", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Membership", b =>
                 {
                     b.Navigation("Customers");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Order", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Order", b =>
                 {
                     b.Navigation("OrderDetails");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Product", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Product", b =>
                 {
                     b.Navigation("Comments");
 
@@ -1138,17 +1155,17 @@ namespace PerfumeStore.Migrations
                     b.Navigation("ProductImages");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Role", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Role", b =>
                 {
                     b.Navigation("Admins");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.ShippingAddress", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.ShippingAddress", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("PerfumeStore.Models.Warranty", b =>
+            modelBuilder.Entity("PerfumeStore.Areas.Admin.Models.Warranty", b =>
                 {
                     b.Navigation("WarrantyClaims");
                 });

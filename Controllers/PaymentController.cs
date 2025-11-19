@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Net.payOS;
 using Net.payOS.Types;
 using PerfumeStore.Models;
+using PerfumeStore.Areas.Admin.Services;
 using System.Text.Json;
 
 namespace PerfumeStore.Controllers
@@ -13,17 +14,20 @@ namespace PerfumeStore.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly PerfumeStoreContext _context;
         private readonly ILogger<PaymentController> _logger;
+        private readonly IWarrantyService _warrantyService;
 
         public PaymentController(
             PayOS payOS, 
             IHttpContextAccessor httpContextAccessor,
             PerfumeStoreContext context,
-            ILogger<PaymentController> logger)
+            ILogger<PaymentController> logger,
+            IWarrantyService warrantyService)
         {
             _payOS = payOS;
             _httpContextAccessor = httpContextAccessor;
             _context = context;
             _logger = logger;
+            _warrantyService = warrantyService;
         }
 
         [HttpGet("/cancel-payment")]
@@ -66,23 +70,29 @@ namespace PerfumeStore.Controllers
         {
             try
             {
-                // Lấy thông tin đơn hàng từ session hoặc query parameters từ PayOS
+                // BẢO MẬT: Luôn ưu tiên sử dụng orderId từ session (PENDING_ORDER_ID)
+                // Đây là cách duy nhất để đảm bảo người dùng chỉ có thể xem đơn hàng của chính họ
                 var orderIdStr = HttpContext.Session.GetString("PENDING_ORDER_ID");
-                
-                // Kiểm tra xem PayOS có gửi orderCode trong query string không (PayOS thường gửi về)
-                var payOSOrderCode = Request.Query["orderCode"].ToString();
-                if (!string.IsNullOrEmpty(payOSOrderCode) && int.TryParse(payOSOrderCode, out int payOSOrderId))
-                {
-                    // Ưu tiên sử dụng orderCode từ PayOS
-                    orderIdStr = payOSOrderId.ToString();
-                    _logger.LogInformation($"PaymentSuccess: Received orderCode from PayOS: {payOSOrderId}");
-                }
                 
                 if (string.IsNullOrEmpty(orderIdStr) || !int.TryParse(orderIdStr, out int orderId))
                 {
-                    _logger.LogWarning("PaymentSuccess: No valid order ID found in session or query parameters");
-                    TempData["Error"] = "Không tìm thấy thông tin đơn hàng";
+                    _logger.LogWarning($"PaymentSuccess: No valid order ID found in session. IP: {Request.HttpContext.Connection.RemoteIpAddress}");
+                    TempData["Error"] = "Không tìm thấy thông tin đơn hàng. Vui lòng đặt hàng lại.";
                     return RedirectToAction("Index", "Cart");
+                }
+                
+                // Kiểm tra xem PayOS có gửi orderCode trong query string không
+                var payOSOrderCode = Request.Query["orderCode"].ToString();
+                if (!string.IsNullOrEmpty(payOSOrderCode) && int.TryParse(payOSOrderCode, out int payOSOrderId))
+                {
+                    // BẢO MẬT: Validate orderCode từ PayOS phải khớp với orderId trong session
+                    if (payOSOrderId != orderId)
+                    {
+                        _logger.LogWarning($"PaymentSuccess: SECURITY ALERT - OrderCode mismatch! Session OrderId: {orderId}, PayOS OrderCode: {payOSOrderId}, IP: {Request.HttpContext.Connection.RemoteIpAddress}");
+                        TempData["Error"] = "Thông tin đơn hàng không hợp lệ. Vui lòng liên hệ hỗ trợ.";
+                        return RedirectToAction("Index", "Cart");
+                    }
+                    _logger.LogInformation($"PaymentSuccess: Received orderCode from PayOS: {payOSOrderId} (validated against session)");
                 }
                 
                 _logger.LogInformation($"PaymentSuccess: Processing order ID: {orderId}");
@@ -91,6 +101,7 @@ namespace PerfumeStore.Controllers
                 var order = await _context.Orders
                     .Include(o => o.Customer)
                     .Include(o => o.Address)
+                    .Include(o => o.Coupon)
                     .Include(o => o.OrderDetails)
                         .ThenInclude(od => od.Product)
                             .ThenInclude(p => p.ProductImages)
@@ -114,6 +125,18 @@ namespace PerfumeStore.Controllers
                     _logger.LogInformation($"PaymentSuccess: Updating order {orderId} status to 'Đã thanh toán'");
                     order.Status = "Đã thanh toán";
                     order.PaymentMethod = "Chuyển khoản ngân hàng";
+                    
+                    // Đánh dấu coupon đã sử dụng nếu có
+                    if (order.CouponId.HasValue)
+                    {
+                        var coupon = await _context.Coupons.FindAsync(order.CouponId.Value);
+                        if (coupon != null && (coupon.IsUsed == null || coupon.IsUsed == false))
+                        {
+                            coupon.IsUsed = true;
+                            coupon.UsedDate = DateTime.Now;
+                            _logger.LogInformation($"PaymentSuccess: Marked coupon {coupon.Code} as used for order {orderId}");
+                        }
+                    }
                     
                     // Lưu đơn hàng vào database - ĐẢM BẢO LƯU THÀNH CÔNG TRƯỚC KHI TIẾP TỤC
                     try
@@ -141,6 +164,7 @@ namespace PerfumeStore.Controllers
                 var verifiedOrder = await _context.Orders
                     .Include(o => o.Customer)
                     .Include(o => o.Address)
+                    .Include(o => o.Coupon)
                     .Include(o => o.OrderDetails)
                         .ThenInclude(od => od.Product)
                             .ThenInclude(p => p.ProductImages)
@@ -155,18 +179,57 @@ namespace PerfumeStore.Controllers
                 
                 _logger.LogInformation($"PaymentSuccess: Order {orderId} verified successfully in database");
                 
+                // Bảo hành sẽ được tạo tự động khi admin set đơn hàng ở trạng thái "Đã giao hàng"
+                // Không tạo bảo hành ở đây nữa
+                
                 // Xóa giỏ hàng chỉ sau khi đã lưu đơn hàng thành công
                 HttpContext.Session.Remove("CART_SESSION");
                 HttpContext.Session.Remove("AppliedVoucher");
                 
+                // Tính toán lại các khoản phí từ OrderDetails và Coupon
+                var subtotal = verifiedOrder.OrderDetails.Sum(od => od.TotalPrice);
+                
+                // Tính VAT từ database
+                var vatFee = await _context.Fees.FirstOrDefaultAsync(f => f.Name == "VAT");
+                decimal vat = 0m;
+                if (vatFee != null)
+                {
+                    vat = subtotal * Math.Min(vatFee.Value, 100) / 100;
+                }
+
+                // Tính Shipping fee từ database
+                var shippingFee = await _context.Fees.FirstOrDefaultAsync(f => f.Name == "Shipping");
+                decimal shipping = 0m;
+                if (shippingFee != null)
+                {
+                    var threshold = shippingFee.Threshold ?? 5000000m;
+                    shipping = subtotal >= threshold ? 0m : shippingFee.Value;
+                }
+
+                // Tính discount từ coupon
+                decimal discount = 0m;
+                if (verifiedOrder.Coupon != null && verifiedOrder.Coupon.DiscountAmount.HasValue)
+                {
+                    discount = verifiedOrder.Coupon.DiscountAmount.Value;
+                }
+
                 // Tạo view model từ order đã được xác thực
                 var orderViewModel = new
                 {
                     OrderId = verifiedOrder.OrderId.ToString(),
                     OrderDate = verifiedOrder.OrderDate,
                     TotalAmount = verifiedOrder.TotalAmount,
+                    Subtotal = subtotal,
+                    Discount = discount,
+                    ShippingFee = shipping,
+                    VAT = vat,
                     Status = verifiedOrder.Status,
                     PaymentMethod = verifiedOrder.PaymentMethod,
+                    Coupon = verifiedOrder.Coupon != null ? new
+                    {
+                        Code = verifiedOrder.Coupon.Code,
+                        DiscountAmount = verifiedOrder.Coupon.DiscountAmount ?? 0
+                    } : null,
                     Customer = new
                     {
                         Name = verifiedOrder.Customer.Name,

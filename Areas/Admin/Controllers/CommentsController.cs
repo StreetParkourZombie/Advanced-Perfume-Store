@@ -13,14 +13,16 @@ namespace PerfumeStore.Areas.Admin.Controllers
     {
         private readonly PerfumeStoreContext _db;
         private readonly DBQueryService.IDbQueryService _queryService;
+        private readonly IPaginationService _paginationService;
 
-        public CommentsController(PerfumeStoreContext db, DBQueryService.IDbQueryService queryService)
+        public CommentsController(PerfumeStoreContext db, DBQueryService.IDbQueryService queryService, IPaginationService paginationService)
         {
             _db = db;
             _queryService = queryService;
+            _paginationService = paginationService;
         }
 
-        public async Task<IActionResult> Index(string? searchProduct, string? searchBrand, int? categoryId)
+        public async Task<IActionResult> Index(string? searchProduct, string? searchBrand, int? categoryId, int page = 1)
         {
             var productsQuery = _db.Products
                 .Include(p => p.Brand)
@@ -63,12 +65,15 @@ namespace PerfumeStore.Areas.Admin.Controllers
             .OrderByDescending(p => p.TotalComments)
             .ToList();
 
+            // Apply pagination
+            var pagedResult = _paginationService.Paginate(productCommentsVMs, page, 10);
+
             ViewBag.Categories = await _db.Categories.OrderBy(c => c.CategoryName).ToListAsync();
             ViewBag.SearchProduct = searchProduct;
             ViewBag.SearchBrand = searchBrand;
             ViewBag.CategoryId = categoryId;
 
-            return View(productCommentsVMs);
+            return View(pagedResult);
         }
 
         public async Task<IActionResult> Details(int productId, bool? isPublished)

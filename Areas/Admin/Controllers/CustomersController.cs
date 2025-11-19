@@ -12,15 +12,17 @@ namespace PerfumeStore.Areas.Admin.Controllers
     {
         private readonly PerfumeStoreContext _db;
         private readonly DBQueryService.IDbQueryService _queryService;
+        private readonly IPaginationService _paginationService;
 
-        public CustomersController(PerfumeStoreContext db, DBQueryService.IDbQueryService queryService)
+        public CustomersController(PerfumeStoreContext db, DBQueryService.IDbQueryService queryService, IPaginationService paginationService)
         {
             _db = db;
             _queryService = queryService;
+            _paginationService = paginationService;
         }
 
         [RequirePermission("View Customers")]
-        public async Task<IActionResult> Index(string? searchName, string? searchEmail, string? searchPhone, int? membershipId)
+        public async Task<IActionResult> Index(string? searchName, string? searchEmail, string? searchPhone, int? membershipId, int page = 1)
         {
             var customers = await _queryService.GetCustomersWithIncludesAsync();
 
@@ -51,13 +53,16 @@ namespace PerfumeStore.Areas.Admin.Controllers
                 customers = customers.Where(c => c.MembershipId == membershipId.Value).ToList();
             }
 
+            // Apply pagination
+            var pagedResult = _paginationService.Paginate(customers, page, 10);
+
             ViewBag.Memberships = await _db.Memberships.OrderBy(m => m.Name).ToListAsync();
             ViewBag.SearchName = searchName;
             ViewBag.SearchEmail = searchEmail;
             ViewBag.SearchPhone = searchPhone;
             ViewBag.MembershipId = membershipId;
 
-            // Calculate customer statistics
+            // Calculate customer statistics (from all customers, not just current page)
             ViewBag.TotalCustomers = customers.Count;
             ViewBag.ActiveCustomers = customers.Count(c => c.Orders.Any());
             ViewBag.NewCustomersThisMonth = customers.Count(c => 
@@ -65,7 +70,7 @@ namespace PerfumeStore.Areas.Admin.Controllers
                 c.CreatedDate.Value.Month == DateTime.Now.Month && 
                 c.CreatedDate.Value.Year == DateTime.Now.Year);
 
-            return View(customers);
+            return View(pagedResult);
         }
 
         [RequirePermission("View Customers")]

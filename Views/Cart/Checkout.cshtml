@@ -1,3 +1,15 @@
+@* 
+    ============================================
+    CHECKOUT PAGE - Trang thanh toán đơn hàng
+    ============================================
+    Model: CheckoutViewModel - Chứa thông tin giỏ hàng, voucher, địa chỉ
+    Chức năng chính:
+    - Hiển thị form nhập thông tin khách hàng và địa chỉ giao hàng
+    - Tích hợp API địa chỉ Việt Nam (provinces.open-api.vn)
+    - Xử lý voucher/giảm giá
+    - Hiển thị tóm tắt đơn hàng
+    - Validation form phía client
+*@
 @model PerfumeStore.Models.ViewModels.CheckoutViewModel
 @{
     ViewBag.Title = "Thanh toán";
@@ -10,14 +22,16 @@
             <!-- Cột trái: Form thông tin -->
             <div class="col-lg-8 checkout-form-section">
                 <div class="checkout-form-container">
-                    <!-- Header -->
+                    @* ========== HEADER SECTION ========== *@
+                    @* Hiển thị tiêu đề, thông báo bảo mật và trạng thái đăng nhập *@
                     <div class="checkout-header mb-4">
                         <h1 class="checkout-title">Thanh toán</h1>
                         <p class="security-message">
                             <i class="fas fa-shield-alt me-2"></i>
                             Tất cả các giao dịch đều được bảo mật và mã hóa.
                         </p>
-
+                        
+                        @* Hiển thị thông báo chào mừng nếu người dùng đã đăng nhập *@
                         @if (User.Identity.IsAuthenticated)
                         {
                             <div class="alert alert-info">
@@ -25,6 +39,7 @@
                                 <strong>Xin chào @User.Identity.Name!</strong> Bạn đã đăng nhập và có thể tiếp tục đặt hàng.
                             </div>
                         }
+                        @* Hiển thị thông báo khi voucher được áp dụng từ vòng quay may mắn *@
                         @if (Context.Request.Query["voucherApplied"] == "true")
                         {
                             <div class="alert alert-success mt-3" id="voucherAppliedAlert">
@@ -34,16 +49,24 @@
                         }
                     </div>
 
+                    @* ========== CHECKOUT FORM ========== *@
+                    @* Form chính để submit thông tin thanh toán *@
                     <form asp-action="ProcessCheckout" method="post" id="checkoutForm">
-                        @Html.AntiForgeryToken()
-
-                        <!-- Thông tin khách hàng -->
+                        @Html.AntiForgeryToken() @* Token bảo mật chống CSRF *@
+                        
+                        @* ========== CUSTOMER INFORMATION SECTION ========== *@
+                        @* Section nhập thông tin email khách hàng *@
                         <div class="form-section mb-4">
                             <h3 class="section-title">Thông tin</h3>
                             <div class="row">
                                 <div class="col-12">
                                     <label for="customerEmail" class="form-label">Địa chỉ email</label>
-                                    <input type="email" class="form-control" id="customerEmail" name="CustomerEmail"
+                                    @* 
+                                        Email field:
+                                        - Nếu đã đăng nhập: tự động điền và readonly
+                                        - Nếu chưa đăng nhập: cho phép nhập
+                                    *@
+                                    <input type="email" class="form-control" id="customerEmail" name="CustomerEmail" 
                                            value="@(User.Identity.IsAuthenticated? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value : "")"
                                            placeholder="example@email.com"
                                            @(User.Identity.IsAuthenticated ? "readonly" : "") required>
@@ -64,9 +87,11 @@
                             </div>
                         </div>
 
-                        <!-- Địa chỉ thanh toán và vận chuyển -->
+                        @* ========== SHIPPING ADDRESS SECTION ========== *@
+                        @* Section nhập địa chỉ giao hàng với dropdown tỉnh/quận/xã *@
                         <div class="form-section mb-4">
                             <h3 class="section-title">Địa chỉ thanh toán và vận chuyển</h3>
+                            @* Thông tin cơ bản: SĐT và Họ tên *@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="customerPhone" class="form-label">Nhập số điện thoại <span class="text-danger">*</span></label>
@@ -77,34 +102,37 @@
                                     <input type="text" class="form-control" id="customerName" name="CustomerName" required>
                                 </div>
                             </div>
-
-                            <!-- Dropdown địa chỉ với class đặc biệt -->
+                            
+                            @* ========== ADDRESS DROPDOWNS ========== *@
+                            @* 
+                                Dropdown địa chỉ 3 cấp: Tỉnh/Thành phố -> Quận/Huyện -> Xã/Phường
+                                Dữ liệu được load từ API provinces.open-api.vn
+                                - Tỉnh/Thành phố: Load khi trang load
+                                - Quận/Huyện: Load khi chọn tỉnh/thành phố
+                                - Xã/Phường: Load khi chọn quận/huyện
+                            *@
                             <div class="address-dropdowns mt-3">
                                 <div class="col-md-4">
                                     <label for="province" class="form-label">Chọn Tỉnh/Thành phố <span class="text-danger">*</span></label>
                                     <select class="form-select" id="province" name="Province" required>
-                                        <option value="">Chọn tỉnh/thành phố</option>
-                                        <option value="ho-chi-minh">TP. Hồ Chí Minh</option>
-                                        <option value="ha-noi">Hà Nội</option>
-                                        <option value="da-nang">Đà Nẵng</option>
-                                        <option value="can-tho">Cần Thơ</option>
-                                        <option value="hai-phong">Hải Phòng</option>
+                                        <option value="">Đang tải...</option> @* Sẽ được thay thế bằng danh sách tỉnh/thành phố *@
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="district" class="form-label">Chọn Quận/Huyện <span class="text-danger">*</span></label>
                                     <select class="form-select" id="district" name="District" required>
-                                        <option value="">Chọn quận/huyện</option>
+                                        <option value="">Chọn quận/huyện</option> @* Sẽ được populate khi chọn tỉnh/thành phố *@
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="ward" class="form-label">Chọn Xã/Phường/Thị trấn <span class="text-danger">*</span></label>
                                     <select class="form-select" id="ward" name="Ward" required>
-                                        <option value="">Chọn xã/phường</option>
+                                        <option value="">Chọn xã/phường</option> @* Sẽ được populate khi chọn quận/huyện *@
                                     </select>
                                 </div>
                             </div>
-
+                            
+                            @* Địa chỉ chi tiết: Số nhà, tên đường *@
                             <div class="row g-3 mt-3">
                                 <div class="col-12">
                                     <label for="shippingAddress" class="form-label">Nhập địa chỉ cụ thể. Số nhà, tên đường... <span class="text-danger">*</span></label>
@@ -112,7 +140,7 @@
                                 </div>
                             </div>
 
-                            <!-- Checkbox để lưu địa chỉ mặc định -->
+                            @* Checkbox lưu địa chỉ mặc định cho lần sau (chỉ áp dụng cho user đã đăng nhập) *@
                             <div class="row g-3 mt-2">
                                 <div class="col-12">
                                     <div class="form-check">
@@ -125,11 +153,12 @@
                             </div>
                         </div>
 
-                        <!-- Phương thức thanh toán -->
+                        @* ========== PAYMENT METHOD SECTION ========== *@
+                        @* Section chọn phương thức thanh toán *@
                         <div class="form-section mb-4">
                             <h3 class="section-title">Thanh toán</h3>
-
-                            <!-- COD Option -->
+                            
+                            @* Phương thức 1: Thanh toán khi nhận hàng (COD) - Mặc định được chọn *@
                             <div class="payment-option mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="PaymentMethod" id="paymentCOD" value="COD" checked>
@@ -146,7 +175,7 @@
                                 </div>
                             </div>
 
-                            <!-- Bank Transfer Option -->
+                            @* Phương thức 2: Chuyển khoản ngân hàng *@
                             <div class="payment-option">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="PaymentMethod" id="paymentBank" value="BANK_TRANSFER">
@@ -159,20 +188,24 @@
                             </div>
                         </div>
 
-                        <!-- Mã giảm giá -->
+                        @* ========== VOUCHER SECTION ========== *@
+                        @* Section nhập và áp dụng mã giảm giá *@
                         <div class="form-section mb-4">
                             <label for="voucherCode" class="form-label">Mã giảm giá</label>
                             <div class="input-group mb-2">
+                                @* Input nhập mã voucher - Tự động điền nếu có voucher từ Model *@
                                 <input type="text" class="form-control" id="voucherCode" name="VoucherCode" placeholder="Nhập mã voucher..." value="@(Model.AppliedVoucher?.Code ?? "")">
+                                @* Nút áp dụng voucher - Gửi AJAX request để validate và áp dụng *@
                                 <button type="button" class="btn btn-outline-primary" id="applyVoucherBtn">
                                     <i class="fas fa-check me-1"></i>Áp dụng
                                 </button>
+                                @* Nút mở modal chọn voucher từ kho voucher đã lưu *@
                                 <button type="button" class="btn btn-outline-success" id="selectVoucherBtn">
                                     <i class="fas fa-bookmark me-1"></i>Chọn voucher
                                 </button>
                             </div>
-
-                            <!-- Debug info -->
+                            
+                            @* Debug info - Hiển thị thông tin voucher hiện tại (có thể xóa trong production) *@
                             @if (Model.AppliedVoucher != null)
                             {
                                 <small class="text-muted">Debug: Voucher = @Model.AppliedVoucher.Name (@Model.AppliedVoucher.Code)</small>
@@ -181,6 +214,7 @@
                             {
                                 <small class="text-muted">Debug: No voucher applied</small>
                             }
+                            @* Thông báo khi voucher đã được áp dụng thành công *@
                             @if (Model.AppliedVoucher != null)
                             {
                                 <div class="alert alert-success mt-2" id="voucherSuccess">
@@ -191,7 +225,7 @@
                                     </button>
                                 </div>
                             }
-
+                            
                             <!-- Modal chọn voucher đã lưu -->
                             <div class="modal fade" id="savedVouchersModal" tabindex="-1" aria-labelledby="savedVouchersModalLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-lg">
@@ -246,7 +280,7 @@
                         <!-- Privacy Policy -->
                         <div class="privacy-section mb-4">
                             <p class="privacy-text">
-                                Thông tin của bạn sẽ chỉ dùng để phục vụ đơn hàng và hỗ trợ dịch vụ theo cam kết
+                                Thông tin của bạn sẽ chỉ dùng để phục vụ đơn hàng và hỗ trợ dịch vụ theo cam kết 
                                 <a href="#" class="privacy-link">chính sách riêng tư</a>.
                             </p>
                         </div>
@@ -266,12 +300,14 @@
                 </div>
             </div>
 
-            <!-- Cột phải: Tóm tắt đơn hàng -->
+            @* ========== ORDER SUMMARY SECTION ========== *@
+            @* Cột bên phải: Hiển thị tóm tắt đơn hàng, sản phẩm và tổng tiền *@
             <div class="col-lg-4 order-summary-section" id="order-summary">
                 <div class="order-summary-container">
                     <div class="order-summary-content">
-
-                        <!-- Danh sách sản phẩm -->
+                        
+                        @* ========== PRODUCTS LIST ========== *@
+                        @* Hiển thị danh sách sản phẩm trong giỏ hàng *@
                         <div class="products-section mb-3">
                             @foreach (var item in Model.CartItems)
                             {
@@ -286,13 +322,14 @@
                             }
                         </div>
 
-                        <!-- Tổng kết -->
+                        @* ========== PRICE SUMMARY ========== *@
+                        @* Hiển thị tổng kết giá: Tạm tính, Giảm giá, VAT, Phí vận chuyển, Tổng *@
                         <div class="summary-section">
                             <div class="summary-row">
                                 <span>Tạm tính</span>
                                 <span>@Model.Subtotal.ToString("N0") ₫</span>
                             </div>
-
+                            
                             @if (Model.Discount > 0)
                             {
                                 <div class="summary-row discount-row">
@@ -300,17 +337,24 @@
                                     <span>-@Model.Discount.ToString("N0") ₫</span>
                                 </div>
                             }
-
+                            
                             @if (Model.VAT > 0)
                             {
-                                <div class="summary-row">
+                                <div class="summary-row vat-row">
                                     <span>VAT (Thuế GTGT)</span>
                                     <span>@Model.VAT.ToString("N0") ₫</span>
                                 </div>
                             }
+                            else
+                            {
+                                <div class="summary-row vat-row" style="display: none;">
+                                    <span>VAT (Thuế GTGT)</span>
+                                    <span>0 ₫</span>
+                                </div>
+                            }
 
-                            <div class="summary-row">
-                                <span>Phí vận chuyển</span>
+                            <div class="summary-row shipping-row">
+                                    <span>Phí vận chuyển</span>
                                 @if (Model.AppliedVoucher?.Type == "freeship")
                                 {
                                     <span class="text-success">Miễn phí</span>
@@ -324,7 +368,7 @@
                                     <span>0 ₫</span>
                                 }
                             </div>
-
+                            
                             @if (Model.AppliedVoucher != null)
                             {
                                 <div class="summary-row voucher-row">
@@ -332,7 +376,7 @@
                                     <span class="text-success">@Model.AppliedVoucher.Name</span>
                                 </div>
                             }
-
+                            
                             <hr class="summary-divider">
                             <div class="summary-row total-row">
                                 <span>Tổng</span>
@@ -349,106 +393,297 @@
 @section Scripts {
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-
+    
     <script>
-        // Dữ liệu tỉnh/thành và quận/huyện
-        const locationData = {
-            'ho-chi-minh': {
-                name: 'TP. Hồ Chí Minh',
-                districts: {
-                    'quan-1': { name: 'Quận 1', wards: ['Phường Bến Nghé', 'Phường Đa Kao', 'Phường Tân Định'] },
-                    'quan-3': { name: 'Quận 3', wards: ['Phường 1', 'Phường 2', 'Phường 3'] },
-                    'quan-5': { name: 'Quận 5', wards: ['Phường 1', 'Phường 2', 'Phường 3'] },
-                    'quan-7': { name: 'Quận 7', wards: ['Phường Tân Phong', 'Phường Tân Phú', 'Phường Tân Quy'] }
-                }
-            },
-            'ha-noi': {
-                name: 'Hà Nội',
-                districts: {
-                    'ba-dinh': { name: 'Quận Ba Đình', wards: ['Phường Phúc Xá', 'Phường Trúc Bạch', 'Phường Vĩnh Phúc'] },
-                    'hoan-kiem': { name: 'Quận Hoàn Kiếm', wards: ['Phường Phan Chu Trinh', 'Phường Tràng Tiền', 'Phường Hàng Bông'] },
-                    'dong-da': { name: 'Quận Đống Đa', wards: ['Phường Cát Linh', 'Phường Văn Miếu', 'Phường Quốc Tử Giám'] }
-                }
-            },
-            'da-nang': {
-                name: 'Đà Nẵng',
-                districts: {
-                    'hai-chau': { name: 'Quận Hải Châu', wards: ['Phường Hải Châu I', 'Phường Hải Châu II', 'Phường Nam Dương'] },
-                    'thanh-khe': { name: 'Quận Thanh Khê', wards: ['Phường Thanh Khê Tây', 'Phường Thanh Khê Đông', 'Phường Xuân Hà'] }
-                }
-            }
-        };
+        @* ============================================
+           JAVASCRIPT - Xử lý logic phía client
+           ============================================
+           Chức năng chính:
+           1. Load và quản lý dữ liệu địa chỉ Việt Nam từ API
+           2. Validation form
+           3. Xử lý voucher/giảm giá
+           4. Auto-fill thông tin cho user đã đăng nhập
+           5. Cập nhật order summary động
+        *@
 
+        @* ========== CONFIGURATION ========== *@
+        // API base URL cho dữ liệu địa chỉ Việt Nam (miễn phí, không cần đăng ký)
+        const VIETNAM_LOCATION_API = 'https://provinces.open-api.vn/api';
+
+        @* ========== INITIALIZATION ========== *@
+        // Khởi tạo khi DOM đã load xong
         document.addEventListener('DOMContentLoaded', function() {
+            // Lấy reference đến các dropdown địa chỉ
             const provinceSelect = document.getElementById('province');
             const districtSelect = document.getElementById('district');
             const wardSelect = document.getElementById('ward');
 
-            // Xử lý thay đổi tỉnh/thành
-            provinceSelect.addEventListener('change', function() {
-                const selectedProvince = this.value;
+            @* ========== LOCATION CACHE ========== *@
+            // Cache để lưu dữ liệu địa chỉ đã load, tránh gọi API nhiều lần
+            // Structure:
+            // - provinces: Array tất cả tỉnh/thành phố
+            // - districts: Object { provinceCode: [districts] }
+            // - wards: Object { districtCode: [wards] }
+            const locationCache = {
+                provinces: null,
+                districts: {},
+                wards: {}
+            };
 
-                // Reset quận/huyện và xã/phường
-                districtSelect.innerHTML = '<option value="">Chọn quận/huyện</option>';
-                wardSelect.innerHTML = '<option value="">Chọn xã/phường</option>';
+            // Load tất cả tỉnh/thành phố khi trang load
+            loadProvinces();
 
-                if (selectedProvince && locationData[selectedProvince]) {
-                    const districts = locationData[selectedProvince].districts;
+            @* ========== PROVINCE FUNCTIONS ========== *@
+            /**
+             * Load danh sách tỉnh/thành phố từ API
+             * Endpoint: GET /p/
+             * Lưu vào cache sau khi load thành công
+             */
+            async function loadProvinces() {
+                try {
+                    // Hiển thị loading state
+                    provinceSelect.disabled = true;
+                    provinceSelect.innerHTML = '<option value="">Đang tải...</option>';
 
-                    for (const [key, district] of Object.entries(districts)) {
-                        const option = document.createElement('option');
-                        option.value = key;
-                        option.textContent = district.name;
-                        districtSelect.appendChild(option);
+                    // Kiểm tra cache trước - nếu đã có thì không cần gọi API
+                    if (locationCache.provinces) {
+                        populateProvinces(locationCache.provinces);
+                        return;
                     }
+
+                    // Gọi API để lấy danh sách tỉnh/thành phố
+                    const response = await fetch(`${VIETNAM_LOCATION_API}/p/`);
+                    if (!response.ok) {
+                        throw new Error('Không thể tải danh sách tỉnh/thành phố');
+                    }
+
+                    const provinces = await response.json();
+                    // Lưu vào cache
+                    locationCache.provinces = provinces;
+                    // Populate vào dropdown
+                    populateProvinces(provinces);
+                } catch (error) {
+                    console.error('Error loading provinces:', error);
+                    provinceSelect.innerHTML = '<option value="">Lỗi khi tải dữ liệu</option>';
+                    showMessage('Không thể tải danh sách tỉnh/thành phố. Vui lòng thử lại sau.', 'danger');
+                } finally {
+                    provinceSelect.disabled = false;
                 }
-            });
+            }
 
-            // Xử lý thay đổi quận/huyện
-            districtSelect.addEventListener('change', function() {
-                const selectedProvince = provinceSelect.value;
-                const selectedDistrict = this.value;
+            /**
+             * Populate danh sách tỉnh/thành phố vào dropdown
+             */
+            function populateProvinces(provinces) {
+                provinceSelect.innerHTML = '<option value="">Chọn tỉnh/thành phố</option>';
+                
+                // Sắp xếp theo tên (tiếng Việt) để dễ tìm
+                provinces.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+                
+                // Tạo option cho mỗi tỉnh/thành phố
+                provinces.forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province.code; // Lưu code để dùng cho API call tiếp theo
+                    option.textContent = province.name;
+                    provinceSelect.appendChild(option);
+                });
+            }
 
-                // Reset xã/phường
+            @* ========== PROVINCE CHANGE HANDLER ========== *@
+            // Xử lý khi người dùng chọn tỉnh/thành phố
+            provinceSelect.addEventListener('change', function() {
+                const selectedProvinceCode = this.value;
+                
+                // Reset quận/huyện và xã/phường khi đổi tỉnh/thành phố
+                districtSelect.innerHTML = '<option value="">Chọn quận/huyện</option>';
+                districtSelect.disabled = true;
                 wardSelect.innerHTML = '<option value="">Chọn xã/phường</option>';
-
-                if (selectedProvince && selectedDistrict &&
-                    locationData[selectedProvince] &&
-                    locationData[selectedProvince].districts[selectedDistrict]) {
-
-                    const wards = locationData[selectedProvince].districts[selectedDistrict].wards;
-
-                    wards.forEach(ward => {
-                        const option = document.createElement('option');
-                        option.value = ward;
-                        option.textContent = ward;
-                        wardSelect.appendChild(option);
-                    });
+                wardSelect.disabled = true;
+                
+                // Load quận/huyện của tỉnh/thành phố được chọn
+                if (selectedProvinceCode) {
+                    loadDistricts(selectedProvinceCode);
                 }
             });
 
-            // Form validation
+            @* ========== DISTRICT FUNCTIONS ========== *@
+            /**
+             * Load danh sách quận/huyện từ API dựa trên mã tỉnh/thành phố
+             * Thử 2 endpoint:
+             * 1. GET /p/{code}?depth=2 - Trả về province object có districts
+             * 2. GET /p/{code}/districts - Trả về array districts trực tiếp
+             */
+            async function loadDistricts(provinceCode) {
+                try {
+                    // Hiển thị loading state
+                    districtSelect.disabled = true;
+                    districtSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+                    // Kiểm tra cache - nếu đã load rồi thì dùng cache
+                    if (locationCache.districts[provinceCode]) {
+                        populateDistricts(locationCache.districts[provinceCode]);
+                        return;
+                    }
+
+                    // Thử endpoint với depth=2 trước (trả về province object)
+                    let response = await fetch(`${VIETNAM_LOCATION_API}/p/${provinceCode}?depth=2`);
+                    
+                    // Nếu không được, thử endpoint khác (trả về array districts)
+                    if (!response.ok) {
+                        response = await fetch(`${VIETNAM_LOCATION_API}/p/${provinceCode}/districts`);
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error('Không thể tải danh sách quận/huyện');
+                    }
+
+                    const data = await response.json();
+                    // Xử lý cả hai trường hợp: data là province object hoặc array districts
+                    const districts = Array.isArray(data) ? data : (data.districts || []);
+                    // Lưu vào cache
+                    locationCache.districts[provinceCode] = districts;
+                    // Populate vào dropdown
+                    populateDistricts(districts);
+                } catch (error) {
+                    console.error('Error loading districts:', error);
+                    districtSelect.innerHTML = '<option value="">Lỗi khi tải dữ liệu</option>';
+                    showMessage('Không thể tải danh sách quận/huyện. Vui lòng thử lại sau.', 'danger');
+                } finally {
+                    districtSelect.disabled = false;
+                }
+            }
+
+            /**
+             * Populate danh sách quận/huyện vào dropdown
+             */
+            function populateDistricts(districts) {
+                districtSelect.innerHTML = '<option value="">Chọn quận/huyện</option>';
+                
+                // Sắp xếp theo tên (tiếng Việt)
+                districts.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+                
+                // Tạo option cho mỗi quận/huyện
+                districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.code; // Lưu code để dùng cho API call tiếp theo
+                    option.textContent = district.name;
+                    districtSelect.appendChild(option);
+                });
+            }
+
+            @* ========== DISTRICT CHANGE HANDLER ========== *@
+            // Xử lý khi người dùng chọn quận/huyện
+            districtSelect.addEventListener('change', function() {
+                const selectedDistrictCode = this.value;
+                
+                // Reset xã/phường khi đổi quận/huyện
+                wardSelect.innerHTML = '<option value="">Chọn xã/phường</option>';
+                wardSelect.disabled = true;
+                
+                // Load xã/phường của quận/huyện được chọn
+                if (selectedDistrictCode) {
+                    loadWards(selectedDistrictCode);
+                }
+            });
+
+            @* ========== WARD FUNCTIONS ========== *@
+            /**
+             * Load danh sách xã/phường từ API dựa trên mã quận/huyện
+             * Thử 2 endpoint:
+             * 1. GET /d/{code}?depth=2 - Trả về district object có wards
+             * 2. GET /d/{code}/wards - Trả về array wards trực tiếp
+             */
+            async function loadWards(districtCode) {
+                try {
+                    // Hiển thị loading state
+                    wardSelect.disabled = true;
+                    wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+                    // Kiểm tra cache - nếu đã load rồi thì dùng cache
+                    if (locationCache.wards[districtCode]) {
+                        populateWards(locationCache.wards[districtCode]);
+                        return;
+                    }
+
+                    // Thử endpoint với depth=2 trước (trả về district object)
+                    let response = await fetch(`${VIETNAM_LOCATION_API}/d/${districtCode}?depth=2`);
+                    
+                    // Nếu không được, thử endpoint khác (trả về array wards)
+                    if (!response.ok) {
+                        response = await fetch(`${VIETNAM_LOCATION_API}/d/${districtCode}/wards`);
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error('Không thể tải danh sách xã/phường');
+                    }
+
+                    const data = await response.json();
+                    // Xử lý cả hai trường hợp: data là district object hoặc array wards
+                    const wards = Array.isArray(data) ? data : (data.wards || []);
+                    // Lưu vào cache
+                    locationCache.wards[districtCode] = wards;
+                    // Populate vào dropdown
+                    populateWards(wards);
+                } catch (error) {
+                    console.error('Error loading wards:', error);
+                    wardSelect.innerHTML = '<option value="">Lỗi khi tải dữ liệu</option>';
+                    showMessage('Không thể tải danh sách xã/phường. Vui lòng thử lại sau.', 'danger');
+                } finally {
+                    wardSelect.disabled = false;
+                }
+            }
+
+            /**
+             * Populate danh sách xã/phường vào dropdown
+             */
+            function populateWards(wards) {
+                wardSelect.innerHTML = '<option value="">Chọn xã/phường</option>';
+                
+                // Sắp xếp theo tên (tiếng Việt)
+                wards.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+                
+                // Tạo option cho mỗi xã/phường
+                wards.forEach(ward => {
+                    const option = document.createElement('option');
+                    option.value = ward.code;
+                    option.textContent = ward.name;
+                    wardSelect.appendChild(option);
+                });
+            }
+
+            @* ========== FORM VALIDATION ========== *@
+            // Lấy reference đến form và submit button
             const checkoutForm = document.getElementById('checkoutForm');
             const submitBtn = document.querySelector('.btn-checkout');
 
+            /**
+             * Validation form khi submit
+             * Kiểm tra tất cả các trường bắt buộc:
+             * - Email, SĐT, Họ tên
+             * - Tỉnh/Thành phố, Quận/Huyện, Xã/Phường
+             * - Địa chỉ chi tiết
+             */
             checkoutForm.addEventListener('submit', function(e) {
                 console.log('Form submit event triggered');
                 const requiredFields = ['customerEmail', 'customerPhone', 'customerName', 'province', 'district', 'ward', 'shippingAddress'];
                 let isValid = true;
 
                 console.log('Validating required fields:');
+                // Kiểm tra từng trường bắt buộc
                 requiredFields.forEach(fieldId => {
                     const field = document.getElementById(fieldId);
                     console.log(`  ${fieldId}: ${field ? field.value : 'NOT FOUND'}`);
                     if (!field || !field.value.trim()) {
+                        // Đánh dấu trường không hợp lệ
                         if (field) {
-                            field.classList.add('is-invalid');
+                        field.classList.add('is-invalid');
                         }
                         isValid = false;
                     } else {
+                        // Đánh dấu trường hợp lệ
                         if (field) {
-                            field.classList.remove('is-invalid');
-                            field.classList.add('is-valid');
+                        field.classList.remove('is-invalid');
+                        field.classList.add('is-valid');
                         }
                     }
                 });
@@ -456,23 +691,24 @@
                 console.log(`Form validation result: ${isValid}`);
 
                 if (!isValid) {
+                    // Nếu validation fail, ngăn submit và scroll đến trường lỗi đầu tiên
                     console.log('Form validation failed, preventing submit');
                     e.preventDefault();
-                    // Scroll to first invalid field
                     const firstInvalid = document.querySelector('.is-invalid');
                     if (firstInvalid) {
                         firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         firstInvalid.focus();
                     }
                 } else {
+                    // Nếu validation pass, hiển thị loading state và submit
                     console.log('Form validation passed, submitting...');
-                    // Show loading state
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
                     submitBtn.disabled = true;
                 }
             });
 
-            // Real-time validation
+            @* ========== REAL-TIME VALIDATION ========== *@
+            // Validation real-time khi người dùng rời khỏi trường (blur event)
             const requiredFields = ['customerEmail', 'customerPhone', 'customerName', 'shippingAddress'];
             requiredFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
@@ -487,93 +723,257 @@
                 });
             });
 
-            // Xử lý payment options
+            @* ========== PAYMENT METHOD HANDLER ========== *@
+            // Xử lý khi người dùng chọn phương thức thanh toán
+            // Thêm class 'selected' cho card được chọn để highlight
             const paymentOptions = document.querySelectorAll('input[name="PaymentMethod"]');
             const paymentOptionCards = document.querySelectorAll('.payment-option');
-
+            
             paymentOptions.forEach((option, index) => {
                 option.addEventListener('change', function() {
                     // Xóa class selected khỏi tất cả cards
                     paymentOptionCards.forEach(card => card.classList.remove('selected'));
-
+                    
                     // Thêm class selected cho card được chọn
                     if (this.checked) {
                         paymentOptionCards[index].classList.add('selected');
                     }
                 });
-
-                // Set initial state
+                
+                // Set initial state - highlight option được chọn mặc định (COD)
                 if (option.checked) {
                     paymentOptionCards[index].classList.add('selected');
                 }
             });
 
-            // Auto-fill thông tin nếu đã đăng nhập
+            @* ========== AUTO-FILL FOR LOGGED IN USERS ========== *@
+            // Tự động điền thông tin cho user đã đăng nhập
             @if (User.Identity.IsAuthenticated)
             {
-                    <text>
-                    const customerName = document.getElementById('customerName');
-                    const customerEmail = document.getElementById('customerEmail');
+                <text>
+                const customerName = document.getElementById('customerName');
+                const customerEmail = document.getElementById('customerEmail');
+                
+                // Tự động điền tên từ thông tin đăng nhập
+                if (customerName && !customerName.value) {
+                    customerName.value = '@Html.Raw(User.Identity.Name)';
+                }
 
-                    if (customerName && !customerName.value) {
-                        customerName.value = '@Html.Raw(User.Identity.Name)';
-                    }
-
-                    // Load default address if available
-                    loadDefaultAddress();
-                    </text>
+                // Load địa chỉ mặc định nếu có (từ database)
+                loadDefaultAddress();
+                </text>
             }
 
-            // Function to load default address
-            function loadDefaultAddress() {
-                fetch('/Cart/GetDefaultAddress')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && data.address) {
-                            const address = data.address;
+            @* ========== LOAD DEFAULT ADDRESS ========== *@
+            /**
+             * Load địa chỉ mặc định của user từ server
+             * Gọi API /Cart/GetDefaultAddress để lấy địa chỉ đã lưu
+             * Tự động điền vào form và chọn tỉnh/quận/xã tương ứng
+             */
+            async function loadDefaultAddress() {
+                try {
+                    const response = await fetch('/Cart/GetDefaultAddress');
+                    const data = await response.json();
+                    
+                    if (data.success && data.address) {
+                        const address = data.address;
 
-                            // Fill form fields
-                            if (address.customerName) {
-                                document.getElementById('customerName').value = address.customerName;
-                            }
-                            if (address.phone) {
-                                document.getElementById('customerPhone').value = address.phone;
-                            }
-                            if (address.province) {
-                                document.getElementById('province').value = address.province;
-                                // Trigger province change to load districts
-                                document.getElementById('province').dispatchEvent(new Event('change'));
-
-                                // Wait a bit for districts to load, then set district
-                                setTimeout(() => {
-                                    if (address.district) {
-                                        document.getElementById('district').value = address.district;
-                                        // Trigger district change to load wards
-                                        document.getElementById('district').dispatchEvent(new Event('change'));
-
-                                        // Wait a bit for wards to load, then set ward
-                                        setTimeout(() => {
-                                            if (address.ward) {
-                                                document.getElementById('ward').value = address.ward;
-                                            }
-                                        }, 500);
-                                    }
-                                }, 500);
-                            }
-                            if (address.addressLine) {
-                                document.getElementById('shippingAddress').value = address.addressLine;
-                            }
-
-                            // Show message that default address was loaded
-                            showMessage('Đã tự động điền thông tin từ địa chỉ mặc định', 'info');
+                        // Fill form fields
+                        if (address.customerName) {
+                            document.getElementById('customerName').value = address.customerName;
                         }
-                    })
-                    .catch(error => {
-                        console.log('No default address found or error loading:', error);
-                    });
+                        if (address.phone) {
+                            document.getElementById('customerPhone').value = address.phone;
+                        }
+                        
+                        // Load và set tỉnh/thành phố
+                        if (address.province) {
+                            // Đợi provinces load xong
+                            await waitForProvincesLoaded();
+                            
+                            // Tìm province theo code hoặc name
+                            const provinceCode = findProvinceCode(address.province);
+                            if (provinceCode) {
+                                provinceSelect.value = provinceCode;
+                                // Trigger province change to load districts
+                                provinceSelect.dispatchEvent(new Event('change'));
+
+                                // Đợi districts load xong, sau đó set district
+                                await waitForDistrictsLoaded(provinceCode);
+                                
+                                if (address.district) {
+                                    const districtCode = findDistrictCode(provinceCode, address.district);
+                                    if (districtCode) {
+                                        districtSelect.value = districtCode;
+                                        // Trigger district change to load wards
+                                        districtSelect.dispatchEvent(new Event('change'));
+
+                                        // Đợi wards load xong, sau đó set ward
+                                        await waitForWardsLoaded(districtCode);
+                                        
+                                        if (address.ward) {
+                                            const wardCode = findWardCode(districtCode, address.ward);
+                                            if (wardCode) {
+                                                wardSelect.value = wardCode;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (address.addressLine) {
+                            document.getElementById('shippingAddress').value = address.addressLine;
+                        }
+
+                        // Show message that default address was loaded
+                        showMessage('Đã tự động điền thông tin từ địa chỉ mặc định', 'info');
+                    }
+                } catch (error) {
+                    console.log('No default address found or error loading:', error);
+                }
             }
 
-            // Function to show messages
+            @* ========== HELPER FUNCTIONS - FIND LOCATION CODES ========== *@
+            /**
+             * Tìm mã tỉnh/thành phố từ tên hoặc code
+             */
+            function findProvinceCode(provinceValue) {
+                if (!locationCache.provinces) return null;
+                
+                // Nếu là code (số), tìm trực tiếp
+                if (!isNaN(provinceValue)) {
+                    const province = locationCache.provinces.find(p => p.code == provinceValue);
+                    return province ? province.code : null;
+                }
+                
+                // Nếu là tên, tìm theo tên (không phân biệt hoa thường, hỗ trợ partial match)
+                const province = locationCache.provinces.find(p => 
+                    p.name.toLowerCase().includes(provinceValue.toLowerCase()) ||
+                    provinceValue.toLowerCase().includes(p.name.toLowerCase())
+                );
+                return province ? province.code : null;
+            }
+
+            /**
+             * Tìm mã quận/huyện từ tên hoặc code
+             */
+            function findDistrictCode(provinceCode, districtValue) {
+                const districts = locationCache.districts[provinceCode];
+                if (!districts) return null;
+                
+                // Nếu là code (số), tìm trực tiếp
+                if (!isNaN(districtValue)) {
+                    const district = districts.find(d => d.code == districtValue);
+                    return district ? district.code : null;
+                }
+                
+                // Nếu là tên, tìm theo tên (không phân biệt hoa thường, hỗ trợ partial match)
+                const district = districts.find(d => 
+                    d.name.toLowerCase().includes(districtValue.toLowerCase()) ||
+                    districtValue.toLowerCase().includes(d.name.toLowerCase())
+                );
+                return district ? district.code : null;
+            }
+
+            /**
+             * Tìm mã xã/phường từ tên hoặc code
+             */
+            function findWardCode(districtCode, wardValue) {
+                const wards = locationCache.wards[districtCode];
+                if (!wards) return null;
+                
+                // Nếu là code (số), tìm trực tiếp
+                if (!isNaN(wardValue)) {
+                    const ward = wards.find(w => w.code == wardValue);
+                    return ward ? ward.code : null;
+                }
+                
+                // Nếu là tên, tìm theo tên (không phân biệt hoa thường, hỗ trợ partial match)
+                const ward = wards.find(w => 
+                    w.name.toLowerCase().includes(wardValue.toLowerCase()) ||
+                    wardValue.toLowerCase().includes(w.name.toLowerCase())
+                );
+                return ward ? ward.code : null;
+            }
+
+            @* ========== HELPER FUNCTIONS - WAIT FOR DATA LOAD ========== *@
+            /**
+             * Đợi cho đến khi danh sách tỉnh/thành phố được load xong
+             * Sử dụng Promise với polling và timeout
+             */
+            function waitForProvincesLoaded() {
+                return new Promise((resolve) => {
+                    if (locationCache.provinces) {
+                        resolve();
+                    } else {
+                        // Polling mỗi 100ms để kiểm tra
+                        const checkInterval = setInterval(() => {
+                            if (locationCache.provinces) {
+                                clearInterval(checkInterval);
+                                resolve();
+                            }
+                        }, 100);
+                        
+                        // Timeout sau 5 giây để tránh đợi vô hạn
+                        setTimeout(() => {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }, 5000);
+                    }
+                });
+            }
+
+            /**
+             * Đợi cho đến khi danh sách quận/huyện được load xong
+             */
+            function waitForDistrictsLoaded(provinceCode) {
+                return new Promise((resolve) => {
+                    if (locationCache.districts[provinceCode]) {
+                        resolve();
+                    } else {
+                        const checkInterval = setInterval(() => {
+                            if (locationCache.districts[provinceCode]) {
+                                clearInterval(checkInterval);
+                                resolve();
+                            }
+                        }, 100);
+                        
+                        setTimeout(() => {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }, 5000);
+                    }
+                });
+            }
+
+            /**
+             * Đợi cho đến khi danh sách xã/phường được load xong
+             */
+            function waitForWardsLoaded(districtCode) {
+                return new Promise((resolve) => {
+                    if (locationCache.wards[districtCode]) {
+                        resolve();
+                    } else {
+                        const checkInterval = setInterval(() => {
+                            if (locationCache.wards[districtCode]) {
+                                clearInterval(checkInterval);
+                                resolve();
+                            }
+                        }, 100);
+                        
+                        setTimeout(() => {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }, 5000);
+                    }
+                });
+            }
+
+            @* ========== UTILITY FUNCTIONS ========== *@
+            /**
+             * Hiển thị thông báo toast ở góc trên bên phải màn hình
+             */
             function showMessage(message, type) {
                 const alertDiv = document.createElement('div');
                 alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
@@ -592,50 +992,55 @@
                 }, 3000);
             }
 
-            // Auto-fill voucher từ Model hoặc URL parameter
+            @* ========== VOUCHER AUTO-FILL ========== *@
+            /**
+             * Tự động điền voucher từ Model (server-side) hoặc URL parameter
+             * Được gọi khi DOM đã load xong
+             * Ưu tiên: Model > URL parameter > Session (AJAX)
+             */
             document.addEventListener('DOMContentLoaded', function() {
                 const voucherCodeInput = document.getElementById('voucherCode');
                 const applyVoucherBtn = document.getElementById('applyVoucherBtn');
                 const voucherSuccess = document.getElementById('voucherSuccess');
-
+                
                 if (!voucherCodeInput || !applyVoucherBtn) {
                     console.log('Voucher elements not found');
                     return;
                 }
-
+                
                 // Kiểm tra voucher từ Model (server-side)
                 const modelVoucherCode = '@(Model.AppliedVoucher?.Code ?? "")';
                 const modelVoucherName = '@(Model.AppliedVoucher?.Name ?? "")';
                 console.log('Model voucher code:', modelVoucherCode);
                 console.log('Model voucher name:', modelVoucherName);
                 console.log('Model.AppliedVoucher is null:', @(Model.AppliedVoucher == null ? "true" : "false"));
-
+                
                 // Kiểm tra voucher từ URL parameter
                 const urlParams = new URLSearchParams(window.location.search);
                 const voucherApplied = urlParams.get('voucherApplied');
                 console.log('Voucher applied from URL:', voucherApplied);
-
+                
                 // Nếu có voucher từ Model
                 if (modelVoucherCode !== '') {
                     console.log('Auto-filling voucher from Model:', modelVoucherCode);
                     voucherCodeInput.value = modelVoucherCode;
-
+                    
                     // Hiển thị thông báo thành công
                     if (voucherSuccess) {
                         voucherSuccess.style.display = 'block';
                     }
-
+                    
                     // Disable input và button
                     voucherCodeInput.disabled = true;
                     applyVoucherBtn.disabled = true;
                     applyVoucherBtn.innerHTML = '<i class="fas fa-check me-1"></i>Đã áp dụng';
-
+                    
                     console.log('Voucher auto-filled successfully from Model');
                 }
                 // Nếu có voucher từ URL parameter nhưng chưa có trong Model
                 else if (voucherApplied === 'true') {
                     console.log('Getting voucher from session via AJAX...');
-
+                    
                     fetch('/Cart/GetAppliedVoucherApi', {
                         method: 'GET',
                         headers: {
@@ -648,23 +1053,21 @@
                         if (result.success && result.voucher) {
                             console.log('Auto-filling voucher from AJAX:', result.voucher.code);
                             voucherCodeInput.value = result.voucher.code;
-
+                            
                             // Hiển thị thông báo thành công
                             if (voucherSuccess) {
                                 voucherSuccess.style.display = 'block';
                             }
-
+                            
                             // Disable input và button
                             voucherCodeInput.disabled = true;
                             applyVoucherBtn.disabled = true;
                             applyVoucherBtn.innerHTML = '<i class="fas fa-check me-1"></i>Đã áp dụng';
-
+                            
                             console.log('Voucher auto-filled successfully from AJAX');
-
-                            // Reload trang để cập nhật tổng tiền
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1000);
+                            
+                            // Cập nhật order summary mà không reload trang
+                            updateOrderSummary();
                         } else {
                             console.log('No voucher found in session');
                         }
@@ -703,23 +1106,23 @@
             if (selectSavedVoucherBtn) {
                 selectSavedVoucherBtn.addEventListener('click', function() {
                     console.log('Select saved voucher button clicked');
-
+                    
                     // Check if global functions are available
                     if (typeof window.loadVoucherWarehouse === 'function') {
                         console.log('Opening voucher warehouse modal');
                         window.loadVoucherWarehouse();
-
+                        
                         // Get the voucher warehouse modal
                         const voucherWarehouseModal = document.getElementById('voucherWarehouseModal');
                         if (voucherWarehouseModal) {
                             // Disable body scroll
                             document.body.style.overflow = 'hidden';
                             document.body.classList.add('modal-open');
-
+                            
                             // Show modal with fullscreen
                             voucherWarehouseModal.style.display = 'flex';
                             voucherWarehouseModal.classList.add('show');
-
+                            
                             // Force fullscreen styles
                             voucherWarehouseModal.style.position = 'fixed';
                             voucherWarehouseModal.style.top = '0';
@@ -732,7 +1135,7 @@
                             voucherWarehouseModal.style.padding = '0';
                             voucherWarehouseModal.style.border = 'none';
                             voucherWarehouseModal.style.borderRadius = '0';
-
+                            
                             console.log('Voucher warehouse modal opened');
                         } else {
                             console.error('Voucher warehouse modal not found');
@@ -752,23 +1155,23 @@
             if (viewSavedVouchersBtn) {
                 viewSavedVouchersBtn.addEventListener('click', function() {
                     console.log('View saved vouchers button clicked');
-
+                    
                     // Check if global functions are available
                     if (typeof window.loadVoucherWarehouse === 'function') {
                         console.log('Opening voucher warehouse modal');
                         window.loadVoucherWarehouse();
-
+                        
                         // Get the voucher warehouse modal
                         const voucherWarehouseModal = document.getElementById('voucherWarehouseModal');
                         if (voucherWarehouseModal) {
                             // Disable body scroll
                             document.body.style.overflow = 'hidden';
                             document.body.classList.add('modal-open');
-
+                            
                             // Show modal with fullscreen
                             voucherWarehouseModal.style.display = 'flex';
                             voucherWarehouseModal.classList.add('show');
-
+                            
                             // Force fullscreen styles
                             voucherWarehouseModal.style.position = 'fixed';
                             voucherWarehouseModal.style.top = '0';
@@ -781,7 +1184,7 @@
                             voucherWarehouseModal.style.padding = '0';
                             voucherWarehouseModal.style.border = 'none';
                             voucherWarehouseModal.style.borderRadius = '0';
-
+                            
                             console.log('Voucher warehouse modal opened');
                         } else {
                             console.error('Voucher warehouse modal not found');
@@ -804,18 +1207,18 @@
             // Sử dụng biến selectVoucherBtn đã khai báo ở trên (tránh redeclare lỗi)
             if (selectVoucherBtn) {
                 console.log('Select voucher button found:', selectVoucherBtn);
-
+                
                 selectVoucherBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('Chọn voucher button clicked - opening voucher warehouse');
-
+                    
                     // Kiểm tra button có bị disabled không
                     if (selectVoucherBtn.disabled) {
                         console.log('Button is disabled');
                         return;
                     }
-
+                    
                     try {
                         const openWarehouseModal = () => {
                             // Load content if function available
@@ -870,16 +1273,16 @@
                         alert('Có lỗi xảy ra khi mở kho voucher: ' + error.message);
                     }
                 });
-
+                
                 // Thêm event listener để debug
                 selectVoucherBtn.addEventListener('mouseenter', function() {
                     console.log('Mouse entered select voucher button');
                 });
-
+                
                 selectVoucherBtn.addEventListener('mouseleave', function() {
                     console.log('Mouse left select voucher button');
                 });
-
+                
             } else {
                 console.error('Select voucher button not found');
             }
@@ -904,7 +1307,7 @@
                     savedVouchers.forEach((voucher, index) => {
                         const isExpired = new Date(voucher.expiryDate) < new Date();
                         const savedDate = new Date(voucher.savedAt).toLocaleDateString('vi-VN');
-
+                        
                         html += `
                             <div class="col-md-6 mb-3">
                                 <div class="card voucher-card ${isExpired ? 'border-danger' : 'border-success'}">
@@ -945,7 +1348,7 @@
 
             function loadAvailableVouchers() {
                 console.log('loadAvailableVouchers called');
-
+                
                 try {
                     // Danh sách voucher có sẵn từ hệ thống
                     const availableVouchers = [
@@ -964,7 +1367,7 @@
                 availableVouchers.forEach((voucher, index) => {
                     const iconClass = getVoucherIcon(voucher.type);
                     const colorClass = getVoucherColorClass(voucher.type);
-
+                    
                     html += `
                         <div class="col-md-6 mb-3">
                             <div class="card voucher-card border-primary">
@@ -991,7 +1394,7 @@
                     `;
                 });
                 html += '</div>';
-
+                
                 if (availableVouchersList) {
                     availableVouchersList.innerHTML = html;
                     console.log('Available vouchers HTML loaded successfully');
@@ -1035,13 +1438,13 @@
                 if (voucherCodeInput) {
                     voucherCodeInput.value = code;
                     console.log('Selected available voucher code:', code);
-
+                    
                     // Tự động áp dụng voucher
                     const applyVoucherBtn = document.getElementById('applyVoucherBtn');
                     if (applyVoucherBtn && !applyVoucherBtn.disabled) {
                         applyVoucherBtn.click();
                     }
-
+                    
                     // Đóng modal
                     if (availableVouchersModal) {
                         const modal = bootstrap.Modal.getInstance(availableVouchersModal);
@@ -1065,11 +1468,11 @@
 
                 if (index >= 0 && index < availableVouchers.length) {
                     const voucher = availableVouchers[index];
-
+                    
                     try {
                         // Lấy danh sách voucher đã lưu từ localStorage
                         let savedVouchers = JSON.parse(localStorage.getItem('savedVouchers') || '[]');
-
+                        
                         // Kiểm tra xem voucher đã tồn tại chưa
                         const existingVoucher = savedVouchers.find(v => v.code === voucher.code);
                         if (existingVoucher) {
@@ -1084,12 +1487,12 @@
                             savedAt: new Date().toISOString(),
                             expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 ngày
                         };
-
+                        
                         savedVouchers.push(voucherToSave);
-
+                        
                         // Lưu vào localStorage
                         localStorage.setItem('savedVouchers', JSON.stringify(savedVouchers));
-
+                        
                         // Hiển thị thông báo thành công
                         const alert = document.createElement('div');
                         alert.className = 'alert alert-success alert-dismissible fade show';
@@ -1099,11 +1502,11 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         `;
                         document.body.appendChild(alert);
-
+                        
                         setTimeout(() => {
                             alert.remove();
                         }, 3000);
-
+                        
                     } catch (error) {
                         console.error('Save voucher error:', error);
                         alert('Có lỗi xảy ra khi lưu voucher!');
@@ -1117,13 +1520,13 @@
                 if (voucherCodeInput) {
                     voucherCodeInput.value = code;
                     console.log('Selected voucher code:', code);
-
+                    
                     // Tự động áp dụng voucher
                     const applyVoucherBtn = document.getElementById('applyVoucherBtn');
                     if (applyVoucherBtn && !applyVoucherBtn.disabled) {
                         applyVoucherBtn.click();
                     }
-
+                    
                     // Đóng modal
                     if (savedVouchersModal) {
                         const modal = bootstrap.Modal.getInstance(savedVouchersModal);
@@ -1141,10 +1544,10 @@
                         const savedVouchers = JSON.parse(localStorage.getItem('savedVouchers') || '[]');
                         savedVouchers.splice(index, 1);
                         localStorage.setItem('savedVouchers', JSON.stringify(savedVouchers));
-
+                        
                         // Reload danh sách
                         loadSavedVouchers();
-
+                        
                         // Hiển thị thông báo
                         const alert = document.createElement('div');
                         alert.className = 'alert alert-success alert-dismissible fade show';
@@ -1154,7 +1557,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         `;
                         document.body.appendChild(alert);
-
+                        
                         setTimeout(() => {
                             alert.remove();
                         }, 3000);
@@ -1174,6 +1577,10 @@
                         return;
                     }
 
+                    // Disable button để tránh click nhiều lần
+                    applyVoucherBtn.disabled = true;
+                    applyVoucherBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang xử lý...';
+                    
                     // Gửi request áp dụng voucher
                     fetch('/SpinWheel/ApplyVoucher', {
                         method: 'POST',
@@ -1186,23 +1593,158 @@
                     .then(response => response.json())
                     .then(result => {
                         if (result.success) {
-                            // Reload trang để cập nhật tổng tiền
-                            window.location.reload();
+                            // Hiển thị thông báo thành công
+                            const voucherSuccess = document.getElementById('voucherSuccess');
+                            if (voucherSuccess) {
+                                voucherSuccess.innerHTML = `
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Đã áp dụng voucher: <strong>${result.voucher?.name || voucherCode}</strong>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="removeVoucherBtn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                `;
+                                voucherSuccess.style.display = 'block';
+                            }
+
+                            // Disable input và button
+                            document.getElementById('voucherCode').disabled = true;
+                            applyVoucherBtn.disabled = true;
+                            applyVoucherBtn.innerHTML = '<i class="fas fa-check me-1"></i>Đã áp dụng';
+
+                            // Cập nhật order summary mà không reload trang
+                            updateOrderSummary();
                         } else {
                             alert(result.message);
+                            applyVoucherBtn.disabled = false;
+                            applyVoucherBtn.innerHTML = '<i class="fas fa-check me-1"></i>Áp dụng';
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         alert('Có lỗi xảy ra khi áp dụng voucher!');
+                        applyVoucherBtn.disabled = false;
+                        applyVoucherBtn.innerHTML = '<i class="fas fa-check me-1"></i>Áp dụng';
                     });
                 });
             }
 
-            // Xử lý nút xóa voucher
-            const removeVoucherBtn = document.getElementById('removeVoucherBtn');
-            if (removeVoucherBtn) {
-                removeVoucherBtn.addEventListener('click', function() {
+            @* ========== UPDATE ORDER SUMMARY ========== *@
+            /**
+             * Cập nhật tóm tắt đơn hàng (order summary) mà không reload trang
+             * Gọi API /Cart/GetCheckoutSummary để lấy giá trị mới nhất
+             * Cập nhật: Tạm tính, Giảm giá, VAT, Phí vận chuyển, Tổng tiền
+             */
+            function updateOrderSummary() {
+                fetch('/Cart/GetCheckoutSummary', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Cập nhật các giá trị trong order summary
+                        const subtotalEl = document.querySelector('.summary-row:first-child span:last-child');
+                        const discountRow = document.querySelector('.discount-row');
+                        const shippingRow = document.querySelector('.shipping-row'); // Phí vận chuyển
+                        const totalRow = document.querySelector('.total-row span:last-child');
+
+                        if (subtotalEl) {
+                            subtotalEl.textContent = data.subtotal.toLocaleString('vi-VN') + ' ₫';
+                        }
+
+                        // Cập nhật hoặc thêm dòng giảm giá
+                        const voucherRow = document.querySelector('.voucher-row');
+                        if (data.discount > 0) {
+                            if (!discountRow) {
+                                // Tạo dòng giảm giá mới
+                                const summarySection = document.querySelector('.summary-section');
+                                const vatRowEl = document.querySelector('.vat-row');
+                                const discountHtml = `
+                                    <div class="summary-row discount-row">
+                                        <span>Giảm giá</span>
+                                        <span>-${data.discount.toLocaleString('vi-VN')} ₫</span>
+                                    </div>
+                                `;
+                                if (vatRowEl) {
+                                    vatRowEl.insertAdjacentHTML('beforebegin', discountHtml);
+                                } else {
+                                    // Nếu không có VAT row, thêm trước shipping row
+                                    const shippingRowEl = document.querySelector('.shipping-row');
+                                    if (shippingRowEl) {
+                                        shippingRowEl.insertAdjacentHTML('beforebegin', discountHtml);
+                                    }
+                                }
+                            } else {
+                                discountRow.querySelector('span:last-child').textContent = '-' + data.discount.toLocaleString('vi-VN') + ' ₫';
+                            }
+                            
+                            // Cập nhật dòng voucher nếu có
+                            if (voucherRow) {
+                                const voucherName = data.voucherName || 'Giảm ' + data.discount.toLocaleString('vi-VN') + '₫';
+                                voucherRow.querySelector('span:last-child').textContent = voucherName;
+                            }
+                        } else {
+                            // Xóa cả discount row và voucher row khi không có discount
+                            if (discountRow) {
+                                discountRow.remove();
+                            }
+                            if (voucherRow) {
+                                voucherRow.remove();
+                            }
+                        }
+
+                        // Cập nhật VAT
+                        let vatRow = document.querySelector('.vat-row');
+                        if (data.vat > 0) {
+                            if (!vatRow) {
+                                // Tạo dòng VAT mới
+                                const summarySection = document.querySelector('.summary-section');
+                                const shippingRowEl = document.querySelector('.shipping-row');
+                                const vatHtml = `
+                                    <div class="summary-row vat-row">
+                                        <span>VAT (Thuế GTGT)</span>
+                                        <span>${data.vat.toLocaleString('vi-VN')} ₫</span>
+                                    </div>
+                                `;
+                                if (shippingRowEl) {
+                                    shippingRowEl.insertAdjacentHTML('beforebegin', vatHtml);
+                                }
+                            } else {
+                                vatRow.style.display = '';
+                                vatRow.querySelector('span:last-child').textContent = data.vat.toLocaleString('vi-VN') + ' ₫';
+                            }
+                        } else if (vatRow) {
+                            // Ẩn VAT row nếu VAT = 0
+                            vatRow.style.display = 'none';
+                        }
+
+                        // Cập nhật phí vận chuyển
+                        if (shippingRow) {
+                            const shippingSpan = shippingRow.querySelector('span:last-child');
+                            if (data.shippingFee === 0) {
+                                shippingSpan.innerHTML = '<span class="text-success">Miễn phí</span>';
+                            } else {
+                                shippingSpan.textContent = data.shippingFee.toLocaleString('vi-VN') + ' ₫';
+                            }
+                        }
+
+                        // Cập nhật tổng tiền
+                        if (totalRow) {
+                            totalRow.textContent = data.total.toLocaleString('vi-VN') + ' ₫';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating order summary:', error);
+                });
+            }
+
+            // Xử lý nút xóa voucher (delegated event listener vì button được tạo động)
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.closest('#removeVoucherBtn')) {
+                    e.preventDefault();
                     // Xóa voucher khỏi session
                     fetch('/Cart/RemoveVoucher', {
                         method: 'POST',
@@ -1214,8 +1756,20 @@
                     .then(response => response.json())
                     .then(result => {
                         if (result.success) {
-                            // Reload trang để cập nhật
-                            window.location.reload();
+                            // Ẩn thông báo voucher
+                            const voucherSuccess = document.getElementById('voucherSuccess');
+                            if (voucherSuccess) {
+                                voucherSuccess.style.display = 'none';
+                            }
+
+                            // Enable lại input và button
+                            document.getElementById('voucherCode').disabled = false;
+                            document.getElementById('voucherCode').value = '';
+                            applyVoucherBtn.disabled = false;
+                            applyVoucherBtn.innerHTML = '<i class="fas fa-check me-1"></i>Áp dụng';
+
+                            // Cập nhật order summary
+                            updateOrderSummary();
                         } else {
                             alert(result.message);
                         }
@@ -1223,9 +1777,9 @@
                     .catch(error => {
                         console.error('Error:', error);
                         alert('Có lỗi xảy ra khi xóa voucher!');
-                    });
                 });
             }
+            });
         });
     </script>
 }

@@ -311,11 +311,11 @@
                                 // Update cart totals
                                 updateCartTotals();
                                 
-                                // Update cart count in header if exists
+                                // Update cart count in header
+                                updateLocalCartCount();
+                                // Gọi hàm global nếu có
                                 if (typeof updateCartCount === 'function') {
-                                    // Calculate new cart count after removal
-                                    const remainingItems = document.querySelectorAll('tbody tr').length;
-                                    updateCartCount(remainingItems);
+                                    updateCartCount();
                                 }
                                 
                                 // Show success message
@@ -368,9 +368,20 @@
                 fetch('/Cart/GetCartCount')
                     .then(response => response.json())
                     .then(data => {
-                        const cartCountElement = document.querySelector('.cart-count');
-                        if (cartCountElement) {
-                            cartCountElement.textContent = data.count;
+                        const count = data.cartCount || data.count || 0;
+                        // Update tất cả các cart count elements
+                        const cartCountElements = document.querySelectorAll('.cart-count');
+                        cartCountElements.forEach(element => {
+                            element.textContent = count;
+                            if (count > 0) {
+                                element.style.display = 'block';
+                            } else {
+                                element.style.display = 'none';
+                            }
+                        });
+                        // Gọi hàm updateCartCount global nếu có
+                        if (typeof updateCartCount === 'function') {
+                            updateCartCount();
                         }
                     })
                     .catch(error => console.error('Error updating cart count:', error));

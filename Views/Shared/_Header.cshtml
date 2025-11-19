@@ -15,7 +15,7 @@
                 <div class="col-md-4 text-end">
                     <a href="#" class="text-white text-decoration-none me-3">
                         <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-                        <span class="small">Giới thiệu về Orchard</span>
+                        <span class="small">Giới thiệu về Perfume</span>
                     </a>
                     <a href="#" class="text-white text-decoration-none">
                         <i class="bi bi-truck me-1" aria-hidden="true"></i>
@@ -45,13 +45,7 @@
                 </div>
                 <div class="col-6 text-center">
                     <a href="/" class="text-decoration-none d-inline-flex align-items-center justify-content-center logo-shine">
-                        <picture class="d-none d-md-inline-block">
-                            <img src="https://orchard.vn/wp-content/uploads/2024/04/logo-orchard-2024-small.png" alt="Orchard.vn" style="height:40px; width:auto;" loading="lazy" onerror="this.style.display='none'; const t=this.closest('a').querySelector('.logo-text'); if(t){t.classList.remove('d-none');}">
-                        </picture>
-                        <div class="logo-container logo-text d-md-none">
-                            <h1 class="logo-text mb-0">ORCHARD</h1>
-                            <p class="logo-subtitle mb-0">Perfumes & Cosmetics</p>
-                        </div>
+                        <img src="~/images/perfumestore-logo.svg" alt="PerfumeStore" style="height:28px; width:auto; max-width:180px;" loading="lazy" />
                     </a>
                 </div>
                 <div class="col-3 d-flex justify-content-end align-items-center gap-2">
@@ -88,27 +82,21 @@
                     }
                     <a asp-controller="Cart" asp-action="Index" class="text-decoration-none position-relative mobile-cart-btn" aria-label="Giỏ hàng">
                         <i class="bi bi-cart3 fs-3 text-primary" aria-hidden="true"></i>
-                        <span class="position-absolute badge rounded-pill bg-danger mobile-cart-badge cart-count" style="top: 0px; right: -5px;" id="mobile-cart-count">0</span>
+                        <span class="position-absolute badge rounded-pill bg-danger mobile-cart-badge cart-count" style="top: 0px; right: -5px; display: none;" id="mobile-cart-count">0</span>
                     </a>
                 </div>
             </div>
 
             <!-- Desktop header -->
-            <div class="row align-items-center d-none d-lg-flex">
-                <div class="col-lg-2">
+            <div class="row align-items-center d-none d-lg-flex g-2 flex-nowrap">
+                <div class="col-lg-auto pe-lg-0">
                     <a href="/" class="text-decoration-none d-flex align-items-center logo-shine">
-                        <picture class="me-2">
-                            <img src="https://orchard.vn/wp-content/uploads/2024/04/logo-orchard-2024-small.png" alt="Orchard.vn" style="height:40px; width:auto;" loading="lazy" onerror="this.style.display='none'; const t=this.closest('a').querySelector('.logo-text-wrap'); if(t){t.classList.remove('d-none');}">
-                        </picture>
-                        <div class="logo-text-wrap d-none">
-                            <h1 class="logo-text mb-0">ORCHARD</h1>
-                            <p class="logo-subtitle mb-0">Perfumes & Cosmetics</p>
-                        </div>
+                        <img src="~/images/perfumestore-logo.svg" alt="PerfumeStore" style="height:32px; width:auto; " loading="lazy" />
                     </a>
                 </div>
-                <div class="col-lg-9">
+                <div class="col-lg ps-lg-2">
                     <nav class="navbar navbar-expand-lg navbar-light" role="navigation" aria-label="Điều hướng chính">
-                        <div class="collapse navbar-collapse" id="mainNavbar">
+                        <div class="collapse navbar-collapse show" id="mainNavbar">
                             <!-- Mobile search inside collapse -->
                             <div class="d-lg-none w-100 mb-2">
                                 <div class="input-group">
@@ -117,7 +105,8 @@
                                 </div>
                             </div>
 
-                            <ul class="navbar-nav me-auto align-items-lg-center">
+                            <div class="navbar-nav-scroll-wrapper">
+                                <ul class="navbar-nav me-auto align-items-lg-center flex-nowrap">
                                 <!-- Mega: Nuoc hoa -->
                                 <li class="nav-item dropdown position-static">
                                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -234,10 +223,11 @@
                                     </ul>
                                 </li>
                             </ul>
+                            </div>
                         </div>
                     </nav>
                 </div>
-                <div class="col-lg-1 text-end d-none d-lg-flex align-items-center justify-content-end gap-3">
+                <div class="col-lg-auto text-end d-none d-lg-flex align-items-center justify-content-end gap-3">
                     @if (User.Identity.IsAuthenticated)
                     {
                         <!-- Desktop User Dropdown -->
@@ -254,7 +244,7 @@
                                 <li><a class="dropdown-item" asp-controller="Account" asp-action="Index"><i class="bi bi-person me-2"></i>Thông tin tài khoản</a></li>
                                 <li><a class="dropdown-item" href="#"><i class="bi bi-bag me-2"></i>Đơn hàng của tôi</a></li>
                                 <li><a class="dropdown-item" href="#"><i class="bi bi-heart me-2"></i>Sản phẩm yêu thích</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-gift me-2"></i>Voucher của tôi</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Vouchers"><i class="bi bi-gift me-2"></i>Voucher của tôi</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form asp-controller="Auth" asp-action="Logout" method="get" class="d-inline w-100">
@@ -275,7 +265,7 @@
                     }
                     <a asp-controller="Cart" asp-action="Index" class="text-decoration-none position-relative desktop-cart-btn" aria-label="Giỏ hàng">
                         <i class="bi bi-cart3 fs-4 text-primary" aria-hidden="true"></i>
-                        <span class="position-absolute badge rounded-pill bg-danger cart-count" style="top: -5px; right: -8px;" id="desktop-cart-count">0</span>
+                        <span class="position-absolute badge rounded-pill bg-danger cart-count" style="top: -5px; right: -8px; display: none;" id="desktop-cart-count">0</span>
                     </a>
                 </div>
             </div>
@@ -434,3 +424,78 @@
         }
     });
 </script>
+
+<style>
+    /* Custom scrollbar cho menu navbar */
+    .navbar-nav-scroll-wrapper {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e0 transparent;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        position: relative;
+    }
+
+    /* Luôn hiển thị scrollbar khi có overflow (cho Chrome/Safari) */
+    .navbar-nav-scroll-wrapper::-webkit-scrollbar {
+        height: 6px;
+        display: block;
+    }
+
+
+    .navbar-nav-scroll-wrapper::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .navbar-nav-scroll-wrapper::-webkit-scrollbar-thumb {
+        background-color: #cbd5e0;
+        border-radius: 3px;
+    }
+
+    .navbar-nav-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+        background-color: #a0aec0;
+    }
+
+    /* Đảm bảo các nav-item không bị wrap */
+    .navbar-nav-scroll-wrapper .navbar-nav {
+        display: flex;
+        flex-wrap: nowrap;
+        min-width: max-content;
+    }
+
+    .navbar-nav-scroll-wrapper .navbar-nav .nav-item {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* Đảm bảo col-lg có thể co lại */
+    @@media (min-width: 992px) {
+        .main-header .row > .col-lg {
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        /* Đảm bảo navbar-collapse luôn hiển thị trên desktop */
+        .main-header .navbar-collapse {
+            display: flex !important;
+        }
+
+        /* Đảm bảo nav và collapse không chặn scroll */
+        .main-header .navbar {
+            overflow: visible;
+        }
+
+        .main-header .navbar-collapse {
+            overflow: visible;
+            width: 100%;
+        }
+    }
+
+    /* Test: Thêm border để debug (có thể xóa sau) */
+    /* .navbar-nav-scroll-wrapper {
+        border: 1px solid red;
+    } */
+</style>

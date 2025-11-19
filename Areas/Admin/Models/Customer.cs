@@ -8,6 +8,7 @@ namespace PerfumeStore.Areas.Admin.Models
         public Customer()
         {
             Comments = new HashSet<Comment>();
+            Coupons = new HashSet<Coupon>();
             Orders = new HashSet<Order>();
             ShippingAddresses = new HashSet<ShippingAddress>();
         }
@@ -24,6 +25,7 @@ namespace PerfumeStore.Areas.Admin.Models
 
         public virtual Membership? Membership { get; set; }
         public virtual ICollection<Comment> Comments { get; set; }
+        public virtual ICollection<Coupon> Coupons { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<ShippingAddress> ShippingAddresses { get; set; }
     }

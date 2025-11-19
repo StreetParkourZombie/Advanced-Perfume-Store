@@ -1,0 +1,165 @@
+@startuml Activity_Registration
+title Activity Diagram: Đăng ký tài khoản (Registration)
+
+start
+
+:User điền form đăng ký\n(name, email, password, phone, birthYear);
+:User submit form;
+:AuthController nhận POST /Auth/Register;
+
+:Validate input\n(email, password required);
+
+if (Email hoặc password rỗng?) then (có)
+    :Hiển thị lỗi "Email và mật khẩu là bắt buộc";
+    stop
+else (không)
+    :Kiểm tra email đã tồn tại\n trong Customers table;
+    
+    if (Email đã tồn tại?) then (có)
+        :Hiển thị lỗi "Email đã được sử dụng";
+        stop
+    else (không)
+        :Kiểm tra pending registration\n trong 5 phút gần đây;
+        
+        if (Có pending trong 5 phút?) then (có)
+            :Hiển thị thông báo\n"Vui lòng kiểm tra email để xác thực";
+            stop
+        else (không)
+            :Xóa các pending registrations\n đã hết hạn;
+            :Hash password bằng BCrypt;
+            :Generate token\n(Guid.NewGuid());
+            :Tạo PendingRegistration\n(name, email, passwordHash, token,\nCreatedAt, ExpiresAt = 24h);
+            :Lưu vào Database;
+            :Generate callback URL\n(scheme://host/Auth/ConfirmEmail?token=...);
+            
+            :Gửi email xác thực\n qua EmailService;
+            
+            if (Gửi email thành công?) then (thành công)
+                :Hiển thị thông báo\n"Vui lòng kiểm tra email\n(link có hiệu lực 24 giờ)";
+                stop
+            else (thất bại)
+                :Hiển thị lỗi\n"Gửi email xác thực thất bại";
+                stop
+            endif
+        endif
+    endif
+endif
+
+== Xác thực Email ==
+
+:User click link xác thực\n trong email;
+:AuthController nhận GET /Auth/ConfirmEmail?token=xxx;
+
+:Find PendingRegistration\n by token (not processed);
+
+if (Token không tồn tại\n hoặc đã được sử dụng?) then (có)
+    :Hiển thị "Token không tồn tại\n hoặc đã được sử dụng";
+    stop
+else (không)
+    if (Token đã hết hạn?) then (có)
+        :Hiển thị "Token đã hết hạn.\n Vui lòng đăng ký lại";
+        stop
+    else (không)
+        :Tạo Customer mới\n(name, email, passwordHash, CreatedDate);
+        :Update PendingRegistration\n(IsProcessed = true);
+        :SaveChanges();
+        :Hiển thị "Xác thực thành công!\n Chào mừng {name}!\n Đăng nhập ngay";
+        stop
+    endif
+endif
+
+@enduml
+
+@startuml Activity_Login
+title Activity Diagram: Đăng nhập (Login)
+
+start
+
+:User điền email và password;
+:User submit form;
+:AuthController nhận POST /Auth/Login\n(email, password);
+
+:Find Customer by email\n trong Database;
+
+if (Customer tồn tại?) then (không)
+    :Hiển thị lỗi\n"Email hoặc mật khẩu không đúng";
+    stop
+else (có)
+    if (PasswordHash rỗng?) then (có)
+        :Hiển thị lỗi\n"Email hoặc mật khẩu không đúng";
+        stop
+    else (không)
+        :Verify password bằng BCrypt\n(password, customer.PasswordHash);
+        
+        if (Password đúng?) then (không)
+            :Hiển thị lỗi\n"Email hoặc mật khẩu không đúng";
+            stop
+        else (đúng)
+            :Tạo Claims\n(ClaimTypes.NameIdentifier = CustomerId,\nClaimTypes.Name = Name,\nClaimTypes.Email = Email);
+            :Tạo ClaimsIdentity\n với CookieAuthenticationScheme;
+            :Tạo AuthenticationProperties\n(IsPersistent = true);
+            :SignInAsync\n(CookieAuthenticationScheme,\nClaimsPrincipal,\nAuthenticationProperties);
+            :Tạo authentication cookie;
+            :Redirect to Home/Index;
+            stop
+        endif
+    endif
+endif
+
+@enduml
+
+@startuml Activity_ProductSearch
+title Activity Diagram: Tìm kiếm sản phẩm (Product Search)
+
+start
+
+partition "Tìm kiếm trang kết quả" {
+    :User nhập từ khóa tìm kiếm;
+    :User submit form hoặc Enter;
+    :SearchController nhận GET /Search/Index?query=keyword;
+    
+    :Validate query\n(string.IsNullOrWhiteSpace);
+    
+    if (Query rỗng?) then (có)
+        :Set ViewBag.Query = "";
+        :Hiển thị View với empty results;
+        stop
+    else (không)
+        :Query Products từ Database\n.Include(Discount)\n.Include(ProductImages);
+        :Filter: IsPublished == true AND\n(ProductName.Contains(query) OR\nSuggestionName.Contains(query));
+        :OrderByDescending(ProductId);
+        :Take(50);
+        :Execute query;
+        :Nhận List<Product> (results);
+        :Set ViewBag.Query = query;
+        :Hiển thị View với search results;
+        stop
+    endif
+}
+
+== Tìm kiếm nhanh (AJAX) ==
+
+partition "Tìm kiếm nhanh AJAX" {
+    :User nhập từ khóa\n trong search box;
+    :AJAX request GET /Search/SearchProducts?keyword=xxx;
+    :SearchController nhận request;
+    
+    :Validate keyword\n(string.IsNullOrWhiteSpace);
+    
+    if (Keyword rỗng?) then (có)
+        :Return Json(Enumerable.Empty<object>());
+        stop
+    else (không)
+        :Query Products từ Database\n.Include(ProductImages);
+        :Filter: IsPublished == true AND\n(ProductName.Contains(keyword) OR\nSuggestionName.Contains(keyword));
+        :Select new { id, name, price, image };
+        :Take(8);
+        :Execute query;
+        :Nhận List of anonymous objects;
+        :Return Json(data)\n[{id, name, price, image}, ...];
+        stop
+    endif
+}
+
+@enduml
+

@@ -132,6 +132,11 @@ namespace PerfumeStore.Models
                 entity.Property(e => e.IsUsed).HasDefaultValueSql("(CONVERT([bit],(0)))");
 
                 entity.Property(e => e.UsedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Customer)
+                    .WithMany(p => p.Coupons)
+                    .HasForeignKey(d => d.CustomerId)
+                    .HasConstraintName("FK__Coupons__Custome__1F98B2C1");
             });
 
             modelBuilder.Entity<Customer>(entity =>

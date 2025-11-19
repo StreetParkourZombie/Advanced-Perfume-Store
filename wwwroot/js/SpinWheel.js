@@ -8,11 +8,16 @@ class SpinWheel {
         this.spinBtn = document.querySelector('.wheel-center');
         this.resultModal = document.getElementById('resultModal');
         this.remainingSpinsEl = document.getElementById('remainingSpins');
+        this.couponCountEl = document.getElementById('availableCouponCount');
         this.voucherList = document.getElementById('voucherList');
+        this.noCouponMessageEl = document.getElementById('noCouponMessage');
         
         this.isSpinning = false;
         this.currentRotation = 0;
-        this.vouchers = [];
+        this.vouchers = Array.isArray(window.spinWheelData?.vouchers)
+            ? window.spinWheelData.vouchers
+            : [];
+        this.hasCoupons = this.vouchers.length > 0;
         this.currentVoucher = null;
         this.autoCloseTimeout = null;
         
@@ -20,7 +25,11 @@ class SpinWheel {
     }
 
     init() {
-        this.createVoucherPool();
+        if (this.remainingSpinsEl && window.spinWheelData?.remainingSpins !== undefined) {
+            this.remainingSpinsEl.textContent = window.spinWheelData.remainingSpins;
+        }
+        this.updateCouponCount(this.vouchers.length);
+
         this.createWheel();
         this.createVoucherList();
         this.bindEvents();
@@ -32,35 +41,30 @@ class SpinWheel {
         console.log('Wheel style:', this.wheel.style);
     }
 
-    createVoucherPool() {
-        this.vouchers = [
-            { id: 1, name: "Miễn phí ship", type: "freeship", code: "FREESHIP", color: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", probability: 12 },
-            { id: 2, name: "Chúc may mắn lần sau", type: "none", code: "NONE", color: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", probability: 10 },
-            { id: 3, name: "Giảm 15%", type: "percent", code: "LUCKY15", color: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)", probability: 15 },
-            { id: 4, name: "Giảm 10%", type: "percent", code: "LUCKY10", color: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)", probability: 20 },
-            { id: 5, name: "Giảm 20%", type: "percent", code: "LUCKY20", color: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)", probability: 18 },
-            { id: 6, name: "Giảm 30%", type: "percent", code: "LUCKY30", color: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)", probability: 12 },
-            { id: 7, name: "Giảm 50.000đ", type: "amount", code: "CASH50K", color: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", probability: 8 },
-            { id: 8, name: "Giảm 100.000đ", type: "amount", code: "CASH100K", color: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)", probability: 5 }
-        ];
-    }
-
     createWheel() {
+        if (!this.wheel) return;
+
         // Clear existing sectors
         this.wheel.innerHTML = '';
-        
-        const sectorAngle = 360 / this.vouchers.length; // 45 degrees for 8 sectors
-        
+
+        if (!this.hasCoupons) {
+            this.wheel.classList.add('wheel-empty');
+            return;
+        }
+
+        const totalSectors = this.vouchers.length;
+        const sectorAngle = 360 / totalSectors;
+
         this.vouchers.forEach((voucher, index) => {
             const sector = document.createElement('div');
             sector.className = 'wheel-sector';
-            sector.style.transform = `rotate(calc(360deg / 8 * ${index}))`; // Mỗi slice xoay đều
+            sector.style.transform = `rotate(${(360 / totalSectors) * index}deg)`; // Mỗi slice xoay đều
             sector.style.background = voucher.color;
             
             const text = document.createElement('div');
             text.className = 'sector-text';
             text.innerHTML = `
-                <div style="transform: rotate(${-index * sectorAngle + sectorAngle/2}deg);">
+                <div style="transform: rotate(${-(index * sectorAngle) + sectorAngle / 2}deg);">
                     <div style="font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
                         ${voucher.name}
                     </div>
@@ -74,12 +78,15 @@ class SpinWheel {
 
     createVoucherList() {
         if (!this.voucherList) return;
-        
+
         this.voucherList.innerHTML = '';
-        
+
+        if (!this.hasCoupons) {
+            this.voucherList.innerHTML = '<p class="text-center text-muted m-0">Không có coupon trên vòng quay.</p>';
+            return;
+        }
+
         this.vouchers.forEach(voucher => {
-            if (voucher.type === 'none') return;
-            
             const voucherCard = document.createElement('div');
             voucherCard.className = 'voucher-card';
             voucherCard.innerHTML = `
@@ -203,6 +210,10 @@ class SpinWheel {
 
     async spin() {
         if (this.isSpinning) return;
+        if (!this.hasCoupons) {
+            this.showMessage('Hiện chưa có coupon nào trên vòng quay.', 'warning');
+            return;
+        }
         
         const remaining = parseInt(this.remainingSpinsEl.textContent);
         if (remaining <= 0) {
@@ -231,6 +242,7 @@ class SpinWheel {
                 this.animateSpin(result.angle);
                 this.showResult(result);
                 this.updateRemainingSpins(result.remainingSpins);
+                this.refreshVouchers(result.availableVouchers);
             } else {
                 this.showMessage(result.message, 'error');
                 this.isSpinning = false;
@@ -424,7 +436,14 @@ class SpinWheel {
         
         const remaining = parseInt(this.remainingSpinsEl.textContent);
         
-        if (remaining > 0 && !this.isSpinning) {
+        if (!this.hasCoupons) {
+            this.spinBtn.style.pointerEvents = 'none';
+            this.spinBtn.style.opacity = '0.6';
+            this.spinBtn.innerHTML = `
+                <i class="fas fa-ticket-alt center-logo"></i>
+                <div class="center-text">HẾT COUPON</div>
+            `;
+        } else if (remaining > 0 && !this.isSpinning) {
             this.spinBtn.style.pointerEvents = 'auto';
             this.spinBtn.style.opacity = '1';
             this.spinBtn.innerHTML = `
@@ -452,6 +471,30 @@ class SpinWheel {
         if (this.remainingSpinsEl) {
             this.remainingSpinsEl.textContent = count;
         }
+    }
+
+    updateCouponCount(count) {
+        if (this.couponCountEl) {
+            this.couponCountEl.textContent = count;
+        }
+    }
+
+    refreshVouchers(newVouchers) {
+        if (!Array.isArray(newVouchers)) {
+            return;
+        }
+
+        this.vouchers = newVouchers;
+        this.hasCoupons = this.vouchers.length > 0;
+        this.updateCouponCount(this.vouchers.length);
+
+        if (this.noCouponMessageEl) {
+            this.noCouponMessageEl.style.display = this.hasCoupons ? 'none' : 'block';
+        }
+
+        this.createWheel();
+        this.createVoucherList();
+        this.updateSpinButton();
     }
 
     fetchRemainingSpins() {

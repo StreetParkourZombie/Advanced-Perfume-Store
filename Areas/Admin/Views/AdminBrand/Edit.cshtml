@@ -1,0 +1,370 @@
+@model PerfumeStore.Models.Brand
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Chỉnh sửa thương hiệu";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary me-3">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h4 class="mb-0">
+        <i class="fas fa-edit me-2 text-primary"></i>Chỉnh sửa thương hiệu
+    </h4>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>Thông tin thương hiệu
+                </h6>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" asp-route-id="@Model.BrandId" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="alert alert-danger"></div>
+                    
+                    <input type="hidden" asp-for="BrandId" />
+                    
+                    <!-- Current Info Display -->
+                    <div class="mb-4">
+                        <div class="bg-light rounded-3 p-3">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    @if (Model.ImageData != null && Model.ImageData.Length > 0)
+                                    {
+                                        var imageData = Convert.ToBase64String(Model.ImageData);
+                                        var imageSrc = $"data:{Model.ImageMimeType};base64,{imageData}";
+                                        <img src="@imageSrc" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;" alt="@Model.BrandName">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                            <i class="fas fa-copyright text-white fa-lg"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col">
+                                    <div class="fw-semibold">Thương hiệu hiện tại</div>
+                                    <div class="text-muted">ID: @Model.BrandId</div>
+                                </div>
+                                <div class="col-auto">
+                                    <span class="badge bg-info">Đang chỉnh sửa</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="BrandName" class="form-label fw-semibold">
+                            <i class="fas fa-copyright me-1 text-primary"></i>Tên thương hiệu
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="BrandName" class="form-control form-control-lg" 
+                               placeholder="Nhập tên thương hiệu..." 
+                               maxlength="100" 
+                               required />
+                        <span asp-validation-for="BrandName" class="text-danger small"></span>
+                        <div class="form-text">
+                            <i class="fas fa-lightbulb me-1"></i>
+                            Tên thương hiệu nên ngắn gọn, dễ hiểu và không trùng với thương hiệu khác.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-image me-1 text-info"></i>Logo thương hiệu
+                            <span class="text-muted">(Tùy chọn - để trống nếu không muốn thay đổi)</span>
+                        </label>
+                        <input type="file" name="imageFile" class="form-control form-control-lg" 
+                               accept="image/*" 
+                               id="imageFile" />
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Chấp nhận file: JPG, JPEG, PNG, GIF. Kích thước tối đa: 5MB.
+                        </div>
+                        @if (Model.ImageData != null && Model.ImageData.Length > 0)
+                        {
+                            var imageData = Convert.ToBase64String(Model.ImageData);
+                            var imageSrc = $"data:{Model.ImageMimeType};base64,{imageData}";
+                            <div class="mt-3">
+                                <div class="border rounded-3 p-3 bg-light">
+                                    <div class="d-flex align-items-center">
+                                        <img src="@imageSrc" alt="Current Logo" class="img-thumbnail me-3" style="max-width: 150px; max-height: 150px;">
+                                        <div>
+                                            <div class="fw-semibold">Logo hiện tại</div>
+                                            <small class="text-muted">Upload ảnh mới để thay thế</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div id="imagePreview" class="mt-3 d-none">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <div class="d-flex align-items-center">
+                                    <img id="previewImage" src="" alt="Preview" class="img-thumbnail me-3" style="max-width: 150px; max-height: 150px;">
+                                    <div>
+                                        <div class="fw-semibold">Ảnh mới</div>
+                                        <small class="text-muted">Ảnh này sẽ thay thế logo hiện tại</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-eye me-1 text-info"></i>Xem trước thay đổi
+                        </label>
+                        <div class="border rounded-3 p-3 bg-light">
+                            <div class="d-flex align-items-center">
+                                <div id="previewIcon" class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center me-3 @(Model.ImageData != null && Model.ImageData.Length > 0 ? "d-none" : "")" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-copyright text-white fa-lg"></i>
+                                </div>
+                                <div id="previewImageContainer" class="@(Model.ImageData != null && Model.ImageData.Length > 0 ? "" : "d-none") me-3">
+                                    @if (Model.ImageData != null && Model.ImageData.Length > 0)
+                                    {
+                                        var imageData = Convert.ToBase64String(Model.ImageData);
+                                        var imageSrc = $"data:{Model.ImageMimeType};base64,{imageData}";
+                                        <img id="previewBrandImage" src="@imageSrc" alt="Brand Logo" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <img id="previewBrandImage" src="" alt="Brand Logo" class="rounded-circle d-none" style="width: 60px; height: 60px; object-fit: cover;">
+                                    }
+                                </div>
+                                <div>
+                                    <div class="fw-semibold" id="previewName">@Model.BrandName</div>
+                                    <small class="text-muted">ID: @Model.BrandId</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Hủy
+                        </a>
+                        <a asp-action="Details" asp-route-id="@Model.BrandId" class="btn btn-outline-info">
+                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Cập nhật
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-light border-0">
+                <h6 class="card-title mb-0 text-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Lưu ý khi chỉnh sửa
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-shield-alt text-info me-2 mt-1"></i>
+                            <div>
+                                <strong>An toàn:</strong>
+                                <ul class="list-unstyled mt-1 mb-0 small text-muted">
+                                    <li>• Thay đổi tên không ảnh hưởng đến sản phẩm</li>
+                                    <li>• Dữ liệu được sao lưu tự động</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-users text-success me-2 mt-1"></i>
+                            <div>
+                                <strong>Tác động:</strong>
+                                <ul class="list-unstyled mt-1 mb-0 small text-muted">
+                                    <li>• Khách hàng sẽ thấy tên mới ngay lập tức</li>
+                                    <li>• Logo mới sẽ hiển thị trên website</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Store original name for comparison
+        const originalName = '@Model.BrandName';
+        const hasCurrentImage = @(Model.ImageData != null && Model.ImageData.Length > 0 ? "true" : "false");
+        
+        // Real-time preview
+        document.getElementById('BrandName').addEventListener('input', function() {
+            const previewName = document.getElementById('previewName');
+            const value = this.value.trim();
+            
+            if (value) {
+                previewName.textContent = value;
+                previewName.classList.remove('text-muted');
+                
+                // Highlight if changed
+                if (value !== originalName) {
+                    previewName.classList.add('text-primary');
+                } else {
+                    previewName.classList.remove('text-primary');
+                }
+            } else {
+                previewName.textContent = 'Tên thương hiệu sẽ hiển thị ở đây';
+                previewName.classList.add('text-muted');
+                previewName.classList.remove('text-primary');
+            }
+        });
+
+        // Image preview
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const previewContainer = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            const previewBrandImage = document.getElementById('previewBrandImage');
+            const previewImageContainer = document.getElementById('previewImageContainer');
+            const previewIcon = document.getElementById('previewIcon');
+            
+            if (file) {
+                // Validate file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Kích thước file không được vượt quá 5MB!');
+                    this.value = '';
+                    previewContainer.classList.add('d-none');
+                    return;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Chỉ chấp nhận file ảnh: JPG, JPEG, PNG, GIF!');
+                    this.value = '';
+                    previewContainer.classList.add('d-none');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewBrandImage.src = e.target.result;
+                    previewContainer.classList.remove('d-none');
+                    previewImageContainer.classList.remove('d-none');
+                    previewIcon.classList.add('d-none');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.classList.add('d-none');
+                if (!hasCurrentImage) {
+                    previewImageContainer.classList.add('d-none');
+                    previewIcon.classList.remove('d-none');
+                }
+            }
+        });
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const brandName = document.getElementById('BrandName').value.trim();
+            const imageFile = document.getElementById('imageFile').files[0];
+            
+            if (!brandName) {
+                e.preventDefault();
+                alert('Vui lòng nhập tên thương hiệu!');
+                document.getElementById('BrandName').focus();
+                return false;
+            }
+            
+            if (brandName.length < 2) {
+                e.preventDefault();
+                alert('Tên thương hiệu phải có ít nhất 2 ký tự!');
+                document.getElementById('BrandName').focus();
+                return false;
+            }
+            
+            if (imageFile && imageFile.size > 5 * 1024 * 1024) {
+                e.preventDefault();
+                alert('Kích thước ảnh không được vượt quá 5MB!');
+                return false;
+            }
+            
+            // Confirm if no changes made
+            if (brandName === originalName && !imageFile) {
+                if (!confirm('Bạn chưa thay đổi gì. Bạn có muốn tiếp tục?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+
+        // Auto-focus on brand name input
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('BrandName');
+            input.focus();
+            input.select(); // Select all text for easy editing
+        });
+
+        // Show validation summary if there are errors
+        document.addEventListener('DOMContentLoaded', function() {
+            const validationSummary = document.querySelector('[asp-validation-summary]');
+            if (validationSummary) {
+                const errors = validationSummary.querySelectorAll('li, .validation-summary-errors');
+                if (errors && errors.length > 0) {
+                    validationSummary.style.display = 'block';
+                }
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S to save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                document.querySelector('form').submit();
+            }
+            
+            // Escape to cancel
+            if (e.key === 'Escape') {
+                if (confirm('Bạn có muốn hủy chỉnh sửa và quay lại danh sách?')) {
+                    window.location.href = '@Url.Action("Index")';
+                }
+            }
+        });
+    </script>
+}
+
+<style>
+.card {
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.form-text {
+    font-size: 0.875rem;
+}
+
+@@media (max-width: 768px) {
+    .col-lg-8 {
+        padding: 0 15px;
+    }
+}
+</style>
+

@@ -241,8 +241,49 @@
                     <span class="info-value">@Model.PaymentMethod</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Tổng tiền:</span>
-                    <span class="info-value" style="color: #667eea; font-size: 20px;">
+                    <span class="info-label">Tạm tính:</span>
+                    <span class="info-value">
+                        @Convert.ToDecimal(Model.Subtotal ?? 0).ToString("N0") ₫
+                    </span>
+                </div>
+
+                @if (Model.Coupon != null && Model.Coupon.DiscountAmount > 0)
+                {
+                    <div class="info-row">
+                        <span class="info-label">Giảm giá (@Model.Coupon.Code):</span>
+                        <span class="info-value" style="color: #28a745;">
+                            -@Convert.ToDecimal(Model.Coupon.DiscountAmount).ToString("N0") ₫
+                        </span>
+                    </div>
+                }
+
+                @if (Model.VAT > 0)
+                {
+                    <div class="info-row">
+                        <span class="info-label">VAT (Thuế GTGT):</span>
+                        <span class="info-value">
+                            @Convert.ToDecimal(Model.VAT ?? 0).ToString("N0") ₫
+                        </span>
+                    </div>
+                }
+
+                <div class="info-row">
+                    <span class="info-label">Phí vận chuyển:</span>
+                    <span class="info-value">
+                        @if (Model.ShippingFee == null || Model.ShippingFee == 0)
+                        {
+                            <span style="color: #28a745;">Miễn phí</span>
+                        }
+                        else
+                        {
+                            @Convert.ToDecimal(Model.ShippingFee).ToString("N0") <text>₫</text>
+                        }
+                    </span>
+                </div>
+
+                <div class="info-row" style="border-top: 2px solid #dee2e6; padding-top: 15px; margin-top: 10px;">
+                    <span class="info-label" style="font-size: 18px; font-weight: 700;">Tổng tiền:</span>
+                    <span class="info-value" style="color: #667eea; font-size: 20px; font-weight: 700;">
                         @Convert.ToDecimal(Model.TotalAmount).ToString("N0") ₫
                     </span>
                 </div>

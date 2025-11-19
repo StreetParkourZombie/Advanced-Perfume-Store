@@ -12,23 +12,20 @@ namespace PerfumeStore.Areas.Admin.Models
         }
 
         public int CouponId { get; set; }
-
-        [Required(ErrorMessage = "Vui lòng nhập mã coupon.")]
-        [StringLength(30, ErrorMessage = "Mã coupon tối đa 30 ký tự.")]
+        [Required(ErrorMessage = "Code là bắt buộc.")]
+        [StringLength(30, MinimumLength = 30, ErrorMessage = "Code phải gồm chính xác 30 ký tự.")]
         public string? Code { get; set; }
-
         public bool? IsUsed { get; set; }
         public DateTime? CreatedDate { get; set; }
-
-        [Required(ErrorMessage = "Vui lòng chọn ngày hết hạn.")]
+        [Required(ErrorMessage = "Ngày hết hạn là bắt buộc.")]
         public DateTime? ExpiryDate { get; set; }
-
         public DateTime? UsedDate { get; set; }
-
-        [Required(ErrorMessage = "Vui lòng nhập số tiền giảm.")]
-        [Range(typeof(decimal), "0", "9999999.99", ErrorMessage = "Số tiền giảm tối đa 9,999,999.99.")]
+        [Required(ErrorMessage = "Số tiền giảm là bắt buộc.")]
+        [Range(typeof(decimal), "0.01", "9999999999", ErrorMessage = "Số tiền giảm phải lớn hơn 0.")]
         public decimal? DiscountAmount { get; set; }
+        public int? CustomerId { get; set; }
 
+        public virtual Customer? Customer { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
     }
 }

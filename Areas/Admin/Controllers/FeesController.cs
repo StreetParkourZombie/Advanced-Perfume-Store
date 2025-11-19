@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PerfumeStore.Areas.Admin.Models;
 using PerfumeStore.Areas.Admin.Filters;
+using PerfumeStore.Areas.Admin.Services;
+using System.Linq;
 
 namespace PerfumeStore.Areas.Admin.Controllers
 {
@@ -10,16 +12,24 @@ namespace PerfumeStore.Areas.Admin.Controllers
     public class FeesController : Controller
     {
         private readonly PerfumeStoreContext _db;
+        private readonly IPaginationService _paginationService;
 
-        public FeesController(PerfumeStoreContext db)
+        public FeesController(PerfumeStoreContext db, IPaginationService paginationService)
         {
             _db = db;
+            _paginationService = paginationService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var fees = await _db.Fees.OrderBy(f => f.FeeId).ToListAsync();
-            return View(fees);
+            var feesQuery = _db.Fees.OrderBy(f => f.FeeId);
+            var feesList = await feesQuery.ToListAsync();
+            var pagedResult = _paginationService.Paginate(feesList, page, 10);
+
+            ViewBag.VatFee = feesList.FirstOrDefault(f => f.Name == "VAT");
+            ViewBag.ShippingFee = feesList.FirstOrDefault(f => f.Name == "Shipping");
+
+            return View(pagedResult);
         }
 
         public async Task<IActionResult> Edit(int id)

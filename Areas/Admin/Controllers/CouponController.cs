@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PerfumeStore.Areas.Admin.Models;
+using PerfumeStore.Areas.Admin.Services;
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace PerfumeStore.Areas.Admin.Controllers
@@ -11,25 +14,35 @@ namespace PerfumeStore.Areas.Admin.Controllers
     public class CouponController : Controller
     {
         private readonly PerfumeStoreContext _context;
+        private readonly IPaginationService _paginationService;
 
-        public CouponController(PerfumeStoreContext context)
+        public CouponController(PerfumeStoreContext context, IPaginationService paginationService)
         {
             _context = context;
+            _paginationService = paginationService;
         }
 
         // GET: Admin/Coupon
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var coupons = await _context.Coupons
+            var couponsQuery = _context.Coupons
+                .Include(c => c.Customer)
                 .OrderByDescending(c => c.CreatedDate)
-                .ToListAsync();
-            return View("Index", coupons); // View riêng Index.cshtml
+                .AsQueryable();
+            
+            var pagedResult = await _paginationService.PaginateAsync(couponsQuery, page, 10);
+            return View("Index", pagedResult); // View riêng Index.cshtml
         }
 
         // GET: Admin/Coupon/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View("Create"); // View riêng Create.cshtml
+            await PopulateCustomerOptionsAsync();
+            var model = new Coupon
+            {
+                Code = await GenerateUniqueCodeAsync()
+            };
+            return View("Create", model); // View riêng Create.cshtml
         }
 
         // POST: Admin/Coupon/Create
@@ -37,11 +50,30 @@ namespace PerfumeStore.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Coupon coupon)
         {
+            if (string.IsNullOrWhiteSpace(coupon.Code))
+            {
+                coupon.Code = await GenerateUniqueCodeAsync();
+                ModelState.Clear();
+                TryValidateModel(coupon);
+            }
+
             if (!ModelState.IsValid)
+            {
+                await PopulateCustomerOptionsAsync(coupon.CustomerId);
                 return View("Create", coupon);
+            }
 
             // Chuẩn hoá dữ liệu
             coupon.Code = (coupon.Code ?? string.Empty).Trim().ToUpperInvariant();
+            if (coupon.Code.Length != 30 || !coupon.Code.All(char.IsLetterOrDigit))
+            {
+                ModelState.AddModelError(nameof(coupon.Code), "Code phải gồm 30 ký tự chữ hoa và số.");
+            }
+            if (!ModelState.IsValid)
+            {
+                await PopulateCustomerOptionsAsync(coupon.CustomerId);
+                return View("Create", coupon);
+            }
 
             // Validate: không trùng Code
             var isDuplicate = await _context.Coupons
@@ -49,6 +81,7 @@ namespace PerfumeStore.Areas.Admin.Controllers
             if (isDuplicate)
             {
                 ModelState.AddModelError(nameof(coupon.Code), "Code đã tồn tại.");
+                await PopulateCustomerOptionsAsync(coupon.CustomerId);
                 return View("Create", coupon);
             }
 
@@ -69,6 +102,7 @@ namespace PerfumeStore.Areas.Admin.Controllers
             var coupon = await _context.Coupons.FindAsync(id);
             if (coupon == null) return NotFound();
 
+            await PopulateCustomerOptionsAsync(coupon.CustomerId);
             return View("Edit", coupon); // View riêng Edit.cshtml
         }
 
@@ -80,9 +114,16 @@ namespace PerfumeStore.Areas.Admin.Controllers
             if (id != coupon.CouponId) return NotFound();
 
             if (!ModelState.IsValid)
+            {
+                await PopulateCustomerOptionsAsync(coupon.CustomerId);
                 return View("Edit", coupon);
+            }
 
             coupon.Code = (coupon.Code ?? string.Empty).Trim().ToUpperInvariant();
+            if (coupon.Code.Length != 30 || !coupon.Code.All(char.IsLetterOrDigit))
+            {
+                ModelState.AddModelError(nameof(coupon.Code), "Code phải gồm 30 ký tự chữ hoa và số.");
+            }
 
             // Validate: không trùng Code với coupon khác
             var isDuplicate = await _context.Coupons
@@ -90,6 +131,7 @@ namespace PerfumeStore.Areas.Admin.Controllers
             if (isDuplicate)
             {
                 ModelState.AddModelError(nameof(coupon.Code), "Code đã tồn tại.");
+                await PopulateCustomerOptionsAsync(coupon.CustomerId);
                 return View("Edit", coupon);
             }
 
@@ -144,6 +186,13 @@ namespace PerfumeStore.Areas.Admin.Controllers
         }
 
         // --- Private helper methods ---
+        [HttpGet]
+        public async Task<IActionResult> GenerateCode()
+        {
+            var code = await GenerateUniqueCodeAsync();
+            return Json(new { code });
+        }
+
         private bool CouponExists(int id) => _context.Coupons.Any(c => c.CouponId == id);
 
         private void SetDefaultValues(Coupon coupon)
@@ -152,6 +201,55 @@ namespace PerfumeStore.Areas.Admin.Controllers
                 coupon.CreatedDate = DateTime.Now;
             if (coupon.IsUsed == null)
                 coupon.IsUsed = false;
+        }
+
+        private async Task PopulateCustomerOptionsAsync(int? selectedCustomerId = null)
+        {
+            var customers = await _context.Customers
+                .OrderBy(c => c.Name)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.CustomerId.ToString(),
+                    Text = string.IsNullOrWhiteSpace(c.Name)
+                        ? $"{c.Email ?? "Khách hàng"} ({c.Phone ?? "Chưa có SĐT"})"
+                        : $"{c.Name} - {c.Phone ?? c.Email ?? "Chưa có thông tin"}",
+                    Selected = selectedCustomerId.HasValue && c.CustomerId == selectedCustomerId
+                })
+                .ToListAsync();
+
+            customers.Insert(0, new SelectListItem
+            {
+                Value = string.Empty,
+                Text = "— Không gán khách hàng —",
+                Selected = !selectedCustomerId.HasValue
+            });
+
+            ViewBag.CustomerOptions = customers;
+        }
+
+        private async Task<string> GenerateUniqueCodeAsync(int length = 30)
+        {
+            string code;
+            do
+            {
+                code = GenerateRandomCode(length);
+            } while (await _context.Coupons.AnyAsync(c => c.Code == code));
+
+            return code;
+        }
+
+        private static string GenerateRandomCode(int length)
+        {
+            const string charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var buffer = new byte[length];
+            RandomNumberGenerator.Fill(buffer);
+            var chars = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                chars[i] = charset[buffer[i] % charset.Length];
+            }
+
+            return new string(chars);
         }
     }
 }

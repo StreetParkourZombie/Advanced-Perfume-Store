@@ -1,0 +1,171 @@
+@model PerfumeStore.Areas.Admin.Models.Warranty
+@{
+    ViewData["Title"] = "Xóa bảo hành";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary me-3">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h4 class="mb-0">
+        <i class="fas fa-trash-alt me-2 text-danger"></i>Xóa bảo hành
+    </h4>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model != null)
+{
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm border-danger">
+                <div class="card-header bg-danger text-white border-0">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Xác nhận xóa bảo hành
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Cảnh báo:</strong> Hành động này không thể hoàn tác. Tất cả yêu cầu bảo hành liên quan cũng sẽ bị xóa.
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Thông tin bảo hành sẽ bị xóa:</h6>
+                        <div class="bg-light rounded-3 p-3">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <strong><i class="fas fa-barcode me-2 text-primary"></i>Mã bảo hành:</strong>
+                                    <div class="mt-1">@Model.WarrantyCode</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong><i class="fas fa-id-badge me-2 text-info"></i>ID:</strong>
+                                    <div class="mt-1">@Model.WarrantyId</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong><i class="fas fa-calendar-alt me-2 text-success"></i>Ngày bắt đầu:</strong>
+                                    <div class="mt-1">@Model.StartDate.ToString("dd/MM/yyyy")</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong><i class="fas fa-calendar-times me-2 text-warning"></i>Ngày kết thúc:</strong>
+                                    <div class="mt-1">@Model.EndDate.ToString("dd/MM/yyyy")</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong><i class="fas fa-clock me-2 text-secondary"></i>Thời gian bảo hành:</strong>
+                                    <div class="mt-1">@Model.WarrantyPeriodMonths tháng</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong><i class="fas fa-flag me-2 text-primary"></i>Trạng thái:</strong>
+                                    <div class="mt-1">
+                                        <span class="badge bg-@(Model.Status == "Active" ? "success" : Model.Status == "Expired" ? "warning" : "secondary")">
+                                            @Model.Status
+                                        </span>
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.Notes))
+                                {
+                                    <div class="col-12 mb-3">
+                                        <strong><i class="fas fa-sticky-note me-2 text-warning"></i>Ghi chú:</strong>
+                                        <div class="mt-1">@Model.Notes</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.WarrantyClaims != null && Model.WarrantyClaims.Any())
+                    {
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-exclamation-triangle me-2 text-danger"></i>
+                                Yêu cầu bảo hành liên quan (@Model.WarrantyClaims.Count):
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Mã yêu cầu</th>
+                                            <th>Trạng thái</th>
+                                            <th>Ngày gửi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var claim in Model.WarrantyClaims)
+                                        {
+                                            <tr>
+                                                <td>@claim.ClaimCode</td>
+                                                <td>
+                                                    <span class="badge bg-@(claim.Status == "Pending" ? "warning" : claim.Status == "Processing" ? "primary" : claim.Status == "Completed" ? "success" : "danger")">
+                                                        @claim.Status
+                                                    </span>
+                                                </td>
+                                                <td>@claim.SubmittedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+
+                    <form asp-action="Delete" method="post" class="mt-4">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="WarrantyId" />
+                        
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Hủy
+                            </a>
+                            <a asp-action="Details" asp-route-id="@Model.WarrantyId" class="btn btn-outline-info">
+                                <i class="fas fa-eye me-1"></i>Xem chi tiết
+                            </a>
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa bảo hành này? Hành động này không thể hoàn tác!');">
+                                <i class="fas fa-trash-alt me-1"></i>Xóa bảo hành
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+            <h5>Không tìm thấy bảo hành</h5>
+            <p class="text-muted">Bảo hành không tồn tại hoặc đã bị xóa.</p>
+            <a asp-action="Index" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+        </div>
+    </div>
+}
+
+<style>
+.card {
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.border-danger {
+    border: 2px solid #dc3545 !important;
+}
+
+@@media (max-width: 768px) {
+    .col-lg-8 {
+        padding: 0 15px;
+    }
+}
+</style>
+

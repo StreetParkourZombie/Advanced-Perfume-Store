@@ -193,6 +193,53 @@ namespace PerfumeStore.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Vouchers()
+        {
+            ViewData["Title"] = "Voucher của tôi";
+
+            var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(customerIdClaim) || !int.TryParse(customerIdClaim, out var customerId))
+            {
+                TempData["AlertMessage"] = "Không xác định được tài khoản.";
+                TempData["AlertType"] = "danger";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var now = DateTime.Now;
+
+            var personalCoupons = await _db.Coupons
+                .Where(c => c.CustomerId == customerId)
+                .OrderBy(c => c.IsUsed ?? false)
+                .ThenBy(c => c.ExpiryDate)
+                .Select(c => new CustomerVoucherVM.CouponItem
+                {
+                    CouponId = c.CouponId,
+                    Code = c.Code ?? string.Empty,
+                    DiscountAmount = c.DiscountAmount,
+                    CreatedDate = c.CreatedDate,
+                    ExpiryDate = c.ExpiryDate,
+                    IsUsed = c.IsUsed ?? false,
+                    UsedDate = c.UsedDate,
+                    IsExpired = c.ExpiryDate.HasValue && c.ExpiryDate.Value.Date < now.Date,
+                    IsAssignedToCustomer = true
+                })
+                .ToListAsync();
+
+            var model = new CustomerVoucherVM
+            {
+                PersonalCoupons = personalCoupons
+            };
+
+            if (TempData.ContainsKey("AlertMessage"))
+            {
+                ViewBag.AlertMessage = TempData["AlertMessage"]?.ToString();
+                ViewBag.AlertType = TempData["AlertType"]?.ToString() ?? "success";
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> OrderDetail(int id)
         {
             ViewData["Title"] = "Chi tiết đơn hàng";

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PerfumeStore.Models;
 using PerfumeStore.Areas.Admin.Filters;
+using PerfumeStore.Areas.Admin.Services;
 
 namespace PerfumeStore.Areas.Admin.Controllers
 {
@@ -11,24 +12,28 @@ namespace PerfumeStore.Areas.Admin.Controllers
     {
         private readonly PerfumeStoreContext _db;
         private readonly ILogger<RoleManagementController> _logger;
+        private readonly IPaginationService _paginationService;
 
-        public RoleManagementController(PerfumeStoreContext db, ILogger<RoleManagementController> logger)
+        public RoleManagementController(PerfumeStoreContext db, ILogger<RoleManagementController> logger, IPaginationService paginationService)
         {
             _db = db;
             _logger = logger;
+            _paginationService = paginationService;
         }
 
         // Danh sách roles
         [RequirePermission("View Roles")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var roles = await _db.Roles
+            var rolesQuery = _db.Roles
                 .Include(r => r.Permissions)
                 .Include(r => r.Admins)
                 .OrderBy(r => r.RoleName)
-                .ToListAsync();
+                .AsQueryable();
 
-            return View(roles);
+            var pagedResult = await _paginationService.PaginateAsync(rolesQuery, page, 10);
+
+            return View(pagedResult);
         }
 
         // Tạo role mới

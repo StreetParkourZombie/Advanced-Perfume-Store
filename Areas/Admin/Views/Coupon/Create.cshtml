@@ -19,19 +19,32 @@
 
                     <div class="mb-3">
                         <label asp-for="Code" class="form-label fw-semibold"></label>
-                        <input asp-for="Code" class="form-control" placeholder="Nhập code coupon" />
+                        <div class="input-group">
+                            <input asp-for="Code" class="form-control" placeholder="Nhập code coupon" maxlength="30" minlength="30" />
+                            <button class="btn btn-outline-secondary" type="button" id="btnGenerateCode">
+                                <i class="bi bi-magic"></i> Tạo mã
+                            </button>
+                        </div>
+                        <div class="form-text">Mã gồm 30 ký tự chữ hoa và số. Bạn có thể tự nhập hoặc bấm "Tạo mã".</div>
                         <span asp-validation-for="Code" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="DiscountAmount" class="form-label fw-semibold"></label>
-                        <input asp-for="DiscountAmount" type="number" min="0" max="9999999.99" step="0.01" class="form-control" placeholder="Nhập số tiền giảm" />
+                        <input asp-for="DiscountAmount" type="number" min="0.01" max="9999999.99" step="0.01" class="form-control" placeholder="Nhập số tiền giảm" required />
                         <span asp-validation-for="DiscountAmount" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
+                        <label for="CustomerId" class="form-label fw-semibold">Gán cho khách hàng</label>
+                        <select asp-for="CustomerId" class="form-select" asp-items="ViewBag.CustomerOptions"></select>
+                        <div class="form-text">Tùy chọn: chọn khách hàng sở hữu coupon này, hoặc để trống nếu là coupon dùng chung.</div>
+                        <span asp-validation-for="CustomerId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
                         <label asp-for="ExpiryDate" class="form-label fw-semibold"></label>
-                        <input asp-for="ExpiryDate" type="date" class="form-control" />
+                        <input asp-for="ExpiryDate" type="date" class="form-control" required />
                         <span asp-validation-for="ExpiryDate" class="text-danger"></span>
                     </div>
 
@@ -51,4 +64,37 @@
 </div>
 
 @section Scripts {
+    <script>
+        (() => {
+            const btn = document.getElementById('btnGenerateCode');
+            const input = document.getElementById('Code');
+            if (!btn || !input) {
+                return;
+            }
+
+            const originalLabel = btn.innerHTML;
+            btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Đang tạo';
+
+                try {
+                    const response = await fetch('@Url.Action("GenerateCode", "Coupon", new { area = "Admin" })');
+                    if (!response.ok) {
+                        throw new Error('Request failed');
+                    }
+                    const data = await response.json();
+                    if (data?.code) {
+                        input.value = data.code;
+                        input.dispatchEvent(new Event('input'));
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Không thể tạo mã. Vui lòng thử lại.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalLabel;
+                }
+            });
+        })();
+    </script>
 }

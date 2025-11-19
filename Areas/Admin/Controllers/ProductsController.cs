@@ -13,20 +13,26 @@ namespace PerfumeStore.Areas.Admin.Controllers
     {
         private readonly PerfumeStoreContext _db;
         private readonly DBQueryService.IDbQueryService _queryService;
+        private readonly IPaginationService _paginationService;
 
-        public ProductsController(PerfumeStoreContext db, DBQueryService.IDbQueryService queryService)
+        public ProductsController(PerfumeStoreContext db, DBQueryService.IDbQueryService queryService, IPaginationService paginationService)
         {
             _db = db;
             _queryService = queryService;
+            _paginationService = paginationService;
         }
 
         [RequirePermission("View Products")]
-        public async Task<IActionResult> Index(int? categoryId, string searchName)
+        public async Task<IActionResult> Index(int? categoryId, string searchName, int page = 1)
         {
             var items = await _queryService.GetProductsByCategory(categoryId, searchName);
+            var pagedResult = _paginationService.Paginate(items, page, 10);
+            
             ViewBag.Categories = await _queryService.GetCategoriesOrderedByNameAsync();
             ViewBag.SearchName = searchName;
-            return View(items);
+            ViewBag.CategoryId = categoryId;
+            
+            return View(pagedResult);
         }
 
         [RequirePermission("Create Product")]

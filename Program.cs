@@ -65,6 +65,12 @@ namespace PerfumeStore
 			
 			// Đăng ký dịch vụ OrderService
 			builder.Services.AddScoped<Services.IOrderService, Services.OrderService>();
+			
+			// Đăng ký dịch vụ WarrantyService
+			builder.Services.AddScoped<Areas.Admin.Services.IWarrantyService, Areas.Admin.Services.WarrantyService>();
+			
+			// Đăng ký dịch vụ PaginationService
+			builder.Services.AddScoped<Areas.Admin.Services.IPaginationService, Areas.Admin.Services.PaginationService>();
 
             IConfiguration configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
